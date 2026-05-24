@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QCM — Annales</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- POLYFILL MOBILE POUR LE GLISSER-DÉPOSER TACTILE -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+  <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+  <script>
+    window.addEventListener('touchmove', function() {}, {passive: false});
+    MobileDragDrop.polyfill({
+       dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride
+    });
+  </script>
+
+<style>
+.mode-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--bg-2);
+  flex: 1;
+}
+.mode-card:hover { border-color: var(--border-2); }
+.mode-card.active { border-color: var(--yellow); background: var(--yellow-dim); }
+.mode-card h3 { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.mode-card p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.mode-card .mode-icon { font-size: 20px; margin-bottom: 8px; }
+
+.exam-correction-item {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.exam-correction-item .q-num { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.exam-correction-item .q-text-sm { font-size: 15px; color: var(--text); margin-bottom: 1rem; font-weight: 300; line-height: 1.5; }
+.exam-opt { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: var(--radius); margin-bottom: 6px; font-size: 13px; }
+.exam-opt.correct { background: var(--green-bg); color: var(--green-text); }
+.exam-opt.wrong { background: var(--red-bg); color: var(--red-text); }
+.exam-opt.missed { background: var(--yellow-dim); color: var(--yellow-text); }
+.exam-opt.neutral { color: var(--text-2); }
+.exam-score-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.exam-score-badge.full { background: var(--green-bg); color: var(--green-text); }
+.exam-score-badge.partial { background: #1a1200; color: var(--amber-text); }
+.exam-score-badge.zero { background: var(--red-bg); color: var(--red-text); }
+</style>
+<script>
+(function() {
+  const s = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
+  if (!s.accentColor && !s.theme) return;
+  const r = document.documentElement;
+  const c = s.accentColor || '#e8ff00';
+  const t = s.theme || 'dark';
+  function hexToRgba(hex, a) {
+    const rv = parseInt(hex.slice(1,3),16), gv = parseInt(hex.slice(3,5),16), bv = parseInt(hex.slice(5,7),16);
+    return 'rgba('+rv+','+gv+','+bv+','+a+')';
+  }
+  r.style.setProperty('--yellow', c);
+  r.style.setProperty('--yellow-dim', hexToRgba(c, 0.08));
+  r.style.setProperty('--yellow-text', c);
+  r.style.setProperty('--accent-color', c);
+  if (t === 'light') {
+    r.style.setProperty('--bg','#f8f8f5'); r.style.setProperty('--bg-2','#ffffff');
+    r.style.setProperty('--bg-3','#f0f0eb'); r.style.setProperty('--border','#e0e0db');
+    r.style.setProperty('--border-2','#c8c8c0'); r.style.setProperty('--text','#1a1a18');
+    r.style.setProperty('--text-2','#5a5a52'); r.style.setProperty('--text-3','#9a9a90');
+  } else {
+    r.style.setProperty('--bg','#0d0d0d'); r.style.setProperty('--bg-2','#161616');
+    r.style.setProperty('--bg-3','#1e1e1e'); r.style.setProperty('--border','#2a2a2a');
+    r.style.setProperty('--border-2','#3a3a3a'); r.style.setProperty('--text','#f0f0ee');
+    r.style.setProperty('--text-2','#a0a09a'); r.style.setProperty('--text-3','#606060');
+  }
+})();
+</script>
+</head>
+<body>
+
+<header class="quiz-header">
+  <div class="container">
+    <a href="index.html" class="back-link">← Accueil</a>
+    <div class="logo">QCM<span>Annales</span></div>
+    <div id="header-info" style="font-size:13px; color:var(--text-3);"></div>
+  </div>
+</header>
+
+<!-- SCREEN: SÉLECTION -->
+<div class="screen active" id="screen-home">
+  <div class="container" style="padding-top:2.5rem; padding-bottom:3rem;">
+    <div style="margin-bottom:2.5rem;">
+      <h1 style="font-size:2rem; margin-bottom:0.5rem;">Session de révision</h1>
+      <p style="color:var(--text-2); font-size:14px;">Configure ta session et lance le quiz.</p>
+    </div>
+
+    <div style="margin-bottom:2rem;">
+      <div class="section-title">Mode</div>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <div class="mode-card active" id="mode-entrainement" onclick="setMode('entrainement')">
+          <div class="mode-icon">📖</div>
+          <h3>Entraînement</h3>
+          <p>Correction après chaque question. Idéal pour apprendre.</p>
+        </div>
+        <div class="mode-card" id="mode-examen" onclick="setMode('examen')">
+          <div class="mode-icon">⏱</div>
+          <h3>Examen</h3>
+          <p>Toutes les questions d'un coup, correction globale à la fin.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:2rem;">
+      <div class="section-title">Chapitres</div>
+      <div class="tags-wrap" id="tags-container"></div>
+    </div>
+
+    <div style="margin-bottom:2rem;">
+      <div class="section-title">Type de questions</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="tag-chip active" id="filter-all" onclick="setTypeFilter('all')">Tout</button>
+        <button class="tag-chip" id="filter-qcm" onclick="setTypeFilter('qcm')">QCM uniquement</button>
+        <button class="tag-chip" id="filter-qroc" onclick="setTypeFilter('qroc')">QROC uniquement</button>
+      </div>
+    </div>
+
+    <div class="count-block">
+      <div class="section-title">Nombre de questions</div>
+      <div class="count-row">
+        <input type="range" id="count-slider" min="1" max="20" value="10" step="1">
+        <div class="count-num"><span id="count-val">10</span> questions</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-start" style="width:100%; padding:14px; font-size:16px; margin-top:0.5rem; border:none; cursor:pointer;">Lancer la session →</button>
+  </div>
+</div>
+
+<!-- SCREEN: QUIZ ENTRAÎNEMENT -->
+<div class="screen" id="screen-quiz">
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div style="display:flex;">
+    <!-- CONTENU -->
+    <div style="flex:1; min-width:0;">
+      <div class="container">
+        <div class="quiz-meta">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <button onclick="toggleSidePanel()" style="background:none; border:1px solid var(--border); color:var(--text-2); padding:4px 10px; border-radius:var(--radius); font-size:12px; cursor:pointer; font-family:var(--font-body);">☰</button>
+            <span id="q-counter">Question 1 / 10</span>
+          </div>
+          <span id="score-live">—</span>
+        </div>
+        <div class="q-tag" id="q-tag"></div>
+        <div class="q-type-badge" id="q-type-badge"></div>
+        <div class="q-text" id="q-text"></div>
+        <div id="q-image-wrap" style="margin-bottom:1rem; display:none;">
+          <img id="q-image" style="max-width:100%; max-height:300px; border-radius:8px; border:1px solid var(--border);">
+        </div>
+        <div id="q-qcm-block">
+          <div class="q-note" id="q-note"></div>
+          <div class="options-list" id="q-options"></div>
+        </div>
+        <div id="q-qroc-block" style="display:none;">
+          <div class="q-note">Tape ta réponse ci-dessous</div>
+          <textarea id="qroc-input" rows="3" placeholder="Ta réponse…" style="width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:6px; font-family:var(--font-body); font-size:14px; color:var(--text); background:var(--bg-2); resize:vertical; margin-bottom:1rem;"></textarea>
+        </div>
+        <div id="q-qzone-block" style="display:none;">
+          <div class="q-note" style="margin-bottom:1rem;">Glisse chaque étiquette sur la bonne zone</div>
+          <div style="display:flex; gap:1.5rem; align-items:flex-start; flex-wrap:wrap; margin-bottom:1.5rem;">
+            <div id="qzone-img-container" style="flex:2; min-width:280px;"></div>
+            <div style="flex:1; min-width:150px;">
+              <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.75rem;">Étiquettes</div>
+              <div id="qzone-play-tags" style="display:flex; flex-direction:column; gap:8px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="correction" id="correction"></div>
+        <div class="action-row">
+          <div style="display:flex; gap:8px;">
+            <button class="btn-next" id="btn-prev" onclick="prevQ()" style="display:none;">← Préc.</button>
+            <button class="btn-next" id="btn-skip" onclick="skipQ()">Passer →</button>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-validate" id="btn-validate" onclick="validateQ()">Valider</button>
+            <button class="btn-next" id="btn-next" onclick="nextQ()" style="display:none;">Suivante →</button>
+          </div>
+        </div>
+        <div style="text-align:center; padding:1rem 0 2rem;">
+          <button id="btn-finish" onclick="showResults()" style="display:none; background:none; border:none; color:var(--text-3); font-size:13px; cursor:pointer; font-family:var(--font-body); text-decoration:underline; text-underline-offset:3px;">Terminer la session</button>
+        </div>
+      </div>
+    </div>
+    <!-- PANNEAU LATÉRAL DROITE -->
+    <div id="side-panel" style="width:240px; flex-shrink:0; border-left:1px solid var(--border); padding:1.25rem; overflow-y:auto; max-height:calc(100vh - 50px); position:sticky; top:50px; display:none;">
+      <div style="font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem;">Navigation</div>
+      <div id="side-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: QUIZ EXAMEN -->
+<div class="screen" id="screen-exam">
+  <div style="display:flex;">
+    <!-- QUESTIONS EN BANDE -->
+    <div style="flex:1; min-width:0;">
+      <div class="container" style="padding-top:2rem; padding-bottom:3rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+          <div>
+            <h2 style="font-size:1.5rem; font-weight:400; margin-bottom:4px;" id="exam-title">Examen — 10 questions</h2>
+            <p style="font-size:13px; color:var(--text-3);">Réponds à toutes les questions puis clique sur Terminer.</p>
+          </div>
+          <button class="btn-validate" onclick="examFinish()">Terminer l'examen →</button>
+        </div>
+        <div id="exam-questions-list"></div>
+        <div style="text-align:center; margin-top:2rem;">
+          <button class="btn-validate" onclick="examFinish()" style="padding:13px 40px; font-size:16px;">Terminer l'examen →</button>
+        </div>
+      </div>
+    </div>
+    <!-- PANNEAU LATÉRAL DROITE -->
+    <div id="exam-side-panel" style="width:240px; flex-shrink:0; border-left:1px solid var(--border); padding:1.25rem; overflow-y:auto; max-height:calc(100vh - 50px); position:sticky; top:50px;">
+      <div style="font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem;">Navigation</div>
+      <div id="exam-side-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN: RÉSULTATS -->
+<div class="screen" id="screen-results">
+  <div class="container results-block">
+    <div class="score-display">
+      <div class="big-score" id="res-big">0/20</div>
+      <div class="score-label" id="res-label"></div>
+      <div class="score-msg" id="res-msg"></div>
+    </div>
+
+    <!-- Correction examen -->
+    <div id="exam-correction-block" style="display:none;">
+      <div class="section-title" style="margin-bottom:1rem;">Correction détaillée</div>
+      <div id="exam-correction-list"></div>
+    </div>
+
+    <!-- Récap entraînement -->
+    <div id="train-results-block">
+      <div class="section-title">Détail des réponses</div>
+      <table class="results-table">
+        <thead><tr><th></th><th>Question</th><th style="text-align:right;">Points</th></tr></thead>
+        <tbody id="results-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="results-actions">
+      <button class="btn-validate" onclick="restart()">Rejouer</button>
+      <button class="btn-next" style="display:inline-block;" onclick="goHome()">Nouvelle sélection</button>
+      <a href="historique.html" class="btn-next" style="display:inline-block; text-decoration:none;">Voir l'historique</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const LETTERS = ['A','B','C','D','E'];
+let questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
+let history = JSON.parse(localStorage.getItem('qcm_history') || '[]');
+let selectedTags = [];
+let typeFilter = 'all';
+let currentMode = 'entrainement';
+let session = {};
+
+function saveHistory() { localStorage.setItem('qcm_history', JSON.stringify(history)); }
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.getElementById('header-info').textContent = '';
+}
+function goHome() { show('home'); renderHome(); }
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('mode-entrainement').classList.toggle('active', mode === 'entrainement');
+  document.getElementById('mode-examen').classList.toggle('active', mode === 'examen');
+}
+
+function setTypeFilter(type) {
+  typeFilter = type;
+  ['all','qcm','qroc'].forEach(t => document.getElementById('filter-' + t).classList.toggle('active', t === type));
+  updateSlider();
+}
+
+function renderHome() {
+  const tags = [...new Set(questions.map(q => q.tag).filter(Boolean))];
+  const container = document.getElementById('tags-container');
+  container.innerHTML = '';
+  if (!tags.length) {
+    container.innerHTML = '<span style="font-size:13px;color:var(--text-3);">Aucune question — <a href="ajouter.html" style="color:var(--text-2);">ajoute-en ici</a>.</span>';
+    document.getElementById('btn-start').disabled = true;
+    return;
+  }
+  const allBtn = mkTag('Tous les chapitres', selectedTags.length === 0);
+  allBtn.onclick = () => { selectedTags = []; renderHome(); };
+  container.appendChild(allBtn);
+  tags.forEach(tag => {
+    const btn = mkTag(tag, selectedTags.includes(tag));
+    btn.onclick = () => {
+      selectedTags = selectedTags.includes(tag) ? selectedTags.filter(t => t !== tag) : [...selectedTags, tag];
+      if (!selectedTags.length || selectedTags.length === tags.length) selectedTags = [];
+      renderHome();
+    };
+    container.appendChild(btn);
+  });
+  updateSlider();
+}
+
+function mkTag(text, active) {
+  const btn = document.createElement('button');
+  btn.className = 'tag-chip' + (active ? ' active' : '');
+  btn.textContent = text;
+  return btn;
+}
+
+function getPool() {
+  let pool = !selectedTags.length ? questions : questions.filter(q => selectedTags.includes(q.tag));
+  if (typeFilter === 'qcm') pool = pool.filter(q => !q.type || q.type === 'qcm');
+  if (typeFilter === 'qroc') pool = pool.filter(q => q.type === 'qroc');
+  return pool;
+}
+
+function updateSlider() {
+  const pool = getPool();
+  const max = Math.max(1, pool.length);
+  const slider = document.getElementById('count-slider');
+  slider.max = max;
+  if (parseInt(slider.value) > max) slider.value = max;
+  document.getElementById('count-val').textContent = slider.value;
+  document.getElementById('btn-start').disabled = pool.length === 0;
+}
+
+document.getElementById('count-slider').oninput = function() {
+  document.getElementById('count-val').textContent = this.value;
+};
+
+document.getElementById('btn-start').onclick = function() {
+  const count = parseInt(document.getElementById('count-slider').value);
+  const pool = shuffle([...getPool()]).slice(0, count);
+  session = {
+    questions: pool,
+    current: 0,
+    answers: pool.map(() => null),
+    scoreTotal: 0,
+    scorePoints: [],
+    validated: false,
+    validatedArr: pool.map(() => false),
+    lastTags: [...selectedTags],
+    lastType: typeFilter,
+    mode: currentMode
+  };
+  if (currentMode === 'examen') {
+    show('exam');
+    renderExamAll();
+  } else {
+    show('quiz');
+    renderQ();
+  }
+};
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ─── CALCUL SCORE ───
+function calcScore(correct, userAns) {
+  let errors = 0;
+  userAns.forEach(a => { if (!correct.includes(a)) errors++; });
+  correct.forEach(c => { if (!userAns.includes(c)) errors++; });
+  if (errors === 0) return 1;
+  if (errors === 1) return 0.5;
+  if (errors === 2) return 0.2;
+  return 0;
+}
+
+// ─── QZONE ───
+const QZONE_COLORS = [
+  {stroke:'#e8ff00',fill:'rgba(232,255,0,0.3)',text:'#0d0d0d'},
+  {stroke:'#6fcf97',fill:'rgba(111,207,151,0.3)',text:'#0d0d0d'},
+  {stroke:'#64b4ff',fill:'rgba(100,180,255,0.3)',text:'#0d0d0d'},
+  {stroke:'#ff9650',fill:'rgba(255,150,80,0.3)',text:'#0d0d0d'},
+  {stroke:'#dc64dc',fill:'rgba(220,100,220,0.3)',text:'#fff'},
+  {stroke:'#ff6464',fill:'rgba(255,100,100,0.3)',text:'#fff'},
+];
+let qzoneCurrentQ = null;
+let qzonePlacedAnswers = {}; // gi -> name
+
+function getGroups(q) {
+  // Support both old (markers) and new (groups) format
+  if (q.groups) return q.groups;
+  if (q.markers) return q.markers.map(m => ({ name: m.name, points: [{ x: m.x, y: m.y, r: m.r || 20 }] }));
+  return [];
+}
+
+function renderQzone(q) {
+  qzoneCurrentQ = q;
+  qzonePlacedAnswers = {};
+  const groups = getGroups(q);
+
+  // Build image container
+  const wrap = document.getElementById('qzone-img-container');
+  wrap.innerHTML = '';
+  wrap.style.cssText = 'position:relative; display:inline-block; max-width:100%;';
+
+  const img = document.createElement('img');
+  img.style.cssText = 'display:block; max-width:100%; max-height:500px; border-radius:8px; border:1px solid var(--border); user-select:none;';
+  wrap.appendChild(img);
+
+  const canvas = document.createElement('canvas');
+  canvas.id = 'qzone-overlay';
+  canvas.style.cssText = 'position:absolute; top:0; left:0; pointer-events:none;';
+  wrap.appendChild(canvas);
+
+  const dropOverlay = document.createElement('div');
+  dropOverlay.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; touch-action:none;';
+  dropOverlay.ondragover = e => e.preventDefault();
+  // Store exact drop positions for canvas drawing
+  window.qzoneDropPos = {};
+
+  dropOverlay.ondrop = e => {
+    e.preventDefault();
+    const name = e.dataTransfer.getData('text');
+    if (!name) return;
+    const rect = dropOverlay.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / rect.width;
+    const my = (e.clientY - rect.top) / rect.height;
+    // Find which group this name belongs to
+    let nameGi = null;
+    groups.forEach((g, gi) => { if (g.name === name) nameGi = gi; });
+    if (nameGi === null) return;
+    // Remove old placement of this name
+    Object.keys(qzonePlacedAnswers).forEach(k => { if (qzonePlacedAnswers[k] === name) { delete qzonePlacedAnswers[k]; delete window.qzoneDropPos[k]; } });
+    qzonePlacedAnswers[nameGi] = name;
+    window.qzoneDropPos[nameGi] = { x: mx, y: my };
+    updateTagsPlaced(groups);
+    drawQzoneLive(groups, canvas);
+  };
+  wrap.appendChild(dropOverlay);
+
+  // LA MAGIE RESPONSIVE EST ICI : ResizeObserver
+  img.onload = function() {
+    const ro = new ResizeObserver(() => {
+      canvas.width = img.offsetWidth;
+      canvas.height = img.offsetHeight;
+      canvas.style.width = img.offsetWidth + 'px';
+      canvas.style.height = img.offsetHeight + 'px';
+      // Redessine au bon endroit au pixel près à chaque redimensionnement
+      if (session.validated) {
+        drawQzoneOverlay(groups, true);
+      } else {
+        drawQzoneLive(groups, canvas);
+      }
+    });
+    ro.observe(img);
+  };
+  img.src = q.image;
+
+  // Build tags - shuffled, always visible
+  const tagsEl = document.getElementById('qzone-play-tags');
+  tagsEl.innerHTML = '';
+  const shuffled = [...groups].sort(() => Math.random() - 0.5);
+  shuffled.forEach(g => {
+    const origIdx = groups.indexOf(g);
+    const c = QZONE_COLORS[origIdx % QZONE_COLORS.length];
+    const tag = document.createElement('div');
+    tag.className = 'qzone-tag';
+    tag.style.borderColor = c.stroke;
+    tag.style.borderLeftWidth = '4px';
+    tag.style.touchAction = 'none'; // Empêche le défilement sur mobile pendant le glissement
+    tag.id = 'qtag-' + origIdx;
+    tag.innerHTML = '<svg width="13" height="17" viewBox="0 0 13 17" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><polygon points="1,1 1,14 4,10 6.5,16 8.5,15.2 6,9.5 10,9.5" fill="#e8ff00" stroke="#000" stroke-width="1" stroke-linejoin="round"/></svg><span style="flex:1;">' + g.name + '</span>';
+    tag.draggable = true;
+    tag.dataset.name = g.name;
+    tag.ondragstart = e => {
+      // Clear old placement from both dictionaries
+      Object.keys(qzonePlacedAnswers).forEach(k => {
+        if (qzonePlacedAnswers[k] === g.name) {
+          delete qzonePlacedAnswers[k];
+          if (window.qzoneDropPos) delete window.qzoneDropPos[k];
+        }
+      });
+      tag.style.borderStyle = 'solid';
+      tag.style.borderColor = c.stroke;
+      e.dataTransfer.setData('text', g.name);
+      // Redraw to remove old label from canvas
+      const cv = document.getElementById('qzone-overlay');
+      if (cv) drawQzoneLive(groups, cv);
+    };
+    tagsEl.appendChild(tag);
+  });
+}
+
+
+function drawQzoneLive(groups, canvas) {
+  if (!canvas || !canvas.width) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const W = canvas.width, H = canvas.height;
+  Object.keys(window.qzoneDropPos || {}).forEach(gi => {
+    const pos = window.qzoneDropPos[gi];
+    const name = qzonePlacedAnswers[gi];
+    const c = QZONE_COLORS[parseInt(gi) % QZONE_COLORS.length];
+    if (!pos || !name) return;
+    const cx = pos.x * W, cy = pos.y * H;
+    // Draw pin dot
+    ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI*2);
+    ctx.fillStyle = c.stroke; ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
+    // Draw label bubble
+    ctx.font = 'bold 12px sans-serif';
+    const tw = ctx.measureText(name).width;
+    const bx = cx + 10, by = cy - 8;
+    const bw = tw + 12, bh = 22;
+    // Background
+    ctx.fillStyle = c.stroke;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(bx, by - bh/2, bw, bh, 4);
+    else ctx.rect(bx, by - bh/2, bw, bh);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1; ctx.stroke();
+    // Text
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(name, bx + 6, by);
+  });
+}
+
+function updateTagsPlaced(groups) {
+  groups.forEach((g, gi) => {
+    const tagEl = document.getElementById('qtag-' + gi);
+    if (!tagEl) return;
+    if (qzonePlacedAnswers[gi] !== undefined) {
+      tagEl.style.borderStyle = 'dashed';
+    } else {
+      tagEl.style.borderStyle = 'solid';
+    }
+  });
+}
+
+function drawQzoneOverlay(groups, showCorrection) {
+  const canvas = document.getElementById('qzone-overlay');
+  if (!canvas || !canvas.width) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!showCorrection) return; // Image stays clean before validation // Nothing shown before validation
+  const W = canvas.width, H = canvas.height;
+  groups.forEach((g, gi) => {
+    const placed = qzonePlacedAnswers[gi];
+    const isCorrect = placed === g.name;
+    const corrColor = isCorrect ? '#6fcf97' : '#ff6464';
+    const corrFill = isCorrect ? 'rgba(111,207,151,0.35)' : 'rgba(255,100,100,0.35)';
+    g.points.forEach(p => {
+      const cx = p.x * W, cy = p.y * H, r = Math.max(18, p.r || 20);
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.fillStyle = corrFill; ctx.fill();
+      ctx.strokeStyle = corrColor; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.fillStyle = corrColor; ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(isCorrect ? '✓' : '✗', cx, cy);
+      if (!isCorrect) {
+        // Show expected name below
+        ctx.fillStyle = '#ff6464'; ctx.font = '9px sans-serif';
+        ctx.fillText(g.name.substring(0,10), cx, cy + r + 8);
+      }
+    });
+  });
+}
+
+
+function scoreQzone(q) {
+  const groups = getGroups(q);
+  let correct = 0;
+  document.querySelectorAll('#qzone-play-tags .qzone-tag').forEach(t => { t.draggable=false; t.style.cursor='default'; t.style.opacity='1'; });
+
+  const canvas = document.getElementById('qzone-overlay');
+  const W = canvas ? canvas.width : 500;
+  const H = canvas ? canvas.height : 500;
+
+  groups.forEach((g, gi) => {
+    const given = qzonePlacedAnswers[gi] || '';
+    const dropPos = window.qzoneDropPos ? window.qzoneDropPos[gi] : null;
+    if (!given || !dropPos) return;
+    // Tag must match correct group AND drop position must be within marker radius
+    if (given !== g.name) return;
+    let withinRadius = false;
+    g.points.forEach(p => {
+      const r = Math.max(18, p.r || 20);
+      const rNorm = r / W;
+      const dx = p.x - dropPos.x;
+      const dy = p.y - dropPos.y;
+      if (Math.sqrt(dx*dx + dy*dy) <= rNorm * 1.8) withinRadius = true;
+    });
+    if (withinRadius) correct++;
+  });
+
+  drawQzoneOverlay(groups, true);
+  groups.forEach((g, gi) => {
+    const tagEl = document.getElementById('qtag-' + gi);
+    if (!tagEl) return;
+    const given = qzonePlacedAnswers[gi] || '';
+    const dropPos = window.qzoneDropPos ? window.qzoneDropPos[gi] : null;
+    let isCorrect = false;
+    if (given === g.name && dropPos) {
+      g.points.forEach(p => {
+        const r = Math.max(18, p.r || 20);
+        const rNorm = r / W;
+        const dx = p.x - dropPos.x, dy = p.y - dropPos.y;
+        if (Math.sqrt(dx*dx + dy*dy) <= rNorm * 1.8) isCorrect = true;
+      });
+    }
+    tagEl.style.borderColor = isCorrect ? '#6fcf97' : '#ff6464';
+    tagEl.style.borderStyle = 'solid';
+    tagEl.style.opacity = '1';
+  });
+
+  const total = groups.length;
+  const errors = total - correct;
+  if (errors === 0) return 1;
+  if (errors <= Math.ceil(total * 0.25)) return 0.5;
+  if (errors <= Math.ceil(total * 0.5)) return 0.2;
+  return 0;
+}
+
+// ─── MODE ENTRAÎNEMENT ───
+function renderQ() {
+  const q = session.questions[session.current];
+  const total = session.questions.length;
+  document.getElementById('q-counter').textContent = `Question ${session.current + 1} / ${total}`;
+  document.getElementById('header-info').textContent = `${session.current + 1} / ${total}`;
+  document.getElementById('progress-fill').style.width = `${(session.current / total) * 100}%`;
+  document.getElementById('q-tag').textContent = q.tag || '';
+  document.getElementById('q-text').textContent = q.question;
+  const badge = document.getElementById('q-type-badge');
+  badge.textContent = q.type === 'qroc' ? 'QROC — Réponse courte' : '';
+  const imgWrap = document.getElementById('q-image-wrap');
+  if (q.image) { document.getElementById('q-image').src = q.image; imgWrap.style.display = 'block'; }
+  else imgWrap.style.display = 'none';
+  const corr = document.getElementById('correction');
+  corr.className = 'correction'; corr.innerHTML = '';
+  const isQroc = q.type === 'qroc';
+  const isQru = q.type === 'qru';
+  const isQzone = q.type === 'qzone';
+  document.getElementById('q-qcm-block').style.display = (!isQroc && !isQzone) ? 'block' : 'none';
+  document.getElementById('q-qroc-block').style.display = isQroc ? 'block' : 'none';
+  document.getElementById('q-qzone-block').style.display = isQzone ? 'block' : 'none';
+  const noteEl = document.getElementById('q-note');
+  if (noteEl) noteEl.textContent = isQru ? 'Une seule réponse exacte' : '';
+  if (isQroc) { document.getElementById('qroc-input').value = ''; document.getElementById('qroc-input').disabled = false; }
+  else if (isQzone) { renderQzone(q); session.answers[session.current] = {}; }
+  else {
+    const optList = document.getElementById('q-options');
+    optList.innerHTML = '';
+    q.options.forEach((opt, i) => {
+      const div = document.createElement('div');
+      div.className = 'option-item'; div.dataset.i = i;
+      const letterStyle = isQru ? '' : 'border-radius:6px;';
+      div.innerHTML = `<div class="opt-letter" style="${letterStyle}">${LETTERS[i]}</div><div class="opt-text">${opt}</div>`;
+      div.onclick = () => toggleOpt(i, div, isQru);
+      optList.appendChild(div);
+    });
+    session.answers[session.current] = [];
+  }
+  document.getElementById('btn-validate').style.display = 'inline-block';
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('btn-skip').style.display = 'inline-block';
+  document.getElementById('btn-prev').style.display = session.current > 0 ? 'inline-block' : 'none';
+  document.getElementById('btn-finish').style.display = session.validatedArr.some(Boolean) ? 'block' : 'none';
+  session.validated = false;
+  updateSidePanel();
+  updateScoreLive();
+}
+
+function toggleOpt(i, el, isQru) {
+  if (session.validated) return;
+  const ans = session.answers[session.current];
+  if (isQru) {
+    // Deselect all others first
+    document.querySelectorAll('#q-options .option-item').forEach(opt => opt.classList.remove('selected'));
+    session.answers[session.current] = [i];
+    el.classList.add('selected');
+  } else {
+    if (ans.includes(i)) { session.answers[session.current] = ans.filter(a => a !== i); el.classList.remove('selected'); }
+    else { session.answers[session.current].push(i); el.classList.add('selected'); }
+  }
+}
+
+function validateQ() {
+  if (session.validated) return;
+  session.validated = true;
+  const q = session.questions[session.current];
+  const corrDiv = document.getElementById('correction');
+  if (q.type === 'qzone') {
+    const pts = scoreQzone(q);
+    session.scoreTotal += pts;
+    session.scorePoints[session.current] = pts;
+    session.validatedArr[session.current] = true;
+    const corrDiv = document.getElementById('correction');
+    const ptsLabel = pts===1?'<span style="color:var(--green-text);font-weight:500;">+1 pt — Parfait !</span>':pts===0.5?'<span style="color:var(--amber-text);font-weight:500;">+0,5 pt</span>':pts===0.2?'<span style="color:var(--amber-text);font-weight:500;">+0,2 pt</span>':'<span style="color:var(--red-text);font-weight:500;">+0 pt</span>';
+    corrDiv.innerHTML = ptsLabel + (q.explanation ? '<br>' + q.explanation : '');
+    corrDiv.classList.add('show');
+    document.getElementById('btn-validate').style.display = 'none';
+    document.getElementById('btn-skip').style.display = 'none';
+    showNextBtn(); updateSidePanel(); updateScoreLive();
+    return;
+  } else if (q.type === 'qroc') {
+    const userAnswer = document.getElementById('qroc-input').value.trim();
+    session.answers[session.current] = userAnswer;
+    document.getElementById('qroc-input').disabled = true;
+    corrDiv.innerHTML = `<strong>Réponse attendue : ${q.answer}</strong>${q.explanation ? '<br>' + q.explanation : ''}`;
+    corrDiv.innerHTML += `<div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+      <span style="font-size:13px; color:var(--text-2);">Tu avais bon ?</span>
+      <button onclick="markQroc(true)" style="padding:5px 14px; border-radius:4px; border:1px solid var(--green); background:var(--green-bg); color:var(--green-text); font-size:13px; cursor:pointer; font-family:var(--font-body);">Oui</button>
+      <button onclick="markQroc(false)" style="padding:5px 14px; border-radius:4px; border:1px solid var(--red); background:var(--red-bg); color:var(--red-text); font-size:13px; cursor:pointer; font-family:var(--font-body);">Non</button>
+    </div>`;
+  } else {
+    const userAns = session.answers[session.current];
+    const correct = q.correct;
+    document.querySelectorAll('#q-options .option-item').forEach((el, i) => {
+      el.classList.remove('selected');
+      if (correct.includes(i) && userAns.includes(i)) el.classList.add('correct');
+      else if (!correct.includes(i) && userAns.includes(i)) el.classList.add('wrong');
+      else if (correct.includes(i) && !userAns.includes(i)) el.classList.add('missed');
+    });
+    if (q.optExps && q.optExps.some(e => e)) {
+      document.querySelectorAll('#q-options .option-item').forEach((el, i) => {
+        if (q.optExps[i]) {
+          const expDiv = document.createElement('div');
+          expDiv.style.cssText = 'font-size:12px; color:var(--text-2); margin-top:5px; padding-left:36px; font-style:italic;';
+          expDiv.textContent = q.optExps[i];
+          el.appendChild(expDiv);
+        }
+      });
+    }
+    const pts = calcScore(correct, userAns);
+    session.scoreTotal += pts;
+    session.scorePoints[session.current] = pts;
+    session.validatedArr[session.current] = true;
+    const letters = correct.map(i => LETTERS[i]).join(', ');
+    const ptsLabel = pts === 1 ? '<span style="color:var(--green-text);font-weight:500;">+1 pt</span>' :
+                     pts === 0.5 ? '<span style="color:var(--amber-text);font-weight:500;">+0,5 pt</span>' :
+                     pts === 0.2 ? '<span style="color:var(--amber-text);font-weight:500;">+0,2 pt</span>' :
+                     '<span style="color:var(--red-text);font-weight:500;">+0 pt</span>';
+    corrDiv.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:4px;"><strong>Bonne' + (correct.length>1?'s':'') + ' réponse' + (correct.length>1?'s':'') + ' : ' + letters + '</strong>' + ptsLabel + '</div>' + (q.explanation || '');
+    showNextBtn();
+  }
+  corrDiv.classList.add('show');
+  document.getElementById('btn-validate').style.display = 'none';
+  updateScoreLive();
+}
+
+function markQroc(got) {
+  const pts = got ? 1 : 0;
+  session.scoreTotal += pts;
+  session.scorePoints[session.current] = pts;
+  session.validatedArr[session.current] = true;
+  const corrDiv = document.getElementById('correction');
+  const btns = corrDiv.querySelector('div:last-child');
+  if (btns) btns.remove();
+  showNextBtn();
+  updateScoreLive();
+}
+
+function showNextBtn() {
+  const isLast = session.current === session.questions.length - 1;
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.textContent = isLast ? 'Voir les résultats →' : 'Question suivante →';
+  nextBtn.style.display = 'inline-block';
+}
+
+function updateScoreLive() {
+  const done = session.validated ? session.current + 1 : session.current;
+  if (done === 0) { document.getElementById('score-live').textContent = '—'; return; }
+  const sur20 = parseFloat(((session.scoreTotal / done) * 20).toFixed(1));
+  const sur20Str = Number.isInteger(sur20) ? sur20.toString() : sur20.toString().replace('.', ',');
+  document.getElementById('score-live').textContent = sur20Str + ' / 20';
+}
+
+function nextQ() {
+  const total = session.questions.length;
+  if (session.validatedArr.every(Boolean)) { showResults(); return; }
+  let next = (session.current + 1) % total;
+  let tries = 0;
+  while (session.validatedArr[next] && tries < total) { next = (next + 1) % total; tries++; }
+  session.current = next;
+  renderQ();
+}
+
+function prevQ() {
+  if (session.current > 0) { session.current--; renderQ(); }
+}
+
+function skipQ() {
+  const total = session.questions.length;
+  session.current = (session.current + 1) % total;
+  renderQ();
+}
+
+function toggleSidePanel() {
+  const p = document.getElementById('side-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+function updateSidePanel() {
+  const list = document.getElementById('side-list');
+  if (!list) return;
+  list.innerHTML = '';
+  session.questions.forEach((q, i) => {
+    const isValidated = session.validatedArr[i];
+    const isCurrent = i === session.current;
+    const btn = document.createElement('button');
+    let bg, color, border;
+    if (isValidated) {
+      bg = 'rgba(111,207,151,0.15)';
+      color = 'var(--green-text)';
+      border = 'var(--green-text)';
+    } else if (isCurrent) {
+      bg = 'var(--bg-3)';
+      color = 'var(--text)';
+      border = 'var(--yellow)';
+    } else {
+      bg = 'none';
+      color = 'var(--text-2)';
+      border = 'transparent';
+    }
+    btn.style.cssText = 'width:100%; text-align:left; padding:10px 12px; border-radius:6px; border:none; cursor:pointer; font-family:var(--font-body); font-size:14px; font-weight:' + (isCurrent ? '500' : '400') + '; line-height:1.3; margin-bottom:4px; background:' + bg + '; color:' + color + '; border-left:3px solid ' + border + ';';
+    btn.textContent = 'Question ' + (i + 1);
+    btn.onclick = (function(idx){ return function(){ session.current = idx; renderQ(); }; })(i);
+    list.appendChild(btn);
+  });
+}
+
+// ─── MODE EXAMEN ───
+function renderExamAll() {
+  const total = session.questions.length;
+  document.getElementById('exam-title').textContent = 'Examen — ' + total + ' question' + (total > 1 ? 's' : '');
+  document.getElementById('header-info').textContent = 'Examen';
+  session.answers = session.questions.map((q) => q.type === 'qroc' ? '' : []);
+
+  const list = document.getElementById('exam-questions-list');
+  list.innerHTML = '';
+
+  session.questions.forEach((q, qi) => {
+    const block = document.createElement('div');
+    block.id = 'exam-q-' + qi;
+    block.style.cssText = 'padding:2rem 0; border-bottom:1px solid var(--border);';
+    let html = '';
+    if (q.tag) html += '<div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">' + q.tag + '</div>';
+    html += '<div style="font-size:11px;color:var(--text-3);margin-bottom:8px;font-weight:500;">Question ' + (qi+1) + '</div>';
+    html += '<div style="font-size:17px;color:var(--text);font-weight:300;line-height:1.65;margin-bottom:1rem;">' + q.question + '</div>';
+    if (q.image) html += '<img src="' + q.image + '" style="max-width:100%;max-height:250px;border-radius:8px;border:1px solid var(--border);margin-bottom:1rem;display:block;">';
+    if (q.type === 'qroc') {
+      html += '<div style="font-size:12px;color:var(--text-3);margin-bottom:8px;font-style:italic;">Réponse courte</div>';
+      html += '<textarea rows="2" placeholder="Ta réponse…" oninput="examSaveQroc(' + qi + ',this.value)" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-family:var(--font-body);font-size:14px;color:var(--text);background:var(--bg-2);resize:vertical;"></textarea>';
+    } else {
+      html += '<div style="font-size:12px;color:var(--text-3);margin-bottom:10px;font-style:italic;">' + (q.type === 'qru' ? 'Une seule réponse exacte' : 'Une ou plusieurs réponses exactes') + '</div>';
+      html += '<div class="options-list" id="exam-opts-' + qi + '">';
+      q.options.forEach((opt, oi) => {
+        const letterStyle = q.type === 'qru' ? '' : 'border-radius:6px;';
+        html += '<div class="option-item" onclick="examToggle(' + qi + ',' + oi + ',this)"><div class="opt-letter" style="' + letterStyle + '">' + LETTERS[oi] + '</div><div class="opt-text">' + opt + '</div></div>';
+      });
+      html += '</div>';
+    }
+    block.innerHTML = html;
+    list.appendChild(block);
+  });
+  updateExamSidePanel();
+}
+
+function examToggle(qi, oi, el) {
+  if (!Array.isArray(session.answers[qi])) session.answers[qi] = [];
+  const q = session.questions[qi];
+  if (q.type === 'qru') {
+    document.querySelectorAll('#exam-opts-' + qi + ' .option-item').forEach(opt => opt.classList.remove('selected'));
+    session.answers[qi] = [oi];
+    el.classList.add('selected');
+  } else {
+    const ans = session.answers[qi];
+    if (ans.includes(oi)) { session.answers[qi] = ans.filter(a => a !== oi); el.classList.remove('selected'); }
+    else { session.answers[qi].push(oi); el.classList.add('selected'); }
+  }
+  updateExamSidePanel();
+}
+
+function examSaveQroc(qi, val) { session.answers[qi] = val; updateExamSidePanel(); }
+
+function updateExamSidePanel() {
+  const list = document.getElementById('exam-side-list');
+  if (!list) return;
+  list.innerHTML = '';
+  session.questions.forEach((q, i) => {
+    const ans = session.answers[i];
+    const hasAnswer = Array.isArray(ans) ? ans.length > 0 : (typeof ans === 'string' && ans.trim() !== '');
+    const btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;text-align:left;padding:10px 12px;border-radius:6px;border:none;cursor:pointer;font-family:var(--font-body);font-size:14px;font-weight:400;margin-bottom:4px;background:' + (hasAnswer ? 'rgba(111,207,151,0.15)' : 'none') + ';color:' + (hasAnswer ? 'var(--green-text)' : 'var(--text-2)') + ';border-left:3px solid ' + (hasAnswer ? 'var(--green-text)' : 'transparent') + ';';
+    btn.textContent = 'Question ' + (i + 1);
+    btn.onclick = (function(idx){ return function(){ const el = document.getElementById('exam-q-' + idx); if (el) el.scrollIntoView({behavior:'smooth',block:'start'}); }; })(i);
+    list.appendChild(btn);
+  });
+}
+
+function examFinish() {
+  session.questions.forEach((q, i) => {
+    if (q.type !== 'qroc') {
+      const pts = calcScore(q.correct, session.answers[i] || []);
+      session.scoreTotal += pts;
+      session.scorePoints[i] = pts;
+    }
+  });
+  showResults();
+}
+
+
+// ─── RÉSULTATS ───
+function showResults() {
+  const total = session.questions.length;
+  const qcmCount = session.questions.filter(q => q.type !== 'qroc').length;
+  const qrocCount = session.questions.filter(q => q.type === 'qroc').length;
+
+  // For exam mode, handle QROC scoring via prompts
+  if (session.mode === 'examen' && qrocCount > 0) {
+    session.questions.forEach((q, i) => {
+      if (q.type === 'qroc' && session.scorePoints[i] === undefined) {
+        session.scorePoints[i] = null; // will be resolved
+      }
+    });
+  }
+
+  show('results');
+  const scoreTotal = parseFloat(session.scoreTotal.toFixed(1));
+  const pct = Math.round((scoreTotal / total) * 100);
+  const sur20 = parseFloat(((scoreTotal / total) * 20).toFixed(1));
+  const sur20Str = Number.isInteger(sur20) ? sur20.toString() : sur20.toString().replace('.', ',');
+
+  document.getElementById('res-big').textContent = sur20Str + ' / 20';
+  document.getElementById('res-label').textContent = pct + '% — ' + scoreTotal.toString().replace('.', ',') + ' pts / ' + total + ' questions';
+  document.getElementById('res-msg').textContent = pct >= 80 ? 'Excellent travail !' : pct >= 60 ? 'Bon résultat, continue !' : 'Encore un effort — reprends ces chapitres.';
+
+  if (session.mode === 'examen') {
+    document.getElementById('exam-correction-block').style.display = 'block';
+    document.getElementById('train-results-block').style.display = 'none';
+    renderExamCorrection();
+  } else {
+    document.getElementById('exam-correction-block').style.display = 'none';
+    document.getElementById('train-results-block').style.display = 'block';
+    renderTrainResults();
+  }
+
+  // Save to history
+  const details = session.questions.map((q, i) => ({
+    question: q.question,
+    pts: session.scorePoints[i] || 0
+  }));
+  history.push({
+    date: new Date().toISOString(),
+    mode: session.mode,
+    total,
+    scoreTotal,
+    sur20,
+    tags: session.lastTags,
+    details
+  });
+  saveHistory();
+}
+
+function renderExamCorrection() {
+  const list = document.getElementById('exam-correction-list');
+  list.innerHTML = '';
+  session.questions.forEach((q, i) => {
+    const userAns = session.answers[i] || [];
+    const item = document.createElement('div');
+    item.className = 'exam-correction-item';
+    let html = `<div class="q-num">${q.tag || ''} — Question ${i+1}</div>`;
+    html += `<div class="q-text-sm">${q.question}</div>`;
+    if (q.image) html += `<img src="${q.image}" style="max-width:100%; max-height:200px; border-radius:6px; margin-bottom:1rem;">`;
+
+    if (q.type === 'qroc') {
+      html += `<div class="exam-opt correct">Ta réponse : ${userAns || '—'}</div>`;
+      html += `<div class="exam-opt" style="background:var(--yellow-dim); color:var(--yellow-text);">Réponse attendue : ${q.answer}</div>`;
+      if (q.explanation) html += `<div style="font-size:13px; color:var(--text-2); margin-top:8px; font-style:italic;">${q.explanation}</div>`;
+    } else {
+      const pts = calcScore(q.correct, userAns);
+      const badgeClass = pts === 1 ? 'full' : pts === 0 ? 'zero' : 'partial';
+      const ptsStr = pts === 1 ? '+1 pt' : pts === 0.5 ? '+0,5 pt' : pts === 0.2 ? '+0,2 pt' : '+0 pt';
+      html += `<div style="margin-bottom:8px;"><span class="exam-score-badge ${badgeClass}">${ptsStr}</span></div>`;
+      q.options.forEach((opt, oi) => {
+        const isCorrect = q.correct.includes(oi);
+        const isSelected = userAns.includes(oi);
+        let cls = 'neutral';
+        if (isCorrect && isSelected) cls = 'correct';
+        else if (!isCorrect && isSelected) cls = 'wrong';
+        else if (isCorrect && !isSelected) cls = 'missed';
+        const icon = isCorrect ? '✓' : isSelected ? '✗' : '';
+        html += `<div class="exam-opt ${cls}"><strong style="min-width:20px;">${LETTERS[oi]}</strong> ${opt} ${icon ? '<span style="margin-left:auto;">'+icon+'</span>' : ''}</div>`;
+        if (q.optExps && q.optExps[oi]) html += `<div style="font-size:12px; color:var(--text-2); padding-left:28px; margin-bottom:4px; font-style:italic;">${q.optExps[oi]}</div>`;
+      });
+      if (q.explanation) html += `<div style="font-size:13px; color:var(--text-2); margin-top:8px; font-style:italic; border-top:1px solid var(--border); padding-top:8px;">${q.explanation}</div>`;
+    }
+    item.innerHTML = html;
+    list.appendChild(item);
+  });
+}
+
+function renderTrainResults() {
+  const tbody = document.getElementById('results-tbody');
+  tbody.innerHTML = '';
+  session.questions.forEach((q, i) => {
+    const tr = document.createElement('tr');
+    const pts = session.scorePoints[i] !== undefined ? session.scorePoints[i] : null;
+    const ptsStr = pts === null ? '—' : pts === 1 ? '+1 pt' : pts === 0.5 ? '+0,5 pt' : pts === 0.2 ? '+0,2 pt' : '+0 pt';
+    const ptsColor = pts === 1 ? 'var(--yellow)' : pts === 0 ? 'var(--red-text)' : 'var(--amber-text)';
+    if (q.type === 'qroc') {
+      const dotClass = pts === 1 ? 'ok' : pts === 0 ? 'ko' : 'partial';
+      tr.innerHTML = '<td><span class="dot ' + dotClass + '"></span></td><td>' + q.question.substring(0,90) + (q.question.length>90?'…':'') + '<br><span style="font-size:12px;color:var(--text-3);">QROC</span></td><td style="text-align:right;white-space:nowrap;color:' + ptsColor + ';font-weight:500;">' + ptsStr + '</td>';
+    } else {
+      const userAns = session.answers[i] || [];
+      const dotClass = pts === 1 ? 'ok' : pts === 0 ? 'ko' : 'partial';
+      const corrLetters = q.correct.map(i => LETTERS[i]).join(', ');
+      const userLetters = userAns.map(i => LETTERS[i]).join(', ') || '—';
+      tr.innerHTML = '<td><span class="dot ' + dotClass + '"></span></td><td>' + q.question.substring(0,90) + (q.question.length>90?'…':'') + '<br><span style="font-size:12px;color:var(--text-3);">' + userLetters + ' → ' + corrLetters + '</span></td><td style="text-align:right;white-space:nowrap;color:' + ptsColor + ';font-weight:500;">' + ptsStr + '</td>';
+    }
+    tbody.appendChild(tr);
+  });
+}
+
+function restart() {
+  selectedTags = session.lastTags || [];
+  typeFilter = session.lastType || 'all';
+  currentMode = session.mode || 'entrainement';
+  show('home'); renderHome();
+  setTimeout(() => document.getElementById('btn-start').click(), 50);
+}
+
+renderHome();
+</script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Réglages — Annales QCM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+<style>
+.settings-section {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.settings-section h2 {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 1.25rem;
+}
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 15px; color: var(--text); }
+.setting-desc { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+
+/* TOGGLE SWITCH */
+.toggle {
+  position: relative;
+  width: 44px; height: 24px;
+  flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-3);
+  border: 1px solid var(--border-2);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 2px; top: 2px;
+  background: var(--text-3);
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+.toggle input:checked + .toggle-slider { background: var(--accent-color, var(--yellow)); border-color: var(--accent-color, var(--yellow)); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: #0d0d0d; }
+
+/* COLOR SWATCHES */
+.color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1rem;
+}
+.color-swatch {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.15s;
+  position: relative;
+}
+.color-swatch:hover { transform: scale(1.1); }
+.color-swatch.active { border-color: var(--text); }
+.color-swatch.active::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #0d0d0d;
+  font-weight: 700;
+}
+
+/* CUSTOM COLOR */
+.custom-color-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 1rem;
+}
+.custom-color-row input[type=color] {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--border-2);
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+/* THEME CARDS */
+.theme-grid { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+.theme-card {
+  flex: 1; min-width: 120px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.theme-card:hover { border-color: var(--border-2); }
+.theme-card.active { border-color: var(--accent-color, var(--yellow)); }
+.theme-preview {
+  width: 100%; height: 50px;
+  border-radius: var(--radius);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.theme-preview.dark { background: #0d0d0d; border: 1px solid #2a2a2a; }
+.theme-preview.light { background: #f8f8f5; border: 1px solid #e0e0db; }
+.theme-name { font-size: 13px; color: var(--text); font-weight: 500; }
+
+/* PREVIEW BAR */
+.preview-bar {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 1rem;
+}
+.preview-btn {
+  padding: 8px 20px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: opacity 0.15s;
+}
+.preview-btn:hover { opacity: 0.85; }
+.preview-tag {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.preview-bar-fill {
+  height: 4px;
+  border-radius: 2px;
+  flex: 1;
+}
+
+.save-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: opacity 0.15s;
+  margin-top: 0.5rem;
+}
+.save-btn:hover { opacity: 0.85; }
+
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 20px;
+  font-size: 14px;
+  color: var(--text);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header class="quiz-header">
+  <div class="container">
+    <a href="index.html" class="back-link">← Accueil</a>
+    <div class="logo">QCM<span>Annales</span></div>
+    <div></div>
+  </div>
+</header>
+
+<div class="container" style="padding-top:2.5rem; padding-bottom:3rem; max-width:600px;">
+  <div style="margin-bottom:2rem;">
+    <h1 style="font-size:2rem; margin-bottom:0.5rem;">Réglages</h1>
+    <p style="color:var(--text-2); font-size:14px;">Personnalise l'apparence de ton site.</p>
+  </div>
+
+  <!-- THÈME -->
+  <div class="settings-section">
+    <h2>Thème</h2>
+    <div class="theme-grid">
+      <div class="theme-card" id="theme-dark" onclick="setTheme('dark')">
+        <div class="theme-preview dark">🌙</div>
+        <div class="theme-name">Sombre</div>
+      </div>
+      <div class="theme-card" id="theme-light" onclick="setTheme('light')">
+        <div class="theme-preview light">☀️</div>
+        <div class="theme-name">Clair</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COULEUR D'ACCENT -->
+  <div class="settings-section">
+    <h2>Couleur des boutons</h2>
+    <div class="color-grid" id="color-grid"></div>
+    <div class="custom-color-row">
+      <input type="color" id="custom-color" value="#e8ff00" oninput="setCustomColor(this.value)">
+      <span style="font-size:13px; color:var(--text-2);">Couleur personnalisée</span>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-bar" id="preview-bar">
+      <button class="preview-btn" id="preview-btn">Commencer →</button>
+      <span class="preview-tag" id="preview-tag">Biochimie</span>
+      <div class="preview-bar-fill" id="preview-bar-fill"></div>
+    </div>
+  </div>
+
+  <button class="save-btn" id="save-btn" onclick="saveSettings()">Enregistrer les réglages</button>
+</div>
+
+<div class="toast" id="toast">✓ Réglages enregistrés !</div>
+
+<script>
+const PRESET_COLORS = [
+  { name: 'Jaune fluo', value: '#e8ff00' },
+  { name: 'Vert lime', value: '#a8ff3e' },
+  { name: 'Cyan', value: '#00e5ff' },
+  { name: 'Orange', value: '#ff7b00' },
+  { name: 'Rose', value: '#ff4d9e' },
+  { name: 'Violet', value: '#b06aff' },
+  { name: 'Blanc', value: '#f0f0ee' },
+  { name: 'Rouge', value: '#ff4444' },
+];
+
+let settings = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
+let currentTheme = settings.theme || 'dark';
+let currentColor = settings.accentColor || '#e8ff00';
+
+function init() {
+  // Build color swatches
+  const grid = document.getElementById('color-grid');
+  PRESET_COLORS.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'color-swatch' + (currentColor === c.value ? ' active' : '');
+    div.style.background = c.value;
+    div.title = c.name;
+    div.onclick = () => selectColor(c.value);
+    grid.appendChild(div);
+  });
+
+  document.getElementById('custom-color').value = currentColor;
+  setTheme(currentTheme, false);
+  updatePreview();
+}
+
+function setTheme(theme, updateUI = true) {
+  currentTheme = theme;
+  document.getElementById('theme-dark').classList.toggle('active', theme === 'dark');
+  document.getElementById('theme-light').classList.toggle('active', theme === 'light');
+  if (updateUI) updatePreview();
+}
+
+function selectColor(color) {
+  currentColor = color;
+  document.querySelectorAll('.color-swatch').forEach((el, i) => {
+    el.classList.toggle('active', PRESET_COLORS[i].value === color);
+  });
+  document.getElementById('custom-color').value = color;
+  updatePreview();
+}
+
+function setCustomColor(color) {
+  currentColor = color;
+  document.querySelectorAll('.color-swatch').forEach(el => el.classList.remove('active'));
+  updatePreview();
+}
+
+function updatePreview() {
+  const isDark = currentTheme === 'dark';
+  const bar = document.getElementById('preview-bar');
+  bar.style.background = isDark ? '#161616' : '#f4f4f1';
+  bar.style.borderColor = isDark ? '#2a2a2a' : '#e8e8e3';
+
+  const btn = document.getElementById('preview-btn');
+  btn.style.background = currentColor;
+  btn.style.color = isLight(currentColor) ? '#0d0d0d' : '#f0f0ee';
+
+  const tag = document.getElementById('preview-tag');
+  tag.style.background = currentColor;
+  tag.style.color = isLight(currentColor) ? '#0d0d0d' : '#f0f0ee';
+
+  document.getElementById('preview-bar-fill').style.background = currentColor;
+
+  const saveBtn = document.getElementById('save-btn');
+  saveBtn.style.background = currentColor;
+  saveBtn.style.color = isLight(currentColor) ? '#0d0d0d' : '#f0f0ee';
+}
+
+function isLight(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return (r*299 + g*587 + b*114) / 1000 > 128;
+}
+
+function saveSettings() {
+  settings = { theme: currentTheme, accentColor: currentColor };
+  localStorage.setItem('qcm_settings', JSON.stringify(settings));
+
+  // Show toast
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+
+  // Apply immediately
+  applySettings();
+}
+
+function applySettings() {
+  const root = document.documentElement;
+  root.style.setProperty('--accent-color', currentColor);
+
+  // Compute dark version of color for backgrounds
+  const darkBg = hexToRgba(currentColor, 0.08);
+  root.style.setProperty('--yellow', currentColor);
+  root.style.setProperty('--yellow-dim', darkBg);
+  root.style.setProperty('--yellow-text', currentColor);
+
+  if (currentTheme === 'light') {
+    root.style.setProperty('--bg', '#f8f8f5');
+    root.style.setProperty('--bg-2', '#ffffff');
+    root.style.setProperty('--bg-3', '#f0f0eb');
+    root.style.setProperty('--border', '#e0e0db');
+    root.style.setProperty('--border-2', '#c8c8c0');
+    root.style.setProperty('--text', '#1a1a18');
+    root.style.setProperty('--text-2', '#5a5a52');
+    root.style.setProperty('--text-3', '#9a9a90');
+  } else {
+    root.style.setProperty('--bg', '#0d0d0d');
+    root.style.setProperty('--bg-2', '#161616');
+    root.style.setProperty('--bg-3', '#1e1e1e');
+    root.style.setProperty('--border', '#2a2a2a');
+    root.style.setProperty('--border-2', '#3a3a3a');
+    root.style.setProperty('--text', '#f0f0ee');
+    root.style.setProperty('--text-2', '#a0a09a');
+    root.style.setProperty('--text-3', '#606060');
+  }
+}
+
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// Apply on load
+(function() {
+  const saved = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
+  if (saved.accentColor || saved.theme) {
+    currentTheme = saved.theme || 'dark';
+    currentColor = saved.accentColor || '#e8ff00';
+    applySettings();
+  }
+})();
+
+init();
+</script>
+</body>
+</html>
