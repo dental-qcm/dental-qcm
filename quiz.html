@@ -103,12 +103,12 @@
     <div style="margin-bottom:2rem;">
       <div class="section-title">Mode</div>
       <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-        <div class="mode-card active" id="mode-entrainement" onclick="setMode('entrainement')">
+
           <div class="mode-icon">📖</div>
           <h3>Entraînement</h3>
           <p>Correction après chaque question. Idéal pour apprendre.</p>
         </div>
-        <div class="mode-card" id="mode-examen" onclick="setMode('examen')">
+
           <div class="mode-icon">⏱</div>
           <h3>Examen</h3>
           <p>Toutes les questions d'un coup, correction globale à la fin.</p>
@@ -127,6 +127,7 @@
         <button class="tag-chip active" id="filter-all" onclick="setTypeFilter('all')">Tout</button>
         <button class="tag-chip" id="filter-qcm" onclick="setTypeFilter('qcm')">QCM uniquement</button>
         <button class="tag-chip" id="filter-qroc" onclick="setTypeFilter('qroc')">QROC uniquement</button>
+        <button class="tag-chip" id="filter-qzone" onclick="setTypeFilter('qzone')">Qzone uniquement</button>
       </div>
     </div>
 
@@ -138,31 +139,86 @@
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-start" style="width:100%; padding:14px; font-size:16px; margin-top:0.5rem; border:none; cursor:pointer;">Lancer la session →</button>
+    <div style="margin-top:1.5rem;">
+      <div class="section-title" style="margin-bottom:1rem;">Mode</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div onclick="startSession('entrainement')" style="background:var(--bg-2); border:1px solid var(--border); border-radius:14px; padding:1.5rem; cursor:pointer; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--yellow)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:1.75rem; margin-bottom:0.5rem;">📖</div>
+          <div style="font-size:17px; font-weight:500; color:var(--text); margin-bottom:4px;">Entraînement</div>
+          <div style="font-size:13px; color:var(--text-3); line-height:1.5; margin-bottom:1rem;">Correction après chaque question</div>
+          <div style="background:var(--yellow-dim); color:var(--yellow-text); font-size:13px; font-weight:500; padding:6px 14px; border-radius:6px; display:inline-block;">Lancer →</div>
+        </div>
+        <div style="background:var(--bg-2); border:1px solid var(--border); border-radius:14px; padding:1.5rem; cursor:default; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:1.75rem; margin-bottom:0.5rem;">⏱</div>
+          <div style="font-size:17px; font-weight:500; color:var(--text); margin-bottom:4px;">Examen</div>
+          <div style="font-size:13px; color:var(--text-3); line-height:1.5; margin-bottom:0.75rem;">Toutes les questions, correction à la fin</div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:1rem;">
+            <label style="font-size:12px; color:var(--text-3);">Durée :</label>
+            <select id="exam-duration" style="background:var(--bg-3); border:1px solid var(--border); color:var(--text); font-size:12px; padding:4px 8px; border-radius:6px; font-family:var(--font-body);">
+              <option value="15">15 min</option>
+              <option value="20">20 min</option>
+              <option value="30" selected>30 min</option>
+              <option value="45">45 min</option>
+              <option value="60">1h</option>
+              <option value="90">1h30</option>
+              <option value="120">2h</option>
+            </select>
+          </div>
+          <div onclick="startSession('examen')" style="background:var(--red-bg); color:var(--red-text); font-size:13px; font-weight:500; padding:6px 14px; border-radius:6px; display:inline-block; cursor:pointer;">Lancer →</div>
+        </div>
+      </div>
+      <button id="btn-start" style="display:none;"></button>
+    </div>
+  </div>
+</div>
+
+
+<!-- SCREEN: EXAMEN -->
+<div class="screen" id="screen-exam">
+  <div style="background:var(--bg); border-bottom:1px solid var(--border); padding:0.75rem 0; position:sticky; top:50px; z-index:10;">
+    <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:13px; color:var(--text-3);" id="exam-title">Examen</span>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <span id="chrono-display" style="font-size:15px; font-weight:500; color:var(--yellow); font-variant-numeric:tabular-nums;">⏱ --:--</span>
+        <button onclick="examFinish()" class="btn-validate" style="padding:8px 20px; font-size:14px;">Terminer →</button>
+      </div>
+    </div>
+  </div>
+  <div class="container" style="padding-top:2rem; padding-bottom:4rem; max-width:780px;">
+    <div id="exam-questions-list"></div>
+    <div style="margin-top:2.5rem; text-align:center;">
+      <button onclick="examFinish()" class="btn-validate" style="padding:14px 48px; font-size:16px;">Terminer l'examen →</button>
+    </div>
   </div>
 </div>
 
 <!-- SCREEN: QUIZ ENTRAÎNEMENT -->
 <div class="screen" id="screen-quiz">
-  <div class="progress-bar-wrap">
-    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  <div style="background: var(--bg); border-bottom: 1px solid var(--border);">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="container">
+      <div class="progress-info">
+        <span id="progress-label">Question 1</span>
+        <span class="progress-pct" id="progress-pct">0%</span>
+      </div>
+    </div>
   </div>
   <div style="display:flex;">
     <!-- CONTENU -->
     <div style="flex:1; min-width:0;">
-      <div class="container">
+      <div class="quiz-card-wrap">
+        <div class="quiz-card">
         <div class="quiz-meta">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <button onclick="toggleSidePanel()" style="background:none; border:1px solid var(--border); color:var(--text-2); padding:4px 10px; border-radius:var(--radius); font-size:12px; cursor:pointer; font-family:var(--font-body);">☰</button>
-            <span id="q-counter">Question 1 / 10</span>
-          </div>
+          <span id="q-counter">Question 1 / 10</span>
           <span id="score-live">—</span>
         </div>
         <div class="q-tag" id="q-tag"></div>
         <div class="q-type-badge" id="q-type-badge"></div>
         <div class="q-text" id="q-text"></div>
         <div id="q-image-wrap" style="margin-bottom:1rem; display:none;">
-          <img id="q-image" style="max-width:100%; max-height:300px; border-radius:8px; border:1px solid var(--border);">
+          <img id="q-image" loading="lazy" style="max-width:100%; max-height:300px; border-radius:8px; border:1px solid var(--border);">
         </div>
         <div id="q-qcm-block">
           <div class="q-note" id="q-note"></div>
@@ -183,6 +239,7 @@
           </div>
         </div>
         <div class="correction" id="correction"></div>
+        </div><!-- /.quiz-card -->
         <div class="action-row">
           <div style="display:flex; gap:8px;">
             <button class="btn-next" id="btn-prev" onclick="prevQ()" style="display:none;">← Préc.</button>
@@ -199,8 +256,8 @@
       </div>
     </div>
     <!-- PANNEAU LATÉRAL DROITE -->
-    <div id="side-panel" style="width:240px; flex-shrink:0; border-left:1px solid var(--border); padding:1.25rem; overflow-y:auto; max-height:calc(100vh - 50px); position:sticky; top:50px; display:none;">
-      <div style="font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem;">Navigation</div>
+    <div id="side-panel" style="width:220px; flex-shrink:0; border-left:1px solid var(--border); background:var(--bg-2); padding:1.5rem; overflow-y:auto; max-height:calc(100vh - 50px); position:sticky; top:50px; display:block;">
+      <div style="font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1.25rem;">Navigation</div>
       <div id="side-list"></div>
     </div>
   </div>
@@ -248,19 +305,15 @@
       <div id="exam-correction-list"></div>
     </div>
 
-    <!-- Récap entraînement -->
+    <!-- Correction complète -->
     <div id="train-results-block">
-      <div class="section-title">Détail des réponses</div>
-      <table class="results-table">
-        <thead><tr><th></th><th>Question</th><th style="text-align:right;">Points</th></tr></thead>
-        <tbody id="results-tbody"></tbody>
-      </table>
+      <div class="section-title" style="margin-bottom:1.5rem;">Correction complète</div>
+      <div id="results-correction"></div>
     </div>
 
     <div class="results-actions">
       <button class="btn-validate" onclick="restart()">Rejouer</button>
       <button class="btn-next" style="display:inline-block;" onclick="goHome()">Nouvelle sélection</button>
-      <a href="historique.html" class="btn-next" style="display:inline-block; text-decoration:none;">Voir l'historique</a>
     </div>
   </div>
 </div>
@@ -268,13 +321,12 @@
 <script>
 const LETTERS = ['A','B','C','D','E'];
 let questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
-let history = JSON.parse(localStorage.getItem('qcm_history') || '[]');
+let qcmHistory = JSON.parse(localStorage.getItem('qcm_history') || '[]');
 let selectedTags = [];
 let typeFilter = 'all';
-let currentMode = 'entrainement';
 let session = {};
 
-function saveHistory() { localStorage.setItem('qcm_history', JSON.stringify(history)); }
+function saveHistory() { localStorage.setItem('qcm_history', JSON.stringify(qcmHistory)); }
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
@@ -282,15 +334,11 @@ function show(id) {
 }
 function goHome() { show('home'); renderHome(); }
 
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('mode-entrainement').classList.toggle('active', mode === 'entrainement');
-  document.getElementById('mode-examen').classList.toggle('active', mode === 'examen');
-}
+
 
 function setTypeFilter(type) {
   typeFilter = type;
-  ['all','qcm','qroc'].forEach(t => document.getElementById('filter-' + t).classList.toggle('active', t === type));
+  ['all','qcm','qroc','qzone'].forEach(t => document.getElementById('filter-' + t).classList.toggle('active', t === type));
   updateSlider();
 }
 
@@ -329,6 +377,7 @@ function getPool() {
   let pool = !selectedTags.length ? questions : questions.filter(q => selectedTags.includes(q.tag));
   if (typeFilter === 'qcm') pool = pool.filter(q => !q.type || q.type === 'qcm');
   if (typeFilter === 'qroc') pool = pool.filter(q => q.type === 'qroc');
+  if (typeFilter === 'qzone') pool = pool.filter(q => q.type === 'qzone');
   return pool;
 }
 
@@ -346,29 +395,37 @@ document.getElementById('count-slider').oninput = function() {
   document.getElementById('count-val').textContent = this.value;
 };
 
-document.getElementById('btn-start').onclick = function() {
+document.getElementById('btn-start').onclick = function() { startSession('entrainement'); };
+
+function startSession(mode) {
   const count = parseInt(document.getElementById('count-slider').value);
-  const pool = shuffle([...getPool()]).slice(0, count);
+  let pool = shuffle([...getPool()]);
+  if (mode === 'examen') pool = pool.filter(q => q.type !== 'qzone');
+  pool = pool.slice(0, count);
+  if (!pool.length) { alert('Aucune question disponible.'); return; }
   session = {
     questions: pool,
     current: 0,
-    answers: pool.map(() => null),
+    answers: pool.map(q => q.type === 'qroc' ? '' : []),
     scoreTotal: 0,
     scorePoints: [],
     validated: false,
     validatedArr: pool.map(() => false),
     lastTags: [...selectedTags],
-    lastType: typeFilter,
-    mode: currentMode
+    mode: mode
   };
-  if (currentMode === 'examen') {
-    show('exam');
+  if (mode === 'examen') {
+    const durMin = parseInt(document.getElementById('exam-duration').value) || 30;
+    session.chronoTotal = durMin * 60;
+    session.chronoLeft = durMin * 60;
     renderExamAll();
+    show('exam');
+    startChrono();
   } else {
     show('quiz');
     renderQ();
   }
-};
+}
 
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -379,7 +436,8 @@ function shuffle(arr) {
 }
 
 // ─── CALCUL SCORE ───
-function calcScore(correct, userAns) {
+function calcScore(correct, userAns, type) {
+  if (type === 'qru') return (userAns.length === 1 && userAns[0] === correct[0]) ? 1 : 0;
   let errors = 0;
   userAns.forEach(a => { if (!correct.includes(a)) errors++; });
   correct.forEach(c => { if (!userAns.includes(c)) errors++; });
@@ -561,23 +619,26 @@ function drawQzoneOverlay(groups, showCorrection) {
   if (!showCorrection) return; // Image stays clean before validation // Nothing shown before validation
   const W = canvas.width, H = canvas.height;
   groups.forEach((g, gi) => {
+    const c = QZONE_COLORS[gi % QZONE_COLORS.length];
     const placed = qzonePlacedAnswers[gi];
     const isCorrect = placed === g.name;
-    const corrColor = isCorrect ? '#6fcf97' : '#ff6464';
-    const corrFill = isCorrect ? 'rgba(111,207,151,0.35)' : 'rgba(255,100,100,0.35)';
+    const iconColor = isCorrect ? '#6fcf97' : '#ff6464';
     g.points.forEach(p => {
       const cx = p.x * W, cy = p.y * H, r = Math.max(18, p.r || 20);
+      // Couleur originale de la structure
       ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-      ctx.fillStyle = corrFill; ctx.fill();
-      ctx.strokeStyle = corrColor; ctx.lineWidth = 2.5; ctx.stroke();
-      ctx.fillStyle = corrColor; ctx.font = 'bold 12px sans-serif';
+      ctx.fillStyle = c.fill; ctx.fill();
+      ctx.strokeStyle = c.stroke; ctx.lineWidth = 2.5; ctx.stroke();
+      // Petit cercle central vert ou rouge
+      ctx.beginPath(); ctx.arc(cx, cy, 11, 0, Math.PI*2);
+      ctx.fillStyle = iconColor; ctx.fill();
+      ctx.fillStyle = '#000'; ctx.font = 'bold 11px sans-serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(isCorrect ? '✓' : '✗', cx, cy);
-      if (!isCorrect) {
-        // Show expected name below
-        ctx.fillStyle = '#ff6464'; ctx.font = '9px sans-serif';
-        ctx.fillText(g.name.substring(0,10), cx, cy + r + 8);
-      }
+      // Nom de la structure en dessous
+      ctx.fillStyle = c.stroke; ctx.font = 'bold 10px sans-serif';
+      const label = g.name.length > 14 ? g.name.substring(0,14)+'…' : g.name;
+      ctx.fillText(label, cx, cy + r + 11);
     });
   });
 }
@@ -613,6 +674,7 @@ function scoreQzone(q) {
   groups.forEach((g, gi) => {
     const tagEl = document.getElementById('qtag-' + gi);
     if (!tagEl) return;
+    const c = QZONE_COLORS[gi % QZONE_COLORS.length];
     const given = qzonePlacedAnswers[gi] || '';
     const dropPos = window.qzoneDropPos ? window.qzoneDropPos[gi] : null;
     let isCorrect = false;
@@ -624,26 +686,38 @@ function scoreQzone(q) {
         if (Math.sqrt(dx*dx + dy*dy) <= rNorm * 1.8) isCorrect = true;
       });
     }
-    tagEl.style.borderColor = isCorrect ? '#6fcf97' : '#ff6464';
+    // Bordure couleur de la structure + fond semi-transparent + icône résultat
+    tagEl.style.borderColor = c.stroke;
+    tagEl.style.borderWidth = '2px';
     tagEl.style.borderStyle = 'solid';
+    tagEl.style.background = isCorrect ? c.fill : 'rgba(255,100,100,0.15)';
     tagEl.style.opacity = '1';
+    // Ajouter ✓ ou ✗ à la fin
+    const existing = tagEl.querySelector('.result-icon');
+    if (existing) existing.remove();
+    const icon = document.createElement('span');
+    icon.className = 'result-icon';
+    icon.style.cssText = 'font-weight:700; font-size:13px; color:' + (isCorrect ? '#6fcf97' : '#ff6464') + '; flex-shrink:0;';
+    icon.textContent = isCorrect ? '✓' : '✗';
+    tagEl.appendChild(icon);
   });
 
+  // Barème QZone : chaque étiquette vaut 1/total points
   const total = groups.length;
-  const errors = total - correct;
-  if (errors === 0) return 1;
-  if (errors <= Math.ceil(total * 0.25)) return 0.5;
-  if (errors <= Math.ceil(total * 0.5)) return 0.2;
-  return 0;
+  const pts = parseFloat((correct / total).toFixed(3));
+  return pts;
 }
 
 // ─── MODE ENTRAÎNEMENT ───
 function renderQ() {
   const q = session.questions[session.current];
   const total = session.questions.length;
-  document.getElementById('q-counter').textContent = `Question ${session.current + 1} / ${total}`;
   document.getElementById('header-info').textContent = `${session.current + 1} / ${total}`;
-  document.getElementById('progress-fill').style.width = `${(session.current / total) * 100}%`;
+  const validatedSoFar = session.validatedArr.filter(Boolean).length;
+  const pct = Math.round((validatedSoFar / total) * 100);
+  document.getElementById('progress-fill').style.width = `${pct}%`;
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-label').textContent = `Question ${session.current + 1} / ${total}`;
   document.getElementById('q-tag').textContent = q.tag || '';
   document.getElementById('q-text').textContent = q.question;
   const badge = document.getElementById('q-type-badge');
@@ -681,7 +755,18 @@ function renderQ() {
   document.getElementById('btn-skip').style.display = 'inline-block';
   document.getElementById('btn-prev').style.display = session.current > 0 ? 'inline-block' : 'none';
   document.getElementById('btn-finish').style.display = session.validatedArr.some(Boolean) ? 'block' : 'none';
-  session.validated = false;
+  document.getElementById('side-panel').style.display = 'block';
+  if (session.validatedArr[session.current]) {
+    session.validated = true;
+    document.getElementById('btn-validate').style.display = 'none';
+    document.getElementById('btn-skip').style.display = 'none';
+    document.getElementById('btn-next').style.display = 'inline-block';
+    document.querySelectorAll('#q-options .option-item').forEach(el => { el.style.pointerEvents = 'none'; el.style.opacity = '0.75'; });
+    const qroc = document.getElementById('qroc-input');
+    if (qroc) { qroc.disabled = true; qroc.style.opacity = '0.6'; }
+  } else {
+    session.validated = false;
+  }
   updateSidePanel();
   updateScoreLive();
 }
@@ -711,7 +796,10 @@ function validateQ() {
     session.scorePoints[session.current] = pts;
     session.validatedArr[session.current] = true;
     const corrDiv = document.getElementById('correction');
-    const ptsLabel = pts===1?'<span style="color:var(--green-text);font-weight:500;">+1 pt — Parfait !</span>':pts===0.5?'<span style="color:var(--amber-text);font-weight:500;">+0,5 pt</span>':pts===0.2?'<span style="color:var(--amber-text);font-weight:500;">+0,2 pt</span>':'<span style="color:var(--red-text);font-weight:500;">+0 pt</span>';
+    const ptsStr = pts === 0 ? '0' : parseFloat(pts.toFixed(2)).toString().replace('.', ',');
+    const ptsColor = pts === 1 ? 'var(--green-text)' : pts > 0 ? 'var(--amber-text)' : 'var(--red-text)';
+    const parfait = pts === 1 ? ' — Parfait !' : '';
+    const ptsLabel = '<span style="color:' + ptsColor + ';font-weight:500;">+' + ptsStr + ' pt' + parfait + '</span>';
     corrDiv.innerHTML = ptsLabel + (q.explanation ? '<br>' + q.explanation : '');
     corrDiv.classList.add('show');
     document.getElementById('btn-validate').style.display = 'none';
@@ -812,8 +900,7 @@ function skipQ() {
 }
 
 function toggleSidePanel() {
-  const p = document.getElementById('side-panel');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  // Panel is always visible now
 }
 
 function updateSidePanel() {
@@ -838,7 +925,14 @@ function updateSidePanel() {
       color = 'var(--text-2)';
       border = 'transparent';
     }
-    btn.style.cssText = 'width:100%; text-align:left; padding:10px 12px; border-radius:6px; border:none; cursor:pointer; font-family:var(--font-body); font-size:14px; font-weight:' + (isCurrent ? '500' : '400') + '; line-height:1.3; margin-bottom:4px; background:' + bg + '; color:' + color + '; border-left:3px solid ' + border + ';';
+    const pts = session.scorePoints[i];
+    let bubbleBg, bubbleColor, bubbleBorder;
+    if (isValidated && pts === 1)      { bubbleBg='var(--green-bg)';       bubbleColor='var(--green-text)'; bubbleBorder='var(--green)'; }
+    else if (isValidated && pts === 0) { bubbleBg='var(--red-bg)';         bubbleColor='var(--red-text)';   bubbleBorder='var(--red)'; }
+    else if (isValidated)              { bubbleBg='rgba(240,168,50,0.12)'; bubbleColor='#f0a832';           bubbleBorder='#7a5200'; }
+    else if (isCurrent)                { bubbleBg='var(--yellow-dim)';     bubbleColor='var(--yellow-text)';bubbleBorder='var(--yellow)'; }
+    else                               { bubbleBg='var(--bg-3)';           bubbleColor='var(--text-3)';     bubbleBorder='var(--border)'; }
+    btn.style.cssText = 'width:100%; text-align:left; padding:9px 12px; border-radius:8px; border:1px solid ' + bubbleBorder + '; cursor:pointer; font-family:var(--font-body); font-size:13px; font-weight:' + (isCurrent ? '500' : '400') + '; background:' + bubbleBg + '; color:' + bubbleColor + '; transition:all 0.15s;';
     btn.textContent = 'Question ' + (i + 1);
     btn.onclick = (function(idx){ return function(){ session.current = idx; renderQ(); }; })(i);
     list.appendChild(btn);
@@ -926,6 +1020,104 @@ function examFinish() {
 }
 
 
+
+// ─── CHRONO ───
+let chronoInterval = null;
+function startChrono() {
+  clearInterval(chronoInterval);
+  updateChronoDisplay();
+  chronoInterval = setInterval(() => {
+    session.chronoLeft--;
+    updateChronoDisplay();
+    if (session.chronoLeft <= 0) { clearInterval(chronoInterval); examFinish(true); }
+  }, 1000);
+}
+function stopChrono() { clearInterval(chronoInterval); }
+function updateChronoDisplay() {
+  const el = document.getElementById('chrono-display');
+  if (!el) return;
+  const left = Math.max(0, session.chronoLeft);
+  const m = Math.floor(left / 60), s = left % 60;
+  el.textContent = '⏱ ' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  el.style.color = left <= 60 ? 'var(--red-text)' : left <= 180 ? '#f0a832' : 'var(--yellow)';
+}
+
+// ─── MODE EXAMEN ───
+function renderExamAll() {
+  const total = session.questions.length;
+  document.getElementById('exam-title').textContent = 'Examen — ' + total + ' question' + (total > 1 ? 's' : '');
+  const list = document.getElementById('exam-questions-list');
+  list.innerHTML = '';
+  session.questions.forEach((q, qi) => {
+    const block = document.createElement('div');
+    block.style.cssText = 'padding:2rem; margin-bottom:1rem; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-lg);';
+    let html = '';
+    if (q.tag) html += '<div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">' + q.tag + '</div>';
+    html += '<div style="font-size:12px;color:var(--text-3);margin-bottom:10px;">Question ' + (qi+1) + '</div>';
+    html += '<div style="font-size:17px;color:var(--text);font-weight:300;line-height:1.65;margin-bottom:1.25rem;">' + q.question + '</div>';
+    if (q.image) html += '<img src="' + q.image + '" loading="lazy" style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);margin-bottom:1.25rem;display:block;">';
+    if (q.type === 'qroc') {
+      html += '<textarea rows="2" placeholder="Ta réponse…" oninput="session.answers[' + qi + ']=this.value" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-family:var(--font-body);font-size:14px;color:var(--text);background:var(--bg-3);resize:vertical;box-sizing:border-box;"></textarea>';
+    } else {
+      const note = q.type === 'qru' ? 'Une seule réponse exacte' : 'Une ou plusieurs réponses exactes';
+      html += '<div style="font-size:12px;color:var(--text-3);margin-bottom:10px;font-style:italic;">' + note + '</div>';
+      html += '<div style="display:flex;flex-direction:column;gap:8px;" id="exam-opts-' + qi + '">';
+      q.options.forEach((opt, oi) => {
+        const ls = q.type === 'qru' ? '' : 'border-radius:6px;';
+        html += '<div class="option-item" onclick="examToggle(' + qi + ',' + oi + ',this)"><div class="opt-letter" style="' + ls + '">' + LETTERS[oi] + '</div><div class="opt-text">' + opt + '</div></div>';
+      });
+      html += '</div>';
+    }
+    block.innerHTML = html;
+    list.appendChild(block);
+  });
+}
+
+function examToggle(qi, oi, el) {
+  if (!Array.isArray(session.answers[qi])) session.answers[qi] = [];
+  const q = session.questions[qi];
+  if (q.type === 'qru') {
+    document.querySelectorAll('#exam-opts-' + qi + ' .option-item').forEach(o => o.classList.remove('selected'));
+    session.answers[qi] = [oi];
+    el.classList.add('selected');
+  } else {
+    const ans = session.answers[qi];
+    if (ans.includes(oi)) { session.answers[qi] = ans.filter(a => a !== oi); el.classList.remove('selected'); }
+    else { session.answers[qi].push(oi); el.classList.add('selected'); }
+  }
+}
+
+function examFinish(timeUp = false) {
+  stopChrono();
+  if (timeUp) {
+    const b = document.createElement('div');
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--red);color:#fff;text-align:center;padding:12px;font-size:14px;font-weight:500;';
+    b.textContent = '⏰ Temps écoulé — examen terminé automatiquement';
+    document.body.appendChild(b);
+    setTimeout(() => b.remove(), 4000);
+  }
+  session.questions.forEach((q, i) => {
+    if (q.type === 'qroc') {
+      session.scorePoints[i] = null;
+    } else {
+      const pts = calcScore(q.correct, session.answers[i] || [], q.type);
+      session.scoreTotal += pts;
+      session.scorePoints[i] = pts;
+    }
+    session.validatedArr[i] = true;
+  });
+  showResults();
+}
+
+function markExamQroc(i, got) {
+  const pts = got ? 1 : 0;
+  if (session.scorePoints[i] !== null) session.scoreTotal -= (session.scorePoints[i] || 0);
+  session.scorePoints[i] = pts;
+  session.scoreTotal += pts;
+  const card = document.getElementById('exam-qroc-card-' + i);
+  if (card) card.querySelector('.qroc-btns').innerHTML = '<span style="font-size:13px;color:' + (got ? 'var(--green-text)' : 'var(--red-text)') + ';font-weight:500;">' + (got ? '✓ +1 pt' : '✗ +0 pt') + '</span>';
+}
+
 // ─── RÉSULTATS ───
 function showResults() {
   const total = session.questions.length;
@@ -943,30 +1135,25 @@ function showResults() {
 
   show('results');
   const scoreTotal = parseFloat(session.scoreTotal.toFixed(1));
-  const pct = Math.round((scoreTotal / total) * 100);
-  const sur20 = parseFloat(((scoreTotal / total) * 20).toFixed(1));
+  const validatedCount = session.validatedArr.filter(Boolean).length || 1;
+  const pct = Math.round((scoreTotal / validatedCount) * 100);
+  const sur20 = parseFloat(((scoreTotal / validatedCount) * 20).toFixed(1));
   const sur20Str = Number.isInteger(sur20) ? sur20.toString() : sur20.toString().replace('.', ',');
 
   document.getElementById('res-big').textContent = sur20Str + ' / 20';
-  document.getElementById('res-label').textContent = pct + '% — ' + scoreTotal.toString().replace('.', ',') + ' pts / ' + total + ' questions';
+  document.getElementById('res-label').textContent = pct + '% — ' + scoreTotal.toString().replace('.', ',') + ' pts / ' + validatedCount + ' questions';
   document.getElementById('res-msg').textContent = pct >= 80 ? 'Excellent travail !' : pct >= 60 ? 'Bon résultat, continue !' : 'Encore un effort — reprends ces chapitres.';
-
-  if (session.mode === 'examen') {
-    document.getElementById('exam-correction-block').style.display = 'block';
-    document.getElementById('train-results-block').style.display = 'none';
-    renderExamCorrection();
-  } else {
     document.getElementById('exam-correction-block').style.display = 'none';
     document.getElementById('train-results-block').style.display = 'block';
     renderTrainResults();
-  }
+  
 
   // Save to history
   const details = session.questions.map((q, i) => ({
     question: q.question,
     pts: session.scorePoints[i] || 0
   }));
-  history.push({
+  qcmHistory.push({
     date: new Date().toISOString(),
     mode: session.mode,
     total,
@@ -994,7 +1181,7 @@ function renderExamCorrection() {
       html += `<div class="exam-opt" style="background:var(--yellow-dim); color:var(--yellow-text);">Réponse attendue : ${q.answer}</div>`;
       if (q.explanation) html += `<div style="font-size:13px; color:var(--text-2); margin-top:8px; font-style:italic;">${q.explanation}</div>`;
     } else {
-      const pts = calcScore(q.correct, userAns);
+      const pts = calcScore(q.correct, userAns, q.type);
       const badgeClass = pts === 1 ? 'full' : pts === 0 ? 'zero' : 'partial';
       const ptsStr = pts === 1 ? '+1 pt' : pts === 0.5 ? '+0,5 pt' : pts === 0.2 ? '+0,2 pt' : '+0 pt';
       html += `<div style="margin-bottom:8px;"><span class="exam-score-badge ${badgeClass}">${ptsStr}</span></div>`;
@@ -1017,24 +1204,53 @@ function renderExamCorrection() {
 }
 
 function renderTrainResults() {
-  const tbody = document.getElementById('results-tbody');
-  tbody.innerHTML = '';
+  const container = document.getElementById('results-correction');
+  container.innerHTML = '';
   session.questions.forEach((q, i) => {
-    const tr = document.createElement('tr');
-    const pts = session.scorePoints[i] !== undefined ? session.scorePoints[i] : null;
-    const ptsStr = pts === null ? '—' : pts === 1 ? '+1 pt' : pts === 0.5 ? '+0,5 pt' : pts === 0.2 ? '+0,2 pt' : '+0 pt';
-    const ptsColor = pts === 1 ? 'var(--yellow)' : pts === 0 ? 'var(--red-text)' : 'var(--amber-text)';
+    const pts = session.scorePoints[i];
+    const borderColor = pts === 1 ? '#2d6a4f' : pts === 0 ? '#8b2424' : pts === null ? 'var(--border)' : '#7a5200';
+    const topBarColor = pts === 1 ? '#6fcf97' : pts === 0 ? '#eb8080' : pts === null ? 'var(--border-2)' : '#f0a832';
+    const bgColor = pts === 1 ? 'rgba(111,207,151,0.04)' : pts === 0 ? 'rgba(235,128,128,0.04)' : pts === null ? 'transparent' : 'rgba(240,168,50,0.04)';
+    const ptsColor = pts === 1 ? 'var(--green-text)' : pts === 0 ? 'var(--red-text)' : pts === null ? 'var(--text-3)' : '#f0a832';
+    const ptsStr = pts === 1 ? '+1 pt' : pts === 0 ? '+0 pt' : pts === null ? '?' : pts === 0.5 ? '+0,5 pt' : '+0,2 pt';
+
+    const block = document.createElement('div');
+    block.style.cssText = 'border:1px solid ' + borderColor + '; border-top:3px solid ' + topBarColor + '; border-radius:var(--radius-lg); padding:1.25rem; margin-bottom:1rem; background:' + bgColor + ';';
+
+    let html = '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">';
+    html += '<div>';
+    if (q.tag) html += '<div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;">' + q.tag + '</div>';
+    html += '<div style="font-size:11px; color:var(--text-3);">Question ' + (i+1) + '</div></div>';
+    html += '<span style="font-size:13px; font-weight:500; color:' + ptsColor + ';">' + ptsStr + '</span></div>';
+    html += '<div style="font-size:15px; color:var(--text); font-weight:300; line-height:1.6; margin-bottom:1rem;">' + q.question + '</div>';
+
     if (q.type === 'qroc') {
-      const dotClass = pts === 1 ? 'ok' : pts === 0 ? 'ko' : 'partial';
-      tr.innerHTML = '<td><span class="dot ' + dotClass + '"></span></td><td>' + q.question.substring(0,90) + (q.question.length>90?'…':'') + '<br><span style="font-size:12px;color:var(--text-3);">QROC</span></td><td style="text-align:right;white-space:nowrap;color:' + ptsColor + ';font-weight:500;">' + ptsStr + '</td>';
-    } else {
+      const userAns = session.answers[i] || '';
+      html += '<div style="display:flex; flex-direction:column; gap:6px;" id="exam-qroc-card-' + i + '">';
+      html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--bg-3); color:var(--text-2);">Ta réponse : <em>' + (userAns || '—') + '</em></div>';
+      html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--green-bg); color:var(--green-text);">✓ Attendu : ' + q.answer + '</div>';
+      if (session.mode === 'examen' && (pts === null || pts === undefined)) {
+        html += '<div class="qroc-btns" style="display:flex;gap:8px;align-items:center;margin-top:4px;"><span style="font-size:13px;color:var(--text-2);">Tu avais bon ?</span><button onclick="markExamQroc(' + i + ',true)" style="padding:5px 14px;border-radius:4px;border:1px solid var(--green);background:var(--green-bg);color:var(--green-text);font-size:13px;cursor:pointer;font-family:var(--font-body);">Oui</button><button onclick="markExamQroc(' + i + ',false)" style="padding:5px 14px;border-radius:4px;border:1px solid var(--red);background:var(--red-bg);color:var(--red-text);font-size:13px;cursor:pointer;font-family:var(--font-body);">Non</button></div>';
+      }
+      html += '</div>';
+    } else if (q.type !== 'qzone') {
       const userAns = session.answers[i] || [];
-      const dotClass = pts === 1 ? 'ok' : pts === 0 ? 'ko' : 'partial';
-      const corrLetters = q.correct.map(i => LETTERS[i]).join(', ');
-      const userLetters = userAns.map(i => LETTERS[i]).join(', ') || '—';
-      tr.innerHTML = '<td><span class="dot ' + dotClass + '"></span></td><td>' + q.question.substring(0,90) + (q.question.length>90?'…':'') + '<br><span style="font-size:12px;color:var(--text-3);">' + userLetters + ' → ' + corrLetters + '</span></td><td style="text-align:right;white-space:nowrap;color:' + ptsColor + ';font-weight:500;">' + ptsStr + '</td>';
+      html += '<div style="display:flex; flex-direction:column; gap:6px;">';
+      q.options.forEach((opt, oi) => {
+        const isCorrect = q.correct.includes(oi), isSelected = userAns.includes(oi);
+        let bg, color, prefix;
+        if (isCorrect && isSelected) { bg='var(--green-bg)'; color='var(--green-text)'; prefix='✓ '; }
+        else if (isCorrect && !isSelected) { bg='var(--yellow-dim)'; color='var(--yellow-text)'; prefix='→ '; }
+        else if (!isCorrect && isSelected) { bg='var(--red-bg)'; color='var(--red-text)'; prefix='✗ '; }
+        else { bg='transparent'; color='var(--text-3)'; prefix=''; }
+        html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:var(--radius);background:'+bg+';font-size:13px;color:'+color+';">';
+        html += '<span style="font-weight:500;flex-shrink:0;">'+prefix+LETTERS[oi]+'.</span><span>'+opt+'</span></div>';
+      });
+      html += '</div>';
     }
-    tbody.appendChild(tr);
+    if (q.explanation) html += '<div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);font-size:13px;color:var(--text-2);line-height:1.6;">'+q.explanation+'</div>';
+    block.innerHTML = html;
+    container.appendChild(block);
   });
 }
 

@@ -286,8 +286,9 @@ function compressImage(file, callback) {
       const MAX = 800;
       let w = img.width, h = img.height;
       if (w > MAX || h > MAX) {
-        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-        else { w = Math.round(w * MAX / h); h = MAX; }
+        const ratio = MAX / Math.max(w, h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
       }
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
@@ -366,7 +367,7 @@ function saveQ() {
   const question = document.getElementById('add-question').value.trim();
   const explanation = document.getElementById('add-explanation').value.trim();
 
-  if (!question) { alert('Remplis l'énoncé.'); return; }
+  if (!question) { alert("Remplis l'énoncé."); return; }
 
   if (addType === 'qzone') {
     if (!qzoneImgData) { alert('Ajoute une image.'); return; }
@@ -527,7 +528,7 @@ function saveEdit() {
   const tag = document.getElementById('edit-tag').value.trim();
   const question = document.getElementById('edit-question').value.trim();
   const explanation = document.getElementById('edit-explanation').value.trim();
-  if (!question) { alert('Remplis l'énoncé.'); return; }
+  if (!question) { alert("Remplis l'énoncé."); return; }
 
   if (editType === 'qroc') {
     const answer = document.getElementById('edit-answer').value.trim();

@@ -193,8 +193,12 @@ footer p { font-size: 13px; color: var(--text-3); }
 .back-link:hover { color: var(--text); }
 
 /* ─── PROGRESS ─── */
-.progress-bar-wrap { height: 2px; background: var(--border); }
-.progress-bar-fill { height: 100%; background: var(--yellow); transition: width 0.3s ease; }
+.progress-bar-wrap { height: 6px; background: var(--bg-3); position: relative; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--yellow); transition: width 0.45s cubic-bezier(0.4,0,0.2,1); position: relative; border-radius: 0 3px 3px 0; }
+.progress-bar-fill::after { content:''; position:absolute; top:0; right:0; bottom:0; width:60px; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3)); animation: shimmer 1.2s ease infinite; }
+@keyframes shimmer { 0%{opacity:0;transform:translateX(-20px)} 50%{opacity:1} 100%{opacity:0;transform:translateX(10px)} }
+.progress-info { display:flex; justify-content:space-between; align-items:center; padding:6px 0 0; font-size:11px; color:var(--text-3); letter-spacing:.04em; }
+.progress-pct { color:var(--yellow); font-weight:500; font-size:12px; transition:all 0.3s; }
 
 /* ─── QUIZ META ─── */
 .quiz-meta {
@@ -391,3 +395,22 @@ footer p { font-size: 13px; color: var(--text-3); }
   overflow-y: auto; margin: 1rem;
 }
 .modal h2 { font-size: 18px; font-weight: 500; margin-bottom: 1.5rem; color: var(--text); }
+
+/* ── NAV BULLES ── */
+#side-list { display:flex; flex-direction:column; gap:6px; }
+
+/* ── MODE PICK (sans ::before problématique) ── */
+.mode-pick-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.mode-pick-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+
+/* ── QUIZ CARD ── */
+.quiz-card-wrap { max-width: 1020px; margin: 0 auto; padding: 2rem 2rem; }
+.quiz-card { background: transparent; border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 2.5rem 2.5rem 1.75rem; margin-bottom: 1.25rem; }
+.action-row { max-width: 1020px; margin: 0 auto; padding: 0 2rem; }
