@@ -380,7 +380,6 @@ async function saveQ() {
     document.getElementById('qzone-editor').style.display = 'none';
     document.getElementById('qzone-img-input').value = '';
     document.getElementById('qzone-markers-list').innerHTML = '';
-   
     await save();
     document.getElementById('add-tag').value = '';
     document.getElementById('add-question').value = '';
@@ -404,8 +403,7 @@ async function saveQ() {
     questions.push({ type: qtype, tag, question, options, correct, optExps, explanation, image: addImgData || null });
   }
 
- 
-    await save();
+  await save();
   document.getElementById('add-tag').value = '';
   document.getElementById('add-question').value = '';
   document.getElementById('add-explanation').value = '';
@@ -469,14 +467,12 @@ function mkFilterBtn(text, active) {
 async function deleteQ(i) {
   if (!confirm('Supprimer cette question ?')) return;
   questions.splice(i, 1);
- 
-    await save(); renderList();
+  await save(); renderList();
 }
 
-function deleteAll() {
+async function deleteAll() {
   if (!confirm('Supprimer TOUTES les questions ? Cette action est irréversible.')) return;
-  questions = [];
-    await save(); renderList();
+  questions = []; await save(); renderList();
 }
 
 // ─── EDIT ───
@@ -556,8 +552,7 @@ async function saveEdit() {
     const qtype = editType === 'qru' ? 'qru' : 'qcm';
     questions[editIndex] = { type: qtype, tag, question, options, correct, optExps, explanation, image: editImgData || null };
   }
- 
-    await save(); closeModal(); renderList();
+  await save(); closeModal(); renderList();
 }
 
 // ─── IMPORT / EXPORT ───
@@ -580,13 +575,12 @@ function importQ(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
     try {
       const imported = JSON.parse(e.target.result);
       if (!Array.isArray(imported)) throw new Error('Format invalide');
       questions = [...questions, ...imported];
-     
-    await save();
+      await save();
       const msg = document.getElementById('import-msg');
       msg.textContent = `✓ ${imported.length} question${imported.length > 1 ? 's' : ''} importée${imported.length > 1 ? 's' : ''} avec succès !`;
       msg.style.display = 'block';
