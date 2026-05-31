@@ -321,15 +321,18 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 <script>
 const LETTERS = ['A','B','C','D','E'];
-let questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
-let qcmHistory = JSON.parse(localStorage.getItem('qcm_history') || '[]');
+let questions = [];
+let qcmHistory = [];
 let selectedTags = [];
 let typeFilter = 'all';
 let session = {};
 
-function saveHistory() { localStorage.setItem('qcm_history', JSON.stringify(qcmHistory)); }
+async function saveHistory() {
+  await localforage.setItem('qcm_history', qcmHistory);
+}
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
@@ -1265,7 +1268,32 @@ function restart() {
   setTimeout(() => document.getElementById('btn-start').click(), 50);
 }
 
-renderHome();
+// ─── INIT avec migration localStorage → IndexedDB ───
+async function init() {
+  // Migration : si des données existent dans localStorage, on les copie dans IndexedDB puis on les supprime
+  const oldQuestions = localStorage.getItem('qcm_annales');
+  if (oldQuestions) {
+    const parsed = JSON.parse(oldQuestions);
+    if (parsed.length > 0) {
+      await localforage.setItem('qcm_annales', parsed);
+    }
+    localStorage.removeItem('qcm_annales');
+  }
+  const oldHistory = localStorage.getItem('qcm_history');
+  if (oldHistory) {
+    const parsed = JSON.parse(oldHistory);
+    if (parsed.length > 0) {
+      await localforage.setItem('qcm_history', parsed);
+    }
+    localStorage.removeItem('qcm_history');
+  }
+
+  questions = (await localforage.getItem('qcm_annales')) || [];
+  qcmHistory = (await localforage.getItem('qcm_history')) || [];
+  renderHome();
+}
+
+init();
 </script>
 </body>
 </html>

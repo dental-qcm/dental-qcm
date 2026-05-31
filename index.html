@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 <script>
 (function() {
   const s = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
@@ -110,8 +111,10 @@ body::before { content:''; position:fixed; inset:0; background-image:url("data:i
   </div>
 </footer>
 <script>
-const questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
-if (questions.length > 0) { document.getElementById('q-count').textContent = questions.length; document.getElementById('q-badge').style.display = 'inline-flex'; }
+(async () => {
+  const questions = (await localforage.getItem('qcm_annales')) || [];
+  if (questions.length > 0) { document.getElementById('q-count').textContent = questions.length; document.getElementById('q-badge').style.display = 'inline-flex'; }
+})();
 </script>
 </body>
 </html>

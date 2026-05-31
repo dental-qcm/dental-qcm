@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 <style>
 .stat-card {
   background: var(--bg-2);
@@ -174,13 +175,13 @@
 </div>
 
 <script>
-let qcmHistory = JSON.parse(localStorage.getItem('qcm_history') || '[]');
+let qcmHistory = [];
 let graphPeriod = 'week';
 
-function clearHistory() {
+async function clearHistory() {
   if (!confirm('Effacer tout l\'historique ?')) return;
   qcmHistory = [];
-  localStorage.setItem('qcm_history', JSON.stringify(qcmHistory));
+  await localforage.setItem('qcm_history', qcmHistory);
   render();
 }
 
@@ -342,7 +343,18 @@ function renderBarChart(chartId, daysId, buckets, type) {
   });
 }
 
-render();
+async function init() {
+  const old = localStorage.getItem('qcm_history');
+  if (old) {
+    const parsed = JSON.parse(old);
+    if (parsed.length > 0) await localforage.setItem('qcm_history', parsed);
+    localStorage.removeItem('qcm_history');
+  }
+  qcmHistory = (await localforage.getItem('qcm_history')) || [];
+  render();
+}
+
+init();
 </script>
 </body>
 </html>
