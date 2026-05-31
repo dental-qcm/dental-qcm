@@ -363,7 +363,7 @@ function buildAddForm() {
   });
 }
 
-function saveQ() {
+async function saveQ() {
   const tag = document.getElementById('add-tag').value.trim();
   const question = document.getElementById('add-question').value.trim();
   const explanation = document.getElementById('add-explanation').value.trim();
@@ -380,7 +380,8 @@ function saveQ() {
     document.getElementById('qzone-editor').style.display = 'none';
     document.getElementById('qzone-img-input').value = '';
     document.getElementById('qzone-markers-list').innerHTML = '';
-    save();
+   
+    await save();
     document.getElementById('add-tag').value = '';
     document.getElementById('add-question').value = '';
     document.getElementById('add-explanation').value = '';
@@ -403,7 +404,8 @@ function saveQ() {
     questions.push({ type: qtype, tag, question, options, correct, optExps, explanation, image: addImgData || null });
   }
 
-  save();
+ 
+    await save();
   document.getElementById('add-tag').value = '';
   document.getElementById('add-question').value = '';
   document.getElementById('add-explanation').value = '';
@@ -464,15 +466,17 @@ function mkFilterBtn(text, active) {
   return btn;
 }
 
-function deleteQ(i) {
+async function deleteQ(i) {
   if (!confirm('Supprimer cette question ?')) return;
   questions.splice(i, 1);
-  save(); renderList();
+ 
+    await save(); renderList();
 }
 
 function deleteAll() {
   if (!confirm('Supprimer TOUTES les questions ? Cette action est irréversible.')) return;
-  questions = []; save(); renderList();
+  questions = [];
+    await save(); renderList();
 }
 
 // ─── EDIT ───
@@ -525,7 +529,7 @@ function closeModal() {
   editIndex = null; editImgData = null;
 }
 
-function saveEdit() {
+async function saveEdit() {
   const tag = document.getElementById('edit-tag').value.trim();
   const question = document.getElementById('edit-question').value.trim();
   const explanation = document.getElementById('edit-explanation').value.trim();
@@ -552,7 +556,8 @@ function saveEdit() {
     const qtype = editType === 'qru' ? 'qru' : 'qcm';
     questions[editIndex] = { type: qtype, tag, question, options, correct, optExps, explanation, image: editImgData || null };
   }
-  save(); closeModal(); renderList();
+ 
+    await save(); closeModal(); renderList();
 }
 
 // ─── IMPORT / EXPORT ───
@@ -580,7 +585,8 @@ function importQ(event) {
       const imported = JSON.parse(e.target.result);
       if (!Array.isArray(imported)) throw new Error('Format invalide');
       questions = [...questions, ...imported];
-      save();
+     
+    await save();
       const msg = document.getElementById('import-msg');
       msg.textContent = `✓ ${imported.length} question${imported.length > 1 ? 's' : ''} importée${imported.length > 1 ? 's' : ''} avec succès !`;
       msg.style.display = 'block';
