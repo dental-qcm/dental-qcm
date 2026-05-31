@@ -9,6 +9,54 @@
   <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 <script>
+// ─── PIN PROTECTION ───
+(function() {
+  if (sessionStorage.getItem('qcm_auth') === '1') return;
+  document.addEventListener('DOMContentLoaded', function() {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;';
+    overlay.innerHTML = `
+      <div style="font-size:1.5rem;font-weight:600;color:var(--text);">🔒 Accès restreint</div>
+      <div style="font-size:14px;color:var(--text-3);">Entre le code PIN pour continuer</div>
+      <div style="display:flex;gap:12px;" id="pin-dots">
+        <div style="width:14px;height:14px;border-radius:50%;background:var(--border);"></div>
+        <div style="width:14px;height:14px;border-radius:50%;background:var(--border);"></div>
+        <div style="width:14px;height:14px;border-radius:50%;background:var(--border);"></div>
+        <div style="width:14px;height:14px;border-radius:50%;background:var(--border);"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,72px);gap:10px;margin-top:0.5rem;" id="pin-grid"></div>
+      <div id="pin-error" style="color:#ff6464;font-size:13px;display:none;">Code incorrect</div>
+    `;
+    document.body.appendChild(overlay);
+    let entered = '';
+    const dots = overlay.querySelectorAll('#pin-dots div');
+    const grid = overlay.querySelector('#pin-grid');
+    const error = overlay.querySelector('#pin-error');
+    [1,2,3,4,5,6,7,8,9,'',0,'⌫'].forEach(k => {
+      const btn = document.createElement('button');
+      btn.textContent = k;
+      btn.style.cssText = 'width:72px;height:72px;border-radius:50%;border:1px solid var(--border);background:var(--bg-2);color:var(--text);font-size:22px;font-family:var(--font-body);cursor:pointer;' + (k===''?'visibility:hidden;':'');
+      btn.onclick = () => {
+        if (k === '') return;
+        if (k === '⌫') { entered = entered.slice(0,-1); }
+        else if (entered.length < 4) { entered += k; }
+        dots.forEach((d,i) => d.style.background = i < entered.length ? 'var(--yellow)' : 'var(--border)');
+        if (entered.length === 4) {
+          if (entered === '1236') {
+            sessionStorage.setItem('qcm_auth','1');
+            overlay.remove();
+          } else {
+            error.style.display = 'block';
+            dots.forEach(d => d.style.background = '#ff6464');
+            setTimeout(() => { entered = ''; dots.forEach(d => d.style.background = 'var(--border)'); error.style.display='none'; }, 800);
+          }
+        }
+      };
+      grid.appendChild(btn);
+    });
+  });
+})();
+</script>
 (function() {
   const s = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
   if (!s.accentColor && !s.theme) return;
