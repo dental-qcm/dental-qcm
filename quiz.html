@@ -307,11 +307,26 @@
 
 <script>
 const LETTERS = ['A','B','C','D','E'];
-let questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
+let questions = [];
 let qcmHistory = JSON.parse(localStorage.getItem('qcm_history') || '[]');
 let selectedTags = [];
 let typeFilter = 'all';
 let session = {};
+
+const SUPABASE_URL = 'https://rcrkksvkkoujrmpnpvov.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_cfjmRq5I4YvrEZB0hbSK-w_-GQ_WWzz';
+const RECORD_ID = 1;
+
+async function sbLoad() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/questions?id=eq.${RECORD_ID}&select=data`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    const rows = await res.json();
+    if (rows && rows.length > 0 && rows[0].data) return rows[0].data;
+    return null;
+  } catch(e) { return null; }
+}
 
 function saveHistory() { localStorage.setItem('qcm_history', JSON.stringify(qcmHistory)); localforage.setItem('qcm_history', qcmHistory); }
 function show(id) {
@@ -1251,7 +1266,18 @@ function restart() {
   setTimeout(() => document.getElementById('btn-start').click(), 50);
 }
 
-renderHome();
+// ─── INIT ───
+async function init() {
+  const remote = await sbLoad();
+  if (remote && remote.length > 0) {
+    questions = remote;
+    localStorage.setItem('qcm_annales', JSON.stringify(questions));
+  } else {
+    questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
+  }
+  renderHome();
+}
+init();
 </script>
 </body>
 </html>
