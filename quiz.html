@@ -53,23 +53,8 @@
 .exam-score-badge.full { background: var(--green-bg); color: var(--green-text); }
 .exam-score-badge.partial { background: #1a1200; color: var(--amber-text); }
 .exam-score-badge.zero { background: var(--red-bg); color: var(--red-text); }
-
-.qzone-tag {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--text);
-  cursor: grab;
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.4;
-}
-.qzone-tag:active { cursor: grabbing; opacity: 0.7; }
+.qzone-tag { display:flex; align-items:flex-start; gap:8px; padding:8px 12px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--text); cursor:grab; white-space:normal; word-break:break-word; line-height:1.4; }
+.qzone-tag:active { cursor:grabbing; opacity:0.7; }
 </style>
 <script>
 (function() {
@@ -116,6 +101,22 @@
     <div style="margin-bottom:2.5rem;">
       <h1 style="font-size:2rem; margin-bottom:0.5rem;">Session de révision</h1>
       <p style="color:var(--text-2); font-size:14px;">Configure ta session et lance le quiz.</p>
+    </div>
+
+    <div style="margin-bottom:2rem;">
+      <div class="section-title">Mode</div>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+
+          <div class="mode-icon">📖</div>
+          <h3>Entraînement</h3>
+          <p>Correction après chaque question. Idéal pour apprendre.</p>
+        </div>
+
+          <div class="mode-icon">⏱</div>
+          <h3>Examen</h3>
+          <p>Toutes les questions d'un coup, correction globale à la fin.</p>
+        </div>
+      </div>
     </div>
 
     <div style="margin-bottom:2rem;">
@@ -212,8 +213,8 @@
     <div style="flex:1; min-width:0;">
       <div class="quiz-card-wrap">
         <div class="quiz-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-          <div id="q-counter" style="background:#3b82f6; color:#fff; font-size:12px; font-weight:600; padding:5px 14px; border-radius:6px 6px 6px 0; letter-spacing:0.03em; box-shadow:0 2px 6px rgba(59,130,246,0.3);">Question 1 / 10</div>
+        <div class="quiz-meta">
+          <span id="q-counter" style="background:#3b82f6; color:#fff; font-size:12px; font-weight:600; padding:5px 14px; border-radius:6px 6px 6px 0; letter-spacing:0.03em; box-shadow:0 2px 6px rgba(59,130,246,0.3);">Question 1 / 10</span>
           <span id="score-live">—</span>
         </div>
         <div class="q-tag" id="q-tag"></div>
@@ -328,10 +329,7 @@ let selectedTags = [];
 let typeFilter = 'all';
 let session = {};
 
-function saveHistory() {
-  localStorage.setItem('qcm_history', JSON.stringify(qcmHistory));
-  localforage.setItem('qcm_history', qcmHistory);
-}
+function saveHistory() { localStorage.setItem('qcm_history', JSON.stringify(qcmHistory)); localforage.setItem('qcm_history', qcmHistory); }
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
@@ -925,7 +923,7 @@ function updateSidePanel() {
     } else if (isCurrent) {
       bg = 'var(--bg-3)';
       color = 'var(--text)';
-      border = '#3b82f6';
+      border = 'var(--yellow)';
     } else {
       bg = 'none';
       color = 'var(--text-2)';
