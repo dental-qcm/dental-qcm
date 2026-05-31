@@ -234,7 +234,7 @@
 
 <script>
 const LETTERS = ['A','B','C','D','E'];
-let questions = [];
+let questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
 let editIndex = null;
 let filterTag = null;
 let addImgData = null;
@@ -242,8 +242,9 @@ let editImgData = null;
 let addType = 'qcm';
 let editType = 'qcm';
 
-async function save() {
-  await localforage.setItem('qcm_annales', questions);
+function save() {
+  localforage.setItem('qcm_annales', questions);
+  localStorage.setItem('qcm_annales', JSON.stringify(questions)); // garde les 2 en sync pour l'instant
   document.getElementById('q-count').textContent = `${questions.length} question${questions.length > 1 ? 's' : ''}`;
 }
 
@@ -363,7 +364,7 @@ function buildAddForm() {
   });
 }
 
-async function saveQ() {
+function saveQ() {
   const tag = document.getElementById('add-tag').value.trim();
   const question = document.getElementById('add-question').value.trim();
   const explanation = document.getElementById('add-explanation').value.trim();
@@ -380,7 +381,7 @@ async function saveQ() {
     document.getElementById('qzone-editor').style.display = 'none';
     document.getElementById('qzone-img-input').value = '';
     document.getElementById('qzone-markers-list').innerHTML = '';
-    await save();
+    save();
     document.getElementById('add-tag').value = '';
     document.getElementById('add-question').value = '';
     document.getElementById('add-explanation').value = '';
@@ -403,7 +404,7 @@ async function saveQ() {
     questions.push({ type: qtype, tag, question, options, correct, optExps, explanation, image: addImgData || null });
   }
 
-  await save();
+  save();
   document.getElementById('add-tag').value = '';
   document.getElementById('add-question').value = '';
   document.getElementById('add-explanation').value = '';
@@ -464,15 +465,15 @@ function mkFilterBtn(text, active) {
   return btn;
 }
 
-async function deleteQ(i) {
+function deleteQ(i) {
   if (!confirm('Supprimer cette question ?')) return;
   questions.splice(i, 1);
-  await save(); renderList();
+  save(); renderList();
 }
 
-async function deleteAll() {
+function deleteAll() {
   if (!confirm('Supprimer TOUTES les questions ? Cette action est irréversible.')) return;
-  questions = []; await save(); renderList();
+  questions = []; save(); renderList();
 }
 
 // ─── EDIT ───
@@ -525,7 +526,7 @@ function closeModal() {
   editIndex = null; editImgData = null;
 }
 
-async function saveEdit() {
+function saveEdit() {
   const tag = document.getElementById('edit-tag').value.trim();
   const question = document.getElementById('edit-question').value.trim();
   const explanation = document.getElementById('edit-explanation').value.trim();
@@ -552,7 +553,7 @@ async function saveEdit() {
     const qtype = editType === 'qru' ? 'qru' : 'qcm';
     questions[editIndex] = { type: qtype, tag, question, options, correct, optExps, explanation, image: editImgData || null };
   }
-  await save(); closeModal(); renderList();
+  save(); closeModal(); renderList();
 }
 
 // ─── IMPORT / EXPORT ───
@@ -575,12 +576,12 @@ function importQ(event) {
   const file = event.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = async e => {
+  reader.onload = e => {
     try {
       const imported = JSON.parse(e.target.result);
       if (!Array.isArray(imported)) throw new Error('Format invalide');
       questions = [...questions, ...imported];
-      await save();
+      save();
       const msg = document.getElementById('import-msg');
       msg.textContent = `✓ ${imported.length} question${imported.length > 1 ? 's' : ''} importée${imported.length > 1 ? 's' : ''} avec succès !`;
       msg.style.display = 'block';
@@ -806,21 +807,9 @@ function renderQzoneMarkersList() {
   });
 }
 
-// ─── INIT avec migration localStorage → IndexedDB ───
-async function init() {
-  const old = localStorage.getItem('qcm_annales');
-  if (old) {
-    const parsed = JSON.parse(old);
-    if (parsed.length > 0) await localforage.setItem('qcm_annales', parsed);
-    localStorage.removeItem('qcm_annales');
-  }
-  questions = (await localforage.getItem('qcm_annales')) || [];
-  buildAddForm();
-  renderList();
-  document.getElementById('q-count').textContent = `${questions.length} question${questions.length > 1 ? 's' : ''}`;
-}
-
-init();
+// ─── INIT ───
+buildAddForm();
+save();
 </script>
 </body>
 </html>

@@ -11,6 +11,7 @@
   <!-- POLYFILL MOBILE POUR LE GLISSER-DÉPOSER TACTILE -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
   <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
   <script>
     window.addEventListener('touchmove', function() {}, {passive: false});
     MobileDragDrop.polyfill({
@@ -52,23 +53,6 @@
 .exam-score-badge.full { background: var(--green-bg); color: var(--green-text); }
 .exam-score-badge.partial { background: #1a1200; color: var(--amber-text); }
 .exam-score-badge.zero { background: var(--red-bg); color: var(--red-text); }
-
-.qzone-tag {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--bg-2);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--text);
-  cursor: grab;
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.4;
-}
-.qzone-tag:active { cursor: grabbing; opacity: 0.7; }
 </style>
 <script>
 (function() {
@@ -111,13 +95,27 @@
 
 <!-- SCREEN: SÉLECTION -->
 <div class="screen active" id="screen-home">
-  <div class="container" style="padding-top:2.5rem; padding-bottom:3rem; max-width:540px;">
+  <div class="container" style="padding-top:2.5rem; padding-bottom:3rem;">
     <div style="margin-bottom:2.5rem;">
       <h1 style="font-size:2rem; margin-bottom:0.5rem;">Session de révision</h1>
       <p style="color:var(--text-2); font-size:14px;">Configure ta session et lance le quiz.</p>
     </div>
 
+    <div style="margin-bottom:2rem;">
+      <div class="section-title">Mode</div>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap;">
 
+          <div class="mode-icon">📖</div>
+          <h3>Entraînement</h3>
+          <p>Correction après chaque question. Idéal pour apprendre.</p>
+        </div>
+
+          <div class="mode-icon">⏱</div>
+          <h3>Examen</h3>
+          <p>Toutes les questions d'un coup, correction globale à la fin.</p>
+        </div>
+      </div>
+    </div>
 
     <div style="margin-bottom:2rem;">
       <div class="section-title">Chapitres</div>
@@ -321,17 +319,17 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 <script>
 const LETTERS = ['A','B','C','D','E'];
-let questions = [];
-let qcmHistory = [];
+let questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
+let qcmHistory = JSON.parse(localStorage.getItem('qcm_history') || '[]');
 let selectedTags = [];
 let typeFilter = 'all';
 let session = {};
 
-async function saveHistory() {
-  await localforage.setItem('qcm_history', qcmHistory);
+function saveHistory() {
+  localStorage.setItem('qcm_history', JSON.stringify(qcmHistory));
+  localforage.setItem('qcm_history', qcmHistory);
 }
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1268,32 +1266,7 @@ function restart() {
   setTimeout(() => document.getElementById('btn-start').click(), 50);
 }
 
-// ─── INIT avec migration localStorage → IndexedDB ───
-async function init() {
-  // Migration : si des données existent dans localStorage, on les copie dans IndexedDB puis on les supprime
-  const oldQuestions = localStorage.getItem('qcm_annales');
-  if (oldQuestions) {
-    const parsed = JSON.parse(oldQuestions);
-    if (parsed.length > 0) {
-      await localforage.setItem('qcm_annales', parsed);
-    }
-    localStorage.removeItem('qcm_annales');
-  }
-  const oldHistory = localStorage.getItem('qcm_history');
-  if (oldHistory) {
-    const parsed = JSON.parse(oldHistory);
-    if (parsed.length > 0) {
-      await localforage.setItem('qcm_history', parsed);
-    }
-    localStorage.removeItem('qcm_history');
-  }
-
-  questions = (await localforage.getItem('qcm_annales')) || [];
-  qcmHistory = (await localforage.getItem('qcm_history')) || [];
-  renderHome();
-}
-
-init();
+renderHome();
 </script>
 </body>
 </html>
