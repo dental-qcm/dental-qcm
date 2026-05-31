@@ -925,7 +925,7 @@ function updateSidePanel() {
     } else if (isCurrent) {
       bg = 'var(--bg-3)';
       color = 'var(--text)';
-      border = 'var(--yellow)';
+      border = '#3b82f6';
     } else {
       bg = 'none';
       color = 'var(--text-2)';
@@ -936,7 +936,7 @@ function updateSidePanel() {
     if (isValidated && pts === 1)      { bubbleBg='var(--green-bg)';       bubbleColor='var(--green-text)'; bubbleBorder='var(--green)'; }
     else if (isValidated && pts === 0) { bubbleBg='var(--red-bg)';         bubbleColor='var(--red-text)';   bubbleBorder='var(--red)'; }
     else if (isValidated)              { bubbleBg='rgba(240,168,50,0.12)'; bubbleColor='#f0a832';           bubbleBorder='#7a5200'; }
-    else if (isCurrent)                { bubbleBg='var(--yellow-dim)';     bubbleColor='var(--yellow-text)';bubbleBorder='var(--yellow)'; }
+    else if (isCurrent)                { bubbleBg='rgba(59,130,246,0.12)'; bubbleColor='#3b82f6';           bubbleBorder='#3b82f6'; }
     else                               { bubbleBg='var(--bg-3)';           bubbleColor='var(--text-3)';     bubbleBorder='var(--border)'; }
     btn.style.cssText = 'width:100%; text-align:left; padding:9px 12px; border-radius:8px; border:1px solid ' + bubbleBorder + '; cursor:pointer; font-family:var(--font-body); font-size:13px; font-weight:' + (isCurrent ? '500' : '400') + '; background:' + bubbleBg + '; color:' + bubbleColor + '; transition:all 0.15s;';
     btn.textContent = 'Question ' + (i + 1);
