@@ -168,7 +168,7 @@ footer p { font-size: 13px; color: var(--text-3); }
 .tag-chip {
   padding: 6px 14px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius);
   font-size: 13px; font-weight: 400;
   color: var(--text-2); background: var(--bg);
   cursor: pointer; transition: all 0.15s;

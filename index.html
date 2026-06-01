@@ -72,44 +72,41 @@ body::before { content:''; position:fixed; inset:0; background-image:url("data:i
 </style>
 </head>
 <body>
-<header class="home-header">
-  <div class="home-inner">
-    <div class="home-logo">QCM Annales</div>
-    <nav class="home-nav">
-      <a href="pin.html" class="pill">➕ Ajouter</a>
-      <a href="reglages.html" class="pill">⚙️ Réglages</a>
-      <a href="quiz.html" class="cta">Commencer →</a>
-    </nav>
-  </div>
-</header>
-<main>
-  <div class="page-wrap">
-    <section class="hero">
-      <div class="hero-glow"></div>
-      <div class="hero-label">Révision active</div>
-      <h1 class="hero-title">QCMs d'annales de 2ème<br>année de dentaire</h1>
-      <div class="hero-actions">
-        <a href="quiz.html" class="btn-hero-primary">Lancer une session <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-        <a href="pin.html" class="btn-hero-secondary">+ Ajouter des questions</a>
-        <span class="q-badge" id="q-badge" style="display:none;"><strong id="q-count">0</strong> questions</span>
-      </div>
-    </section>
-    <div class="divider"></div>
-    <section class="features">
-      <div class="feature"><span class="feature-icon">📚</span><div class="feature-title">Tes vraies annales</div><div class="feature-desc">QCM, QROC et Qzones directement issus des sujets d'examens.</div></div>
-      <div class="feature"><span class="feature-icon">⚡</span><div class="feature-title">Correction immédiate</div><div class="feature-desc">Chaque réponse corrigée à la volée avec explication détaillée.</div></div>
-      <div class="feature"><span class="feature-icon">🎯</span><div class="feature-title">Par chapitre</div><div class="feature-desc">Filtre par matière, type de question, et concentre-toi sur tes points faibles.</div></div>
-    </section>
-  </div>
-</main>
-<footer>
-  <div class="page-wrap">
-    <div class="bottom-bar">
-      <div class="bottom-bar-left">QCM Annales</div>
-      <div class="bottom-bar-right"><a href="pin.html">Gérer les questions</a><a href="reglages.html">Réglages</a></div>
+<div style="display:flex; min-height:100vh;">
+  <!-- SIDEBAR -->
+  <aside style="width:220px; flex-shrink:0; background:var(--bg-2); border-right:1px solid var(--border); padding:1.5rem 1rem; display:flex; flex-direction:column; gap:4px; position:sticky; top:0; height:100vh; overflow-y:auto;">
+    <div style="font-size:11px; color:var(--text-3); letter-spacing:.15em; text-transform:uppercase; padding:.75rem .75rem 1.25rem; border-bottom:1px solid var(--border); margin-bottom:.75rem;">QCM Annales</div>
+    <a href="index.html" style="font-size:14px; padding:9px 12px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);">🏠 Accueil</a>
+    <a href="quiz.html" style="font-size:14px; padding:9px 12px; border-radius:var(--radius); color:var(--text-2); text-decoration:none; display:flex; align-items:center; gap:10px; transition:background .15s;" onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background='transparent'">▶️ Quiz</a>
+    <a href="pin.html" style="font-size:14px; padding:9px 12px; border-radius:var(--radius); color:var(--text-2); text-decoration:none; display:flex; align-items:center; gap:10px; transition:background .15s;" onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background='transparent'">➕ Ajouter</a>
+    <a href="reglages.html" style="font-size:14px; padding:9px 12px; border-radius:var(--radius); color:var(--text-2); text-decoration:none; display:flex; align-items:center; gap:10px; transition:background .15s;" onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background='transparent'">⚙️ Réglages</a>
+    <div style="margin-top:auto; padding-top:1.5rem;">
+      <a href="quiz.html" class="btn-hero-primary" style="display:flex; justify-content:center; text-align:center;">Commencer →</a>
     </div>
-  </div>
-</footer>
+  </aside>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main style="flex:1; min-width:0;">
+    <div class="page-wrap">
+      <section class="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-label">Révision active</div>
+        <h1 class="hero-title">QCMs d'annales de 2ème<br>année de dentaire</h1>
+        <div class="hero-actions">
+          <a href="quiz.html" class="btn-hero-primary">Lancer une session <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <a href="pin.html" class="btn-hero-secondary">+ Ajouter des questions</a>
+          <span class="q-badge" id="q-badge" style="display:none;"><strong id="q-count">0</strong> questions</span>
+        </div>
+      </section>
+      <div class="divider"></div>
+      <section class="features">
+        <div class="feature"><span class="feature-icon">📚</span><div class="feature-title">Tes vraies annales</div><div class="feature-desc">QCM, QROC et Qzones directement issus des sujets d'examens.</div></div>
+        <div class="feature"><span class="feature-icon">⚡</span><div class="feature-title">Correction immédiate</div><div class="feature-desc">Chaque réponse corrigée à la volée avec explication détaillée.</div></div>
+        <div class="feature"><span class="feature-icon">🎯</span><div class="feature-title">Par chapitre</div><div class="feature-desc">Filtre par matière, type de question, et concentre-toi sur tes points faibles.</div></div>
+      </section>
+    </div>
+  </main>
+</div>
 <script>
 (async () => {
   const questions = (await localforage.getItem('qcm_annales')) || [];
