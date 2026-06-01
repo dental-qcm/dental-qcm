@@ -12,7 +12,7 @@
       const s = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
       if (!s.accentColor && !s.theme) return;
       const r = document.documentElement;
-      const c = s.accentColor || '#e8ff00';
+      const c = s.accentColor || '#00c853';
       const t = s.theme || 'dark';
       r.style.setProperty('--yellow', c);
       r.style.setProperty('--accent-color', c);

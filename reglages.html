@@ -255,7 +255,7 @@
 
 <script>
 const PRESET_COLORS = [
-  { name: 'Jaune fluo', value: '#e8ff00' },
+  { name: 'Jaune fluo', value: '#00c853' },
   { name: 'Vert émeraude', value: '#00c853' },
   { name: 'Vert lime', value: '#a8ff3e' },
   { name: 'Cyan', value: '#00e5ff' },
@@ -268,7 +268,7 @@ const PRESET_COLORS = [
 
 let settings = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
 let currentTheme = settings.theme || 'dark';
-let currentColor = settings.accentColor || '#e8ff00';
+let currentColor = settings.accentColor || '#00c853';
 
 function init() {
   // Build color swatches
@@ -393,7 +393,7 @@ function hexToRgba(hex, alpha) {
   const saved = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
   if (saved.accentColor || saved.theme) {
     currentTheme = saved.theme || 'dark';
-    currentColor = saved.accentColor || '#e8ff00';
+    currentColor = saved.accentColor || '#00c853';
     applySettings();
   }
 })();
