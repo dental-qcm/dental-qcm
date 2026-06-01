@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Annales QCM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
+<script>
+(function() {
+  const s = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
+  if (!s.accentColor && !s.theme) return;
+  const r = document.documentElement;
+  const c = s.accentColor || '#e8ff00';
+  const t = s.theme || 'dark';
+  function hexToRgba(hex, a) { const rv=parseInt(hex.slice(1,3),16),gv=parseInt(hex.slice(3,5),16),bv=parseInt(hex.slice(5,7),16); return 'rgba('+rv+','+gv+','+bv+','+a+')'; }
+  r.style.setProperty('--yellow', c); r.style.setProperty('--yellow-dim', hexToRgba(c,0.08));
+  r.style.setProperty('--yellow-text', c); r.style.setProperty('--accent-color', c);
+  if (t === 'light') {
+    r.style.setProperty('--bg','#f8f8f5'); r.style.setProperty('--bg-2','#ffffff');
+    r.style.setProperty('--bg-3','#f0f0eb'); r.style.setProperty('--border','#e0e0db');
+    r.style.setProperty('--text','#1a1a18'); r.style.setProperty('--text-2','#5a5a52'); r.style.setProperty('--text-3','#9a9a90');
+  } else {
+    r.style.setProperty('--bg','#0d0d0d'); r.style.setProperty('--bg-2','#161616');
+    r.style.setProperty('--bg-3','#1e1e1e'); r.style.setProperty('--border','#2a2a2a');
+    r.style.setProperty('--text','#f0f0ee'); r.style.setProperty('--text-2','#a0a09a'); r.style.setProperty('--text-3','#606060');
+  }
+})();
+</script>
+<style>
+body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity:0.03; pointer-events:none; z-index:0; }
+.home-header { padding:1.5rem 0; position:sticky; top:0; background:var(--bg); z-index:100; }
+.home-inner { max-width:1200px; margin:0 auto; padding:0 3rem; display:flex; justify-content:space-between; align-items:center; }
+.home-logo { font-family:var(--font-body); font-weight:500; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); }
+.home-nav { display:flex; gap:8px; align-items:center; }
+.home-nav a { font-size:13px; color:var(--text-3); text-decoration:none; padding:7px 14px; border-radius:var(--radius); transition:color 0.15s; }
+.home-nav a:hover { color:var(--text); }
+.home-nav .pill { background:var(--bg-2); border:1px solid var(--border); border-radius:999px; color:var(--text-2) !important; transition:all 0.15s !important; }
+.home-nav .pill:hover { color:var(--text) !important; border-color:var(--border-2); }
+.home-nav .cta { background:var(--yellow); color:#0d0d0d !important; font-weight:500; border-radius:var(--radius); }
+.home-nav .cta:hover { opacity:0.85; }
+.page-wrap { max-width:1200px; margin:0 auto; padding:0 3rem; }
+.hero { padding:5rem 0 4rem; position:relative; overflow:hidden; }
+.hero-glow { position:absolute; top:-120px; right:-180px; width:600px; height:600px; background:radial-gradient(circle, var(--yellow) 0%, transparent 65%); opacity:0.04; pointer-events:none; border-radius:50%; }
+.hero-label { display:inline-flex; align-items:center; gap:8px; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:2rem; opacity:0; animation:fadeUp 0.6s ease forwards; }
+.hero-label::before { content:''; display:block; width:20px; height:1px; background:var(--yellow); }
+.hero-title { font-family:var(--font-display); font-size:clamp(2rem, 4vw, 3.2rem); line-height:1.1; color:var(--text); margin-bottom:2.5rem; opacity:0; animation:fadeUp 0.6s ease 0.1s forwards; }
+.hero-actions { display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; opacity:0; animation:fadeUp 0.6s ease 0.2s forwards; }
+.btn-hero-primary { display:inline-flex; align-items:center; gap:10px; background:var(--yellow); color:#0d0d0d; font-family:var(--font-body); font-size:14px; font-weight:500; padding:13px 28px; border-radius:var(--radius); text-decoration:none; transition:opacity 0.15s, transform 0.15s; }
+.btn-hero-primary:hover { opacity:.88; transform:translateY(-1px); }
+.btn-hero-secondary { font-size:14px; color:var(--text-2); text-decoration:none; transition:color 0.15s; padding:13px 0; }
+.btn-hero-secondary:hover { color:var(--text); }
+.q-badge { display:inline-flex; align-items:center; gap:6px; background:var(--bg-2); border:1px solid var(--border); padding:5px 12px; border-radius:999px; font-size:12px; color:var(--text-3); }
+.q-badge strong { color:var(--yellow); font-weight:500; }
+.divider { height:1px; background:var(--border); opacity:0; animation:fadeIn 0.6s ease 0.4s forwards; }
+.features { display:grid; grid-template-columns:repeat(3,1fr); opacity:0; animation:fadeUp 0.6s ease 0.5s forwards; }
+.feature { padding:2rem 0; padding-right:2rem; border-right:1px solid var(--border); }
+.feature:last-child { border-right:none; padding-right:0; padding-left:2rem; }
+.feature:nth-child(2) { padding-left:2rem; }
+.feature-icon { font-size:20px; margin-bottom:1rem; display:block; }
+.feature-title { font-size:14px; font-weight:500; color:var(--text); margin-bottom:.4rem; }
+.feature-desc { font-size:13px; color:var(--text-3); line-height:1.6; }
+.bottom-bar { border-top:1px solid var(--border); padding:1.5rem 0; display:flex; justify-content:space-between; align-items:center; opacity:0; animation:fadeIn 0.6s ease 0.7s forwards; }
+.bottom-bar-left { font-size:12px; color:var(--text-3); }
+.bottom-bar-right { display:flex; gap:1rem; }
+.bottom-bar-right a { font-size:12px; color:var(--text-3); text-decoration:none; transition:color 0.15s; }
+.bottom-bar-right a:hover { color:var(--text-2); }
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+</style>
+</head>
+<body>
+<div style="display:flex; min-height:100vh;">
+  <!-- SIDEBAR -->
+  <aside style="width:220px; flex-shrink:0; background:var(--bg-2); border-right:1px solid var(--border); padding:1.5rem 1rem; display:flex; flex-direction:column; gap:4px; position:sticky; top:0; height:100vh; overflow-y:auto;">
+    <div style="font-size:11px; color:var(--text-3); letter-spacing:.15em; text-transform:uppercase; padding:.75rem .75rem 1.25rem; border-bottom:1px solid var(--border); margin-bottom:.75rem;">QCM Annales</div>
+    <a href="index.html" style="font-size:14px; padding:9px 12px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);">🏠 Accueil</a>
+    <a href="quiz.html" style="font-size:14px; padding:9px 12px; border-radius:var(--radius); color:var(--text-2); text-decoration:none; display:flex; align-items:center; gap:10px; transition:background .15s;" onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background='transparent'">▶️ Quiz</a>
+    <a href="pin.html" style="font-size:14px; padding:9px 12px; border-radius:var(--radius); color:var(--text-2); text-decoration:none; display:flex; align-items:center; gap:10px; transition:background .15s;" onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background='transparent'">➕ Ajouter</a>
+    <a href="reglages.html" style="font-size:14px; padding:9px 12px; border-radius:var(--radius); color:var(--text-2); text-decoration:none; display:flex; align-items:center; gap:10px; transition:background .15s;" onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background='transparent'">⚙️ Réglages</a>
+    <div style="margin-top:auto; padding-top:1.5rem;">
+      <a href="quiz.html" class="btn-hero-primary" style="display:flex; justify-content:center; text-align:center;">Commencer →</a>
+    </div>
+  </aside>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main style="flex:1; min-width:0;">
+    <div class="page-wrap">
+      <section class="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-label">Révision active</div>
+        <h1 class="hero-title">QCMs d'annales de 2ème<br>année de dentaire</h1>
+        <div class="hero-actions">
+          <a href="quiz.html" class="btn-hero-primary">Lancer une session <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <a href="pin.html" class="btn-hero-secondary">+ Ajouter des questions</a>
+          <span class="q-badge" id="q-badge"><strong id="q-count">…</strong> questions</span>
+        </div>
+      </section>
+      <div class="divider"></div>
+      <section class="features">
+        <div class="feature"><span class="feature-icon">📚</span><div class="feature-title">Tes vraies annales</div><div class="feature-desc">QCM, QROC et Qzones directement issus des sujets d'examens.</div></div>
+        <div class="feature"><span class="feature-icon">⚡</span><div class="feature-title">Correction immédiate</div><div class="feature-desc">Chaque réponse corrigée à la volée avec explication détaillée.</div></div>
+        <div class="feature"><span class="feature-icon">🎯</span><div class="feature-title">Par chapitre</div><div class="feature-desc">Filtre par matière, type de question, et concentre-toi sur tes points faibles.</div></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script>
+(async () => {
+  try {
+    const SUPABASE_URL = 'https://rcrkksvkkoujrmpnpvov.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_cfjmRq5I4YvrEZB0hbSK-w_-GQ_WWzz';
+    const RECORD_ID = 1;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/questions?id=eq.${RECORD_ID}&select=data`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    const json = await res.json();
+    const questions = (json[0]?.data) || [];
+    if (questions.length > 0) {
+      document.getElementById('q-count').textContent = questions.length;
+      
+    }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
