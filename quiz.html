@@ -6,7 +6,7 @@
   <title>QCM — Annales</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css">
   
   <!-- POLYFILL MOBILE POUR LE GLISSER-DÉPOSER TACTILE -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
@@ -55,10 +55,6 @@
 .exam-score-badge.zero { background: var(--red-bg); color: var(--red-text); }
 .qzone-tag { display:flex; align-items:flex-start; gap:8px; padding:8px 12px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; font-size:13px; color:var(--text); cursor:grab; white-space:normal; word-break:break-word; line-height:1.4; }
 .qzone-tag:active { cursor:grabbing; opacity:0.7; }
-
-/* FORCER TAGS RECTANGULAIRES */
-.tag-chip { border-radius: 6px !important; }
-.tag-chip.active { border-radius: 6px !important; }
 </style>
 <script>
 (function() {
