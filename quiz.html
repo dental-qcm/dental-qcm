@@ -1283,7 +1283,16 @@ function showResults() {
 
   // Save to history
   const details = session.questions.map((q, i) => ({
+    type: q.type || 'qcm',
+    tag: q.tag || '',
     question: q.question,
+    image: q.image || null,
+    options: q.options || [],
+    correct: q.correct || [],
+    optExps: q.optExps || [],
+    explanation: q.explanation || '',
+    answer: q.answer || '',
+    userAns: session.answers[i],
     pts: session.scorePoints[i] || 0
   }));
   qcmHistory.push({

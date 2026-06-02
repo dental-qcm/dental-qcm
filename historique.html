@@ -39,9 +39,10 @@
       display: flex;
       align-items: center;
       gap: 1.5rem;
+      cursor: pointer;
       transition: border-color 0.15s;
     }
-    .history-card:hover { border-color: var(--border-2); }
+    .history-card:hover { border-color: var(--yellow); }
     .score-circle {
       width: 56px; height: 56px;
       border-radius: 50%;
@@ -51,7 +52,7 @@
       font-size: 15px; font-weight: 500;
       color: var(--yellow);
     }
-    .score-circle.low { border-color: var(--red-text, #eb8080); color: var(--red-text, #eb8080); }
+    .score-circle.low { border-color: #eb8080; color: #eb8080; }
     .score-circle.mid { border-color: #f0a500; color: #f0a500; }
     .card-main { flex: 1; min-width: 0; }
     .card-date { font-size: 12px; color: var(--text-3); margin-bottom: 4px; }
@@ -75,14 +76,7 @@
       transition: all 0.15s;
     }
     .btn-danger:hover { background: rgba(235,128,128,0.1); }
-    .empty-state {
-      text-align: center;
-      padding: 4rem 0;
-      color: var(--text-3);
-    }
-    .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
-    .empty-title { font-size: 16px; font-weight: 500; color: var(--text-2); margin-bottom: .5rem; }
-    .empty-desc { font-size: 14px; color: var(--text-3); }
+    .empty-state { text-align: center; padding: 4rem 0; }
     .stats-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -97,6 +91,92 @@
     }
     .stat-num { font-size: 22px; font-weight: 400; color: var(--yellow); }
     .stat-lbl { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
+
+    /* MODALE */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      overflow-y: auto;
+      padding: 2rem 1rem;
+    }
+    .modal-overlay.show { display: flex; align-items: flex-start; justify-content: center; }
+    .modal {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 700px;
+      padding: 2rem;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--text-2);
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    /* CORRECTION QUESTIONS */
+    .revue-q {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .revue-q-tag { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem; }
+    .revue-q-text { font-size: 14px; color: var(--text); margin-bottom: 1rem; line-height: 1.6; }
+    .revue-opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      border: 1px solid transparent;
+    }
+    .revue-opt.correct { background: rgba(47,133,90,0.15); border-color: rgba(47,133,90,0.4); color: #6fcf97; }
+    .revue-opt.wrong { background: rgba(235,128,128,0.12); border-color: rgba(235,128,128,0.4); color: #eb8080; }
+    .revue-opt.neutral { background: var(--bg-3); color: var(--text-2); }
+    .opt-prefix { font-weight: 500; flex-shrink: 0; width: 16px; }
+    .opt-exp { font-size: 12px; margin-top: 4px; color: inherit; opacity: 0.8; }
+    .revue-expl {
+      border-left: 3px solid var(--yellow);
+      border-radius: 0 6px 6px 0;
+      background: var(--bg-3);
+      padding: .75rem 1rem;
+      margin-top: .75rem;
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.6;
+    }
+    .revue-pts {
+      font-size: 12px;
+      font-weight: 500;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .revue-qroc-ans {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .75rem 1rem;
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: .5rem;
+    }
   </style>
 </head>
 <body>
@@ -110,21 +190,27 @@
 </header>
 
 <div class="container" style="padding-top:2.5rem; padding-bottom:3rem; max-width:800px;">
-
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
     <div>
       <h1 style="font-size:2rem; margin-bottom:0.25rem;">Historique</h1>
-      <p style="color:var(--text-2); font-size:14px;">Tes sessions de révision passées.</p>
+      <p style="color:var(--text-2); font-size:14px;">Clique sur une session pour voir la correction détaillée.</p>
     </div>
     <button class="btn-danger" onclick="effacerHistorique()">🗑 Effacer l'historique</button>
   </div>
-
   <div id="content"></div>
+</div>
 
+<!-- MODALE -->
+<div class="modal-overlay" id="modal-overlay" onclick="fermerRevue(event)">
+  <div class="modal" id="modal">
+    <div class="modal-close" onclick="fermerRevue(null, true)">×</div>
+    <div id="modal-content"></div>
+  </div>
 </div>
 
 <script>
 const history = JSON.parse(localStorage.getItem('qcm_history') || '[]');
+const LETTERS = ['A','B','C','D','E','F','G','H'];
 
 function formatDate(iso) {
   const d = new Date(iso);
@@ -140,71 +226,130 @@ function scoreClass(sur20) {
 
 function render() {
   const container = document.getElementById('content');
-
   if (!history.length) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">📭</div>
-        <div class="empty-title">Aucun quiz effectué pour l'instant</div>
-        <div class="empty-desc">Lance une session depuis la page d'accueil pour voir ton historique ici.</div>
+        <div style="font-size:3rem;margin-bottom:1rem;">📭</div>
+        <div style="font-size:16px;font-weight:500;color:var(--text-2);margin-bottom:.5rem;">Aucun quiz effectué pour l'instant</div>
+        <div style="font-size:14px;color:var(--text-3);">Lance une session depuis la page d'accueil pour voir ton historique ici.</div>
       </div>`;
     return;
   }
 
-  // Stats globales
   const total = history.length;
-  const moyenneRaw = history.reduce((acc, h) => acc + (h.sur20 || 0), 0) / total;
-  const moyenne = Math.round(moyenneRaw * 10) / 10;
+  const moyenne = Math.round(history.reduce((acc, h) => acc + (h.sur20 || 0), 0) / total * 10) / 10;
   const meilleur = Math.max(...history.map(h => h.sur20 || 0));
 
   container.innerHTML = `
     <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-num">${total}</div>
-        <div class="stat-lbl">Sessions</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num">${moyenne}/20</div>
-        <div class="stat-lbl">Moyenne</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num">${meilleur}/20</div>
-        <div class="stat-lbl">Meilleur score</div>
-      </div>
+      <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Sessions</div></div>
+      <div class="stat-card"><div class="stat-num">${moyenne}/20</div><div class="stat-lbl">Moyenne</div></div>
+      <div class="stat-card"><div class="stat-num">${meilleur}/20</div><div class="stat-lbl">Meilleur score</div></div>
     </div>
     <div id="cards"></div>`;
 
   const cards = document.getElementById('cards');
-  [...history].reverse().forEach(h => {
-    const sur20 = h.sur20 !== undefined ? h.sur20 : (h.scoreTotal ? Math.round(h.scoreTotal * 20 / h.total * 10) / 10 : 0);
+  [...history].reverse().forEach((h, displayIndex) => {
+    const realIndex = history.length - 1 - displayIndex;
+    const sur20 = h.sur20 !== undefined ? h.sur20 : 0;
     const tags = h.tags && h.tags.length ? h.tags : ['Tous les chapitres'];
     const mode = h.mode === 'examen' ? 'examen' : 'entrainement';
     const modeLabel = mode === 'examen' ? 'Examen' : 'Entraînement';
+    const hasDetails = h.details && h.details.length && h.details[0].options;
 
     const card = document.createElement('div');
     card.className = 'history-card';
+    if (hasDetails) card.onclick = () => ouvrirRevue(realIndex);
     card.innerHTML = `
       <div class="score-circle ${scoreClass(sur20)}">${sur20}/20</div>
       <div class="card-main">
         <div class="card-date">${formatDate(h.date)}</div>
-        <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
           <span class="mode-badge mode-${mode}">${modeLabel}</span>
-          <span style="font-size:12px; color:var(--text-3);">${h.total || h.details?.length || '?'} questions</span>
+          <span style="font-size:12px;color:var(--text-3);">${h.total || h.details?.length || '?'} questions</span>
+          ${hasDetails ? '<span style="font-size:11px;color:var(--text-3);margin-left:4px;">→ voir la correction</span>' : ''}
         </div>
-        <div class="card-tags">
-          ${tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}
-        </div>
+        <div class="card-tags">${tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</div>
       </div>
       <div class="card-right">
-        <div style="font-size:22px; font-weight:400; color:var(--text);">${sur20}<span style="font-size:14px;color:var(--text-3);">/20</span></div>
+        <div style="font-size:22px;font-weight:400;color:var(--text);">${sur20}<span style="font-size:14px;color:var(--text-3);">/20</span></div>
         <div class="total-pts">${h.scoreTotal?.toFixed ? h.scoreTotal.toFixed(2) : h.scoreTotal} / ${h.total} pts</div>
       </div>`;
     cards.appendChild(card);
   });
 }
 
+function ouvrirRevue(index) {
+  const h = history[index];
+  if (!h || !h.details) return;
+  const modalContent = document.getElementById('modal-content');
+  const sur20 = h.sur20 || 0;
+  const mode = h.mode === 'examen' ? 'Examen' : 'Entraînement';
+
+  let html = `
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:.25rem;">${formatDate(h.date)} · ${mode}</div>
+      <div style="font-size:1.5rem;font-weight:400;color:var(--text);">Correction — <span style="color:var(--yellow);">${sur20}/20</span></div>
+    </div>`;
+
+  h.details.forEach((d, i) => {
+    const isQroc = d.type === 'qroc';
+    const pts = d.pts !== undefined ? d.pts : 0;
+    const ptsColor = pts > 0 ? '#6fcf97' : '#eb8080';
+
+    html += `<div class="revue-q">`;
+    if (d.tag) html += `<div class="revue-q-tag">${d.tag}</div>`;
+    html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
+      <div class="revue-q-text">${i+1}. ${d.question}</div>
+      <span style="font-size:13px;font-weight:500;color:${ptsColor};flex-shrink:0;">${pts} pt${pts !== 1 ? 's' : ''}</span>
+    </div>`;
+
+    if (d.image) html += `<img src="${d.image}" style="max-width:100%;border-radius:6px;margin-bottom:.75rem;">`;
+
+    if (isQroc) {
+      const userAns = typeof d.userAns === 'string' ? d.userAns : '';
+      html += `<div class="revue-qroc-ans"><strong>Ta réponse :</strong> ${userAns || '<em>Aucune réponse</em>'}</div>`;
+      if (d.answer) html += `<div class="revue-qroc-ans" style="border-color:var(--yellow);"><strong>Réponse attendue :</strong> ${d.answer}</div>`;
+    } else {
+      const userAns = Array.isArray(d.userAns) ? d.userAns : [];
+      (d.options || []).forEach((opt, oi) => {
+        const isCorrect = (d.correct || []).includes(oi);
+        const isSelected = userAns.includes(oi);
+        let cls = 'neutral';
+        if (isCorrect) cls = 'correct';
+        else if (isSelected) cls = 'wrong';
+        const prefix = isCorrect ? '✓' : (isSelected ? '✗' : LETTERS[oi]);
+        const exp = d.optExps && d.optExps[oi] ? d.optExps[oi] : '';
+        html += `<div class="revue-opt ${cls}">
+          <span class="opt-prefix">${prefix}</span>
+          <div>
+            <div>${opt}</div>
+            ${exp ? `<div class="opt-exp">${exp}</div>` : ''}
+          </div>
+        </div>`;
+      });
+    }
+
+    if (d.explanation) html += `<div class="revue-expl">${d.explanation}</div>`;
+    html += `</div>`;
+  });
+
+  modalContent.innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function fermerRevue(e, force) {
+  if (force || (e && e.target === document.getElementById('modal-overlay'))) {
+    document.getElementById('modal-overlay').classList.remove('show');
+    document.body.style.overflow = '';
+  }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fermerRevue(null, true); });
+
 function effacerHistorique() {
-  if (!confirm('Effacer tout l\'historique ? Cette action est irréversible.')) return;
+  if (!confirm("Effacer tout l'historique ? Cette action est irréversible.")) return;
   localStorage.removeItem('qcm_history');
   window.location.reload();
 }
