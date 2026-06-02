@@ -91,7 +91,7 @@
   <div class="container">
     <a href="index.html" class="back-link">← Accueil</a>
     <div class="logo">QCM<span>Annales</span></div>
-    <a href="historique.html" class="back-link" style="font-size:13px;">📊 Historique</a>
+    <div id="header-info" style="font-size:13px; color:var(--text-3);"></div>
   </div>
 </header>
 
@@ -105,24 +105,7 @@
 
     <div style="margin-bottom:2rem;">
       <div class="section-title">Chapitres</div>
-      <div id="chapter-dropdown" style="position:relative;">
-        <div id="dropdown-trigger" onclick="toggleDropdown()" style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;color:var(--text);transition:border-color 0.15s;">
-          <div id="trigger-content" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1;min-width:0;">
-            <span id="trigger-placeholder" style="color:var(--text-3);">Tous les chapitres</span>
-          </div>
-          <svg style="width:16px;height:16px;flex-shrink:0;color:var(--text-3);margin-left:8px;transition:transform 0.2s;" id="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-        </div>
-        <div id="dropdown-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);z-index:100;overflow:hidden;">
-          <div style="padding:8px;border-bottom:1px solid var(--border);">
-            <input type="text" id="chapter-search" placeholder="Rechercher un chapitre..." oninput="filterChapterOptions()" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-size:13px;color:var(--text);outline:none;box-sizing:border-box;">
-          </div>
-          <div id="chapter-options" style="max-height:220px;overflow-y:auto;padding:6px;"></div>
-          <div style="padding:8px 10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-            <span id="selected-count" style="font-size:12px;color:var(--text-3);">Tous les chapitres</span>
-            <span onclick="clearChapterSelection()" style="font-size:12px;color:var(--yellow);cursor:pointer;">Tout désélectionner</span>
-          </div>
-        </div>
-      </div>
+      <div class="tags-wrap" id="tags-container"></div>
     </div>
 
     <div style="margin-bottom:2rem;">
@@ -178,24 +161,6 @@
 
 
 <!-- SCREEN: EXAMEN -->
-<div class="screen" id="screen-exam">
-  <div style="background:var(--bg); border-bottom:1px solid var(--border); padding:0.75rem 0; position:sticky; top:50px; z-index:10;">
-    <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
-      <span style="font-size:13px; color:var(--text-3);" id="exam-title">Examen</span>
-      <div style="display:flex; align-items:center; gap:16px;">
-        <span id="chrono-display" style="font-size:15px; font-weight:500; color:var(--yellow); font-variant-numeric:tabular-nums;">⏱ --:--</span>
-        <button onclick="examFinish()" class="btn-validate" style="padding:8px 20px; font-size:14px;">Terminer →</button>
-      </div>
-    </div>
-  </div>
-  <div class="container" style="padding-top:2rem; padding-bottom:4rem; max-width:780px;">
-    <div id="exam-questions-list"></div>
-    <div style="margin-top:2.5rem; text-align:center;">
-      <button onclick="examFinish()" class="btn-validate" style="padding:14px 48px; font-size:16px;">Terminer l'examen →</button>
-    </div>
-  </div>
-</div>
-
 <!-- SCREEN: QUIZ ENTRAÎNEMENT -->
 <div class="screen" id="screen-quiz">
   <div style="background: var(--bg); border-bottom: 1px solid var(--border);">
@@ -361,120 +326,29 @@ function setTypeFilter(type) {
   updateSlider();
 }
 
-let allTags = [];
-let dropdownOpen = false;
-
 function renderHome() {
-  allTags = [...new Set(questions.map(q => q.tag).filter(Boolean))];
-  if (!allTags.length) {
-    document.getElementById('dropdown-trigger').innerHTML = '<span style="font-size:13px;color:var(--text-3);">Aucune question — <a href="ajouter.html" style="color:var(--text-2);">ajoute-en ici</a>.</span>';
+  const tags = [...new Set(questions.map(q => q.tag).filter(Boolean))];
+  const container = document.getElementById('tags-container');
+  container.innerHTML = '';
+  if (!tags.length) {
+    container.innerHTML = '<span style="font-size:13px;color:var(--text-3);">Aucune question — <a href="ajouter.html" style="color:var(--text-2);">ajoute-en ici</a>.</span>';
     document.getElementById('btn-start').disabled = true;
     return;
   }
-  renderDropdownOptions();
-  updateTriggerDisplay();
-  updateSlider();
-}
-
-function renderDropdownOptions(filter = '') {
-  const container = document.getElementById('chapter-options');
-  container.innerHTML = '';
-  const filtered = allTags.filter(t => t.toLowerCase().includes(filter.toLowerCase()));
-  if (!filtered.length) {
-    container.innerHTML = '<div style="padding:10px;font-size:13px;color:var(--text-3);text-align:center;">Aucun résultat</div>';
-    return;
-  }
-  filtered.forEach(tag => {
-    const count = questions.filter(q => q.tag === tag).length;
-    const selected = selectedTags.includes(tag);
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:4px;cursor:pointer;font-size:13px;color:' + (selected ? 'var(--yellow)' : 'var(--text-2)') + ';transition:background 0.1s;';
-    div.onmouseover = () => div.style.background = 'var(--bg-3)';
-    div.onmouseout = () => div.style.background = 'transparent';
-    const cb = document.createElement('div');
-    cb.style.cssText = 'width:16px;height:16px;border-radius:3px;border:1px solid ' + (selected ? 'var(--yellow)' : 'var(--border)') + ';background:' + (selected ? 'var(--yellow)' : 'var(--bg)') + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#0d0d0d;font-weight:700;';
-    cb.textContent = selected ? '✓' : '';
-    const label = document.createElement('span');
-    label.textContent = tag;
-    label.style.flex = '1';
-    const cnt = document.createElement('span');
-    cnt.textContent = count + ' q.';
-    cnt.style.cssText = 'font-size:11px;color:var(--text-3);margin-left:auto;';
-    div.appendChild(cb);
-    div.appendChild(label);
-    div.appendChild(cnt);
-    div.onclick = () => {
-      selectedTags = selected ? selectedTags.filter(t => t !== tag) : [...selectedTags, tag];
-      if (selectedTags.length === allTags.length) selectedTags = [];
-      renderDropdownOptions(document.getElementById('chapter-search').value);
-      updateTriggerDisplay();
-      updateSlider();
+  const allBtn = mkTag('Tous les chapitres', selectedTags.length === 0);
+  allBtn.onclick = () => { selectedTags = []; renderHome(); };
+  container.appendChild(allBtn);
+  tags.forEach(tag => {
+    const btn = mkTag(tag, selectedTags.includes(tag));
+    btn.onclick = () => {
+      selectedTags = selectedTags.includes(tag) ? selectedTags.filter(t => t !== tag) : [...selectedTags, tag];
+      if (!selectedTags.length || selectedTags.length === tags.length) selectedTags = [];
+      renderHome();
     };
-    container.appendChild(div);
+    container.appendChild(btn);
   });
-}
-
-function filterChapterOptions() {
-  renderDropdownOptions(document.getElementById('chapter-search').value);
-}
-
-function updateTriggerDisplay() {
-  const content = document.getElementById('trigger-content');
-  const countEl = document.getElementById('selected-count');
-  content.innerHTML = '';
-  if (!selectedTags.length) {
-    const ph = document.createElement('span');
-    ph.style.color = 'var(--text-3)';
-    ph.textContent = 'Tous les chapitres';
-    content.appendChild(ph);
-    countEl.textContent = 'Tous les chapitres';
-  } else {
-    selectedTags.slice(0, 2).forEach(tag => {
-      const chip = document.createElement('span');
-      chip.style.cssText = 'font-size:11px;padding:2px 8px;border-radius:3px;background:var(--yellow-dim, rgba(0,200,83,0.1));border:1px solid var(--yellow);color:var(--yellow);';
-      chip.textContent = tag;
-      content.appendChild(chip);
-    });
-    if (selectedTags.length > 2) {
-      const more = document.createElement('span');
-      more.style.cssText = 'font-size:11px;padding:2px 8px;border-radius:3px;background:var(--bg-3);border:1px solid var(--border);color:var(--text-3);';
-      more.textContent = '+' + (selectedTags.length - 2);
-      content.appendChild(more);
-    }
-    countEl.textContent = selectedTags.length + ' sélectionné' + (selectedTags.length > 1 ? 's' : '');
-  }
-}
-
-function toggleDropdown() {
-  dropdownOpen = !dropdownOpen;
-  const panel = document.getElementById('dropdown-panel');
-  const chevron = document.getElementById('chevron-icon');
-  const trigger = document.getElementById('dropdown-trigger');
-  panel.style.display = dropdownOpen ? 'block' : 'none';
-  chevron.style.transform = dropdownOpen ? 'rotate(180deg)' : '';
-  trigger.style.borderColor = dropdownOpen ? 'var(--yellow)' : 'var(--border)';
-  if (dropdownOpen) {
-    document.getElementById('chapter-search').focus();
-    document.getElementById('chapter-search').value = '';
-    renderDropdownOptions();
-  }
-}
-
-function clearChapterSelection() {
-  selectedTags = [];
-  renderDropdownOptions(document.getElementById('chapter-search').value);
-  updateTriggerDisplay();
   updateSlider();
 }
-
-document.addEventListener('click', function(e) {
-  if (dropdownOpen && !document.getElementById('chapter-dropdown').contains(e.target)) {
-    dropdownOpen = false;
-    document.getElementById('dropdown-panel').style.display = 'none';
-    document.getElementById('chevron-icon').style.transform = '';
-    document.getElementById('dropdown-trigger').style.borderColor = 'var(--border)';
-  }
-});
 
 function mkTag(text, active) {
   const btn = document.createElement('button');
@@ -522,8 +396,6 @@ function startSession(mode) {
     validated: false,
     validatedArr: pool.map(() => false),
     lastTags: [...selectedTags],
-    lastType: typeFilter,
-    lastQuestions: [...pool],
     mode: mode
   };
   if (mode === 'examen') {
@@ -1283,16 +1155,7 @@ function showResults() {
 
   // Save to history
   const details = session.questions.map((q, i) => ({
-    type: q.type || 'qcm',
-    tag: q.tag || '',
     question: q.question,
-    image: q.image || null,
-    options: q.options || [],
-    correct: q.correct || [],
-    optExps: q.optExps || [],
-    explanation: q.explanation || '',
-    answer: q.answer || '',
-    userAns: session.answers[i],
     pts: session.scorePoints[i] || 0
   }));
   qcmHistory.push({
@@ -1397,39 +1260,11 @@ function renderTrainResults() {
 }
 
 function restart() {
-  const lastQ = session.lastQuestions;
-  const lastMode = session.mode || 'entrainement';
-  if (!lastQ || !lastQ.length) {
-    selectedTags = session.lastTags || [];
-    typeFilter = session.lastType || 'all';
-    show('home'); renderHome();
-    setTimeout(() => document.getElementById('btn-start').click(), 50);
-    return;
-  }
-  session = {
-    questions: lastQ,
-    current: 0,
-    answers: lastQ.map(q => q.type === 'qroc' ? '' : []),
-    scoreTotal: 0,
-    scorePoints: [],
-    validated: false,
-    validatedArr: lastQ.map(() => false),
-    lastTags: session.lastTags,
-    lastType: session.lastType,
-    lastQuestions: lastQ,
-    mode: lastMode
-  };
-  if (lastMode === 'examen') {
-    const durMin = parseInt(document.getElementById('exam-duration').value) || 30;
-    session.chronoTotal = durMin * 60;
-    session.chronoLeft = durMin * 60;
-    renderExamAll();
-    show('exam');
-    startChrono();
-  } else {
-    show('quiz');
-    renderQ();
-  }
+  selectedTags = session.lastTags || [];
+  typeFilter = session.lastType || 'all';
+  currentMode = session.mode || 'entrainement';
+  show('home'); renderHome();
+  setTimeout(() => document.getElementById('btn-start').click(), 50);
 }
 
 // ─── INIT ───
