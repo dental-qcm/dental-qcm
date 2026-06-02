@@ -915,26 +915,22 @@ function updateSidePanel() {
   const list = document.getElementById('side-list');
   if (!list) return;
   list.innerHTML = '';
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex; flex-wrap:wrap; gap:6px;';
   session.questions.forEach((q, i) => {
     const isValidated = session.validatedArr[i];
     const isCurrent = i === session.current;
     const pts = session.scorePoints[i];
-    let bg, color, border, shadow;
-    if (isValidated && pts === 1)      { bg='var(--green-bg)';        color='var(--green-text)'; border='var(--green)';  shadow=''; }
-    else if (isValidated && pts === 0) { bg='var(--red-bg)';          color='var(--red-text)';   border='var(--red)';    shadow=''; }
-    else if (isValidated)              { bg='rgba(240,168,50,0.15)';  color='#f0a832';           border='#7a5200';       shadow=''; }
-    else if (isCurrent)                { bg='var(--yellow)';          color='#0d0d0d';           border='var(--yellow)'; shadow='0 0 0 3px rgba(0,200,83,0.25)'; }
-    else                               { bg='var(--bg-3)';            color='var(--text-3)';     border='var(--border)'; shadow=''; }
+    let bg, color, border;
+    if (isValidated && pts === 1)      { bg='var(--green-bg)';       color='var(--green-text)'; border='var(--green)'; }
+    else if (isValidated && pts === 0) { bg='var(--red-bg)';         color='var(--red-text)';   border='var(--red)'; }
+    else if (isValidated)              { bg='rgba(240,168,50,0.15)'; color='#f0a832';           border='#7a5200'; }
+    else if (isCurrent)                { bg='var(--yellow)';         color='#0d0d0d';           border='var(--yellow)'; }
+    else                               { bg='var(--bg-3)';           color='var(--text-3)';     border='var(--border)'; }
     const btn = document.createElement('button');
-    btn.style.cssText = 'width:32px;height:32px;border-radius:50%;border:1px solid ' + border + ';cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:' + (isCurrent?'600':'400') + ';background:' + bg + ';color:' + color + ';transition:all 0.15s;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;' + (shadow?'box-shadow:'+shadow+';':'');
-    btn.textContent = i + 1;
-    btn.title = 'Question ' + (i + 1);
+    btn.style.cssText = 'width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:1px solid ' + border + ';cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:' + (isCurrent?'500':'400') + ';background:' + bg + ';color:' + color + ';transition:all 0.15s;';
+    btn.textContent = 'Question ' + (i + 1);
     btn.onclick = (function(idx){ return function(){ session.current = idx; renderQ(); }; })(i);
-    wrap.appendChild(btn);
+    list.appendChild(btn);
   });
-  list.appendChild(wrap);
 }
 
 
@@ -959,22 +955,15 @@ function updateExamSidePanel() {
   const list = document.getElementById('exam-side-list');
   if (!list) return;
   list.innerHTML = '';
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'display:flex; flex-wrap:wrap; gap:6px;';
   session.questions.forEach((q, i) => {
     const ans = session.answers[i];
     const hasAnswer = Array.isArray(ans) ? ans.length > 0 : (typeof ans === 'string' && ans.trim() !== '');
     const btn = document.createElement('button');
-    const bg = hasAnswer ? 'var(--green-bg)' : 'var(--bg-3)';
-    const color = hasAnswer ? 'var(--green-text)' : 'var(--text-3)';
-    const border = hasAnswer ? 'var(--green)' : 'var(--border)';
-    btn.style.cssText = 'width:32px;height:32px;border-radius:50%;border:1px solid ' + border + ';cursor:pointer;font-family:var(--font-body);font-size:12px;font-weight:400;background:' + bg + ';color:' + color + ';transition:all 0.15s;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;';
-    btn.textContent = i + 1;
-    btn.title = 'Question ' + (i + 1);
+    btn.style.cssText = 'width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:1px solid ' + (hasAnswer ? 'var(--green)' : 'var(--border)') + ';cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:400;background:' + (hasAnswer ? 'var(--green-bg)' : 'var(--bg-3)') + ';color:' + (hasAnswer ? 'var(--green-text)' : 'var(--text-3)') + ';transition:all 0.15s;';
+    btn.textContent = 'Question ' + (i + 1);
     btn.onclick = (function(idx){ return function(){ const el = document.getElementById('exam-q-' + idx); if (el) el.scrollIntoView({behavior:'smooth',block:'start'}); }; })(i);
-    wrap.appendChild(btn);
+    list.appendChild(btn);
   });
-  list.appendChild(wrap);
 }
 
 function examFinish() {
