@@ -238,14 +238,14 @@
     <!-- QUESTIONS EN BANDE -->
     <div style="flex:1; min-width:0;">
       <div class="container" style="padding-top:2rem; padding-bottom:3rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
-          <div>
-            <h2 style="font-size:1.5rem; font-weight:400; margin-bottom:4px;" id="exam-title">Examen — 10 questions</h2>
-            <p style="font-size:13px; color:var(--text-3);">Réponds à toutes les questions puis clique sur Terminer.</p>
-          </div>
-          <div style="display:flex; align-items:center; gap:16px;">
-            <span id="chrono-display" style="font-size:18px; font-weight:500; color:var(--yellow); font-variant-numeric:tabular-nums;">⏱ --:--</span>
-            <button class="btn-validate" onclick="examFinish()">Terminer l'examen →</button>
+        <div style="margin-bottom:2.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border);">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div style="font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:0.75rem;">Mode examen</div>
+              <h2 style="font-family:var(--font-display); font-size:2.5rem; font-weight:400; line-height:1.1; color:var(--text); margin-bottom:0.5rem;" id="exam-title">Examen — 10 questions</h2>
+              <p style="font-size:13px; color:var(--text-3);">Réponds à toutes les questions puis clique sur Terminer.</p>
+            </div>
+            <span id="chrono-display" style="font-size:22px; font-weight:500; color:var(--yellow); font-variant-numeric:tabular-nums; flex-shrink:0; margin-top:0.25rem;">⏱ --:--</span>
           </div>
         </div>
         <div id="exam-questions-list"></div>
