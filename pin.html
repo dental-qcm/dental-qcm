@@ -45,13 +45,11 @@
       if (e.key === 'Enter') verifierPin();
     });
     function verifierPin() {
-      if (document.getElementById('pin-input').value === '1236') {
-        sessionStorage.setItem('auth_admin', 'true');
-        window.location.href = 'ajouter.html';
-      } else {
-        alert('Code PIN incorrect ❌');
-        document.getElementById('pin-input').value = '';
-      }
+      const pin = document.getElementById('pin-input').value;
+      if (!pin) return;
+      // On stocke le PIN saisi — la vérification se fait côté Supabase
+      sessionStorage.setItem('auth_pin', pin);
+      window.location.href = 'ajouter.html';
     }
   </script>
 </body>

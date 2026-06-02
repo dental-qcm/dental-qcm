@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
 <script>
-  if (sessionStorage.getItem('auth_admin') !== 'true') {
+  if (!sessionStorage.getItem('auth_pin')) {
     window.location.href = 'pin.html';
   }
 </script>
@@ -265,16 +265,25 @@ async function sbLoad() {
 
 async function sbSave(data) {
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/questions`, {
+    const pin = sessionStorage.getItem('auth_pin');
+    if (!pin) { window.location.href = 'pin.html'; return; }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/save_questions_with_pin`, {
       method: 'POST',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates'
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ id: RECORD_ID, data: data })
+      body: JSON.stringify({ p_data: data, p_pin: pin })
     });
+    const result = await res.json();
+    if (!result.success) {
+      alert('Erreur : ' + (result.error || 'Échec de la sauvegarde'));
+      if (result.error === 'PIN incorrect') {
+        sessionStorage.removeItem('auth_pin');
+        window.location.href = 'pin.html';
+      }
+    }
   } catch(e) { console.warn('Supabase save failed', e); }
 }
 
