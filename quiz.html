@@ -522,6 +522,8 @@ function startSession(mode) {
     validated: false,
     validatedArr: pool.map(() => false),
     lastTags: [...selectedTags],
+    lastType: typeFilter,
+    lastQuestions: [...pool],
     mode: mode
   };
   if (mode === 'examen') {
@@ -1386,11 +1388,39 @@ function renderTrainResults() {
 }
 
 function restart() {
-  selectedTags = session.lastTags || [];
-  typeFilter = session.lastType || 'all';
-  currentMode = session.mode || 'entrainement';
-  show('home'); renderHome();
-  setTimeout(() => document.getElementById('btn-start').click(), 50);
+  const lastQ = session.lastQuestions;
+  const lastMode = session.mode || 'entrainement';
+  if (!lastQ || !lastQ.length) {
+    selectedTags = session.lastTags || [];
+    typeFilter = session.lastType || 'all';
+    show('home'); renderHome();
+    setTimeout(() => document.getElementById('btn-start').click(), 50);
+    return;
+  }
+  session = {
+    questions: lastQ,
+    current: 0,
+    answers: lastQ.map(q => q.type === 'qroc' ? '' : []),
+    scoreTotal: 0,
+    scorePoints: [],
+    validated: false,
+    validatedArr: lastQ.map(() => false),
+    lastTags: session.lastTags,
+    lastType: session.lastType,
+    lastQuestions: lastQ,
+    mode: lastMode
+  };
+  if (lastMode === 'examen') {
+    const durMin = parseInt(document.getElementById('exam-duration').value) || 30;
+    session.chronoTotal = durMin * 60;
+    session.chronoLeft = durMin * 60;
+    renderExamAll();
+    show('exam');
+    startChrono();
+  } else {
+    show('quiz');
+    renderQ();
+  }
 }
 
 // ─── INIT ───
