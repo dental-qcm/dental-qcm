@@ -959,7 +959,7 @@ function updateExamSidePanel() {
     const ans = session.answers[i];
     const hasAnswer = Array.isArray(ans) ? ans.length > 0 : (typeof ans === 'string' && ans.trim() !== '');
     const btn = document.createElement('button');
-    btn.style.cssText = 'width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:1px solid ' + (hasAnswer ? 'var(--green)' : 'var(--border)') + ';cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:400;background:' + (hasAnswer ? 'var(--green-bg)' : 'var(--bg-3)') + ';color:' + (hasAnswer ? 'var(--green-text)' : 'var(--text-3)') + ';transition:all 0.15s;';
+    btn.style.cssText = 'width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:1px solid ' + (hasAnswer ? 'var(--green)' : 'var(--border)') + ';cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:400;background:' + (hasAnswer ? 'var(--green-bg)' : 'var(--bg-3)') + ';color:' + (hasAnswer ? 'var(--green-text)' : 'var(--text-3)') + ';transition:all 0.15s;margin-bottom:6px;';
     btn.textContent = 'Question ' + (i + 1);
     btn.onclick = (function(idx){ return function(){ const el = document.getElementById('exam-q-' + idx); if (el) el.scrollIntoView({behavior:'smooth',block:'start'}); }; })(i);
     list.appendChild(btn);
