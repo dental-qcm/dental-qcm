@@ -243,7 +243,10 @@
             <h2 style="font-size:1.5rem; font-weight:400; margin-bottom:4px;" id="exam-title">Examen — 10 questions</h2>
             <p style="font-size:13px; color:var(--text-3);">Réponds à toutes les questions puis clique sur Terminer.</p>
           </div>
-          <button class="btn-validate" onclick="examFinish()">Terminer l'examen →</button>
+          <div style="display:flex; align-items:center; gap:16px;">
+            <span id="chrono-display" style="font-size:18px; font-weight:500; color:var(--yellow); font-variant-numeric:tabular-nums;">⏱ --:--</span>
+            <button class="btn-validate" onclick="examFinish()">Terminer l'examen →</button>
+          </div>
         </div>
         <div id="exam-questions-list"></div>
         <div style="text-align:center; margin-top:2rem;">
@@ -944,42 +947,6 @@ function updateSidePanel() {
   });
 }
 
-// ─── MODE EXAMEN ───
-function renderExamAll() {
-  const total = session.questions.length;
-  document.getElementById('exam-title').textContent = 'Examen — ' + total + ' question' + (total > 1 ? 's' : '');
-  document.getElementById('header-info').textContent = 'Examen';
-  session.answers = session.questions.map((q) => q.type === 'qroc' ? '' : []);
-
-  const list = document.getElementById('exam-questions-list');
-  list.innerHTML = '';
-
-  session.questions.forEach((q, qi) => {
-    const block = document.createElement('div');
-    block.id = 'exam-q-' + qi;
-    block.style.cssText = 'padding:2rem 0; border-bottom:1px solid var(--border);';
-    let html = '';
-    if (q.tag) html += '<div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">' + q.tag + '</div>';
-    html += '<div style="font-size:11px;color:var(--text-3);margin-bottom:8px;font-weight:500;">Question ' + (qi+1) + '</div>';
-    html += '<div style="font-size:17px;color:var(--text);font-weight:300;line-height:1.65;margin-bottom:1rem;">' + q.question + '</div>';
-    if (q.image) html += '<img src="' + q.image + '" style="max-width:100%;max-height:250px;border-radius:8px;border:1px solid var(--border);margin-bottom:1rem;display:block;">';
-    if (q.type === 'qroc') {
-      html += '<div style="font-size:12px;color:var(--text-3);margin-bottom:8px;font-style:italic;">Réponse courte</div>';
-      html += '<textarea rows="2" placeholder="Ta réponse…" oninput="examSaveQroc(' + qi + ',this.value)" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-family:var(--font-body);font-size:14px;color:var(--text);background:var(--bg-2);resize:vertical;"></textarea>';
-    } else {
-      html += '<div style="font-size:12px;color:var(--text-3);margin-bottom:10px;font-style:italic;">' + (q.type === 'qru' ? 'Une seule réponse exacte' : 'Une ou plusieurs réponses exactes') + '</div>';
-      html += '<div class="options-list" id="exam-opts-' + qi + '">';
-      q.options.forEach((opt, oi) => {
-        const letterStyle = q.type === 'qru' ? '' : 'border-radius:6px;';
-        html += '<div class="option-item" onclick="examToggle(' + qi + ',' + oi + ',this)"><div class="opt-letter" style="' + letterStyle + '">' + LETTERS[oi] + '</div><div class="opt-text">' + opt + '</div></div>';
-      });
-      html += '</div>';
-    }
-    block.innerHTML = html;
-    list.appendChild(block);
-  });
-  updateExamSidePanel();
-}
 
 function examToggle(qi, oi, el) {
   if (!Array.isArray(session.answers[qi])) session.answers[qi] = [];
