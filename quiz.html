@@ -255,9 +255,14 @@
       </div>
     </div>
     <!-- PANNEAU LATÉRAL DROITE -->
-    <div id="exam-side-panel" style="width:240px; flex-shrink:0; border-left:1px solid var(--border); padding:1.25rem; overflow-y:auto; max-height:calc(100vh - 50px); position:sticky; top:50px;">
-      <div style="font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem;">Navigation</div>
-      <div id="exam-side-list"></div>
+    <div id="exam-side-panel" style="width:240px; flex-shrink:0; border-left:1px solid var(--border); padding:0; display:flex; flex-direction:column; height:calc(100vh - 50px); position:sticky; top:50px;">
+      <div style="padding:1.25rem 1.25rem 0; flex-shrink:0;">
+        <div style="font-size:11px; font-weight:500; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem;">Navigation</div>
+      </div>
+      <div id="exam-side-list" style="flex:1; overflow-y:auto; padding:0 1.25rem;"></div>
+      <div style="padding:1rem 1.25rem; border-top:1px solid var(--border); flex-shrink:0;">
+        <button onclick="examFinish()" style="width:100%; padding:11px; font-size:14px; background:var(--yellow); color:#0d0d0d; border:none; border-radius:var(--radius); font-weight:500; cursor:pointer; font-family:var(--font-body); transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">Terminer l'examen →</button>
+      </div>
     </div>
   </div>
 </div>
