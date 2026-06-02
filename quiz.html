@@ -1029,7 +1029,7 @@ function renderExamAll() {
     html += '<div style="font-size:17px;color:var(--text);font-weight:300;line-height:1.65;margin-bottom:1.25rem;">' + q.question + '</div>';
     if (q.image) html += '<img src="' + q.image + '" loading="lazy" style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);margin-bottom:1.25rem;display:block;">';
     if (q.type === 'qroc') {
-      html += '<textarea rows="2" placeholder="Ta réponse…" oninput="session.answers[' + qi + ']=this.value" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-family:var(--font-body);font-size:14px;color:var(--text);background:var(--bg-3);resize:vertical;box-sizing:border-box;"></textarea>';
+      html += '<textarea rows="2" placeholder="Ta réponse…" oninput="examSaveQroc(' + qi + ',this.value)" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;font-family:var(--font-body);font-size:14px;color:var(--text);background:var(--bg-3);resize:vertical;box-sizing:border-box;"></textarea>';
     } else {
       const note = q.type === 'qru' ? 'Une seule réponse exacte' : 'Une ou plusieurs réponses exactes';
       html += '<div style="font-size:12px;color:var(--text-3);margin-bottom:10px;font-style:italic;">' + note + '</div>';
@@ -1040,23 +1040,11 @@ function renderExamAll() {
       });
       html += '</div>';
     }
+    block.id = 'exam-q-' + qi;
     block.innerHTML = html;
     list.appendChild(block);
   });
-}
-
-function examToggle(qi, oi, el) {
-  if (!Array.isArray(session.answers[qi])) session.answers[qi] = [];
-  const q = session.questions[qi];
-  if (q.type === 'qru') {
-    document.querySelectorAll('#exam-opts-' + qi + ' .option-item').forEach(o => o.classList.remove('selected'));
-    session.answers[qi] = [oi];
-    el.classList.add('selected');
-  } else {
-    const ans = session.answers[qi];
-    if (ans.includes(oi)) { session.answers[qi] = ans.filter(a => a !== oi); el.classList.remove('selected'); }
-    else { session.answers[qi].push(oi); el.classList.add('selected'); }
-  }
+  updateExamSidePanel();
 }
 
 function examFinish(timeUp = false) {
