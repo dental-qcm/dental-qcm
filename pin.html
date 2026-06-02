@@ -44,12 +44,42 @@
     document.getElementById('pin-input').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') verifierPin();
     });
-    function verifierPin() {
+    const SUPABASE_URL = 'https://rcrkksvkkoujrmpnpvov.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_cfjmRq5I4YvrEZB0hbSK-w_-GQ_WWzz';
+
+    async function verifierPin() {
       const pin = document.getElementById('pin-input').value;
       if (!pin) return;
-      // On stocke le PIN saisi — la vérification se fait côté Supabase
-      sessionStorage.setItem('auth_pin', pin);
-      window.location.href = 'ajouter.html';
+
+      const btn = document.querySelector('button');
+      btn.textContent = 'Vérification...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_admin_pin`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ p_pin: pin })
+        });
+        const valid = await res.json();
+        if (valid === true) {
+          sessionStorage.setItem('auth_pin', pin);
+          window.location.href = 'ajouter.html';
+        } else {
+          alert('Code PIN incorrect ❌');
+          document.getElementById('pin-input').value = '';
+          btn.textContent = 'Déverrouiller →';
+          btn.disabled = false;
+        }
+      } catch(e) {
+        alert('Erreur de connexion, réessaie.');
+        btn.textContent = 'Déverrouiller →';
+        btn.disabled = false;
+      }
     }
   </script>
 </body>
