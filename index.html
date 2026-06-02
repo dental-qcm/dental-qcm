@@ -31,6 +31,11 @@
 })();
 </script>
 <style>
+
+.accent-color { color: var(--yellow) !important; }
+.accent-border { border-color: var(--yellow) !important; }
+.accent-bg { background: var(--yellow) !important; color: #0d0d0d !important; }
+.sb-nav-item:hover { border-color: var(--yellow) !important; }
 body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity:0.03; pointer-events:none; z-index:0; }
 .home-header { padding:1.5rem 0; position:sticky; top:0; background:var(--bg); z-index:100; }
 .home-inner { max-width:1200px; margin:0 auto; padding:0 3rem; display:flex; justify-content:space-between; align-items:center; }
@@ -40,21 +45,21 @@ body::before { content:''; position:fixed; inset:0; background-image:url("data:i
 .home-nav a:hover { color:var(--text); }
 .home-nav .pill { background:var(--bg-2); border:1px solid var(--border); border-radius:999px; color:var(--text-2) !important; transition:all 0.15s !important; }
 .home-nav .pill:hover { color:var(--text) !important; border-color:var(--border-2); }
-.home-nav .cta { background:var(--yellow); color:#0d0d0d !important; font-weight:500; border-radius:var(--radius); }
+.home-nav .cta { background:#00c853; color:#0d0d0d !important; font-weight:500; border-radius:var(--radius); }
 .home-nav .cta:hover { opacity:0.85; }
 .page-wrap { max-width:1200px; margin:0 auto; padding:0 3rem; }
 .hero { padding:5rem 0 4rem; position:relative; overflow:hidden; }
-.hero-glow { position:absolute; top:-120px; right:-180px; width:600px; height:600px; background:radial-gradient(circle, var(--yellow) 0%, transparent 65%); opacity:0.04; pointer-events:none; border-radius:50%; }
+.hero-glow { position:absolute; top:-120px; right:-180px; width:600px; height:600px; background:radial-gradient(circle, #00c853 0%, transparent 65%); opacity:0.04; pointer-events:none; border-radius:50%; }
 .hero-label { display:inline-flex; align-items:center; gap:12px; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:2rem; opacity:0; animation:fadeUp 0.6s ease forwards; }
-.hero-label::before { content:''; display:block; width:20px; height:1px; background:var(--yellow); }
+.hero-label::before { content:''; display:block; width:20px; height:1px; background:#00c853; }
 .hero-title { font-family:var(--font-display); font-size:clamp(2rem, 4vw, 3.2rem); line-height:1.1; color:var(--text); margin-bottom:2.5rem; opacity:0; animation:fadeUp 0.6s ease 0.1s forwards; }
 .hero-actions { display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; opacity:0; animation:fadeUp 0.6s ease 0.2s forwards; }
-.btn-hero-primary { display:inline-flex; align-items:center; gap:10px; background:var(--yellow); color:#0d0d0d; font-family:var(--font-body); font-size:14px; font-weight:500; padding:13px 28px; border-radius:var(--radius); text-decoration:none; transition:opacity 0.15s, transform 0.15s; }
+.btn-hero-primary { display:inline-flex; align-items:center; gap:10px; background:#00c853; color:#0d0d0d; font-family:var(--font-body); font-size:14px; font-weight:500; padding:13px 28px; border-radius:var(--radius); text-decoration:none; transition:opacity 0.15s, transform 0.15s; }
 .btn-hero-primary:hover { opacity:.88; transform:translateY(-1px); }
 .btn-hero-secondary { font-size:14px; color:var(--text-2); text-decoration:none; transition:color 0.15s; padding:13px 0; }
 .btn-hero-secondary:hover { color:var(--text); }
 .q-badge { display:inline-flex; align-items:center; gap:6px; background:var(--bg-2); border:1px solid var(--border); padding:5px 12px; border-radius:999px; font-size:12px; color:var(--text-3); }
-.q-badge strong { color:var(--yellow); font-weight:500; }
+.q-badge strong { color:#00c853; font-weight:500; }
 .divider { height:1px; background:var(--border); opacity:0; animation:fadeIn 0.6s ease 0.4s forwards; }
 .features { display:grid; grid-template-columns:repeat(3,1fr); opacity:0; animation:fadeUp 0.6s ease 0.5s forwards; }
 .feature { padding:2rem 0; padding-right:2rem; border-right:1px solid var(--border); }
@@ -75,12 +80,12 @@ body::before { content:''; position:fixed; inset:0; background-image:url("data:i
 <body>
 <div style="display:flex; min-height:100vh;">
   <!-- SIDEBAR -->
-  <aside style="width:260px; flex-shrink:0; background:var(--bg-2); border-right:2px solid #00c853; padding:1.5rem 1rem; display:flex; flex-direction:column; gap:12px; position:sticky; top:0; height:100vh; overflow-y:auto;">
-    <div style="font-size:11px; color:var(--text-3); letter-spacing:.15em; text-transform:uppercase; padding:.75rem .75rem 1.25rem; border-bottom:1px solid var(--border); margin-bottom:.75rem;"><span style="display:inline-flex;align-items:center;gap:6px;"><svg width="28" height="28" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#0d0d0d"/><text x="32" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="36">🦷</text><text x="32" y="56" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#00c853" letter-spacing="0.05em">QCM</text></svg><span style="color:#00c853">QCM</span> <span style="color:var(--text-3)">Annales</span></span></div>
-    <a href="index.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor='#00c853'" onmouseout="this.style.borderColor='var(--border)'">🏠 Accueil</a>
-    <a href="quiz.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor='#00c853'" onmouseout="this.style.borderColor='var(--border)'">▶️ Quiz</a>
-    <a href="pin.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor='#00c853'" onmouseout="this.style.borderColor='var(--border)'">➕ Ajouter <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:var(--border); color:var(--text-3); margin-left:auto;">admin</span></a>
-    <a href="reglages.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor='#00c853'" onmouseout="this.style.borderColor='var(--border)'">⚙️ Réglages</a>
+  <aside style="width:260px; flex-shrink:0; background:var(--bg-2); border-right:2px solid var(--yellow); padding:1.5rem 1rem; display:flex; flex-direction:column; gap:12px; position:sticky; top:0; height:100vh; overflow-y:auto;">
+    <div style="font-size:11px; color:var(--text-3); letter-spacing:.15em; text-transform:uppercase; padding:.75rem .75rem 1.25rem; border-bottom:1px solid var(--border); margin-bottom:.75rem;"><span style="display:inline-flex;align-items:center;gap:6px;"><svg width="28" height="28" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#0d0d0d"/><text x="32" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="36">🦷</text><text x="32" y="56" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#00c853" letter-spacing="0.05em">QCM</text></svg><span style="color:var(--yellow)">QCM</span> <span style="color:var(--text-3)">Annales</span></span></div>
+    <a href="index.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=''">🏠 Accueil</a>
+    <a href="quiz.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=''">▶️ Quiz</a>
+    <a href="pin.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=''">➕ Ajouter <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:var(--border); color:var(--text-3); margin-left:auto;">admin</span></a>
+    <a href="reglages.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=''">⚙️ Réglages</a>
     <div style="margin-top:auto; padding-top:1.5rem;">
       <a href="quiz.html" class="btn-hero-primary" style="display:flex; justify-content:center; text-align:center;">Commencer →</a>
     </div>
@@ -92,7 +97,7 @@ body::before { content:''; position:fixed; inset:0; background-image:url("data:i
       <section class="hero">
         <div class="hero-glow"></div>
         <div class="hero-label">Révision active</div>
-        <h1 class="hero-title"><span style="color:#00c853">QCMs d'annales de 2ème</span><br>année de dentaire</h1>
+        <h1 class="hero-title"><span style="color:var(--yellow)">QCMs d'annales de 2ème</span><br>année de dentaire</h1>
         <div class="hero-actions">
           <a href="quiz.html" class="btn-hero-primary">Lancer une session <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
           <a href="pin.html" style="display:inline-flex; align-items:center; gap:12px; font-size:14px; padding:9px 14px; border-radius:var(--radius); background:var(--bg-3); border:1px solid var(--border); color:var(--text); text-decoration:none;">+ Ajouter des questions <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:var(--bg-3); border:1px solid var(--border); color:var(--text-3);">admin</span></a>
