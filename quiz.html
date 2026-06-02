@@ -923,7 +923,7 @@ function updateSidePanel() {
     if (isValidated && pts === 1)      { bg='var(--green-bg)';       color='var(--green-text)'; border='var(--green)'; }
     else if (isValidated && pts === 0) { bg='var(--red-bg)';         color='var(--red-text)';   border='var(--red)'; }
     else if (isValidated)              { bg='rgba(240,168,50,0.15)'; color='#f0a832';           border='#7a5200'; }
-    else if (isCurrent)                { bg='var(--yellow)';         color='#0d0d0d';           border='var(--yellow)'; }
+    else if (isCurrent)                { bg='rgba(59,130,246,0.12)'; color='#3b82f6';           border='#3b82f6'; }
     else                               { bg='var(--bg-3)';           color='var(--text-3)';     border='var(--border)'; }
     const btn = document.createElement('button');
     btn.style.cssText = 'width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:1px solid ' + border + ';cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:' + (isCurrent?'500':'400') + ';background:' + bg + ';color:' + color + ';transition:all 0.15s;';
