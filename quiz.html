@@ -105,7 +105,35 @@
 
     <div style="margin-bottom:2rem;">
       <div class="section-title">Chapitres</div>
-      <div class="tags-wrap" id="tags-container"></div>
+
+      <!-- DROPDOWN TRIGGER -->
+      <div id="chapters-trigger" onclick="toggleChapterDropdown()" style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px; cursor:pointer; transition:border-color 0.15s; user-select:none;" onmouseover="this.style.borderColor='var(--border-2)'" onmouseout="if(!document.getElementById('chapters-panel').classList.contains('open'))this.style.borderColor='var(--border)'">
+        <span id="chapters-trigger-label" style="font-size:14px; color:var(--text);">Tous les chapitres</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span id="chapters-badge" style="display:none; background:var(--yellow); color:#0d0d0d; border-radius:4px; font-size:11px; font-weight:600; padding:2px 7px;"></span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="chapters-chevron" style="color:var(--text-3); transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+
+      <!-- DROPDOWN PANEL -->
+      <div id="chapters-panel" style="display:none; background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); margin-top:4px; overflow:hidden; position:relative; z-index:50;">
+        <!-- Search inside dropdown -->
+        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-bottom:1px solid var(--border);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-3); flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="chapters-search" placeholder="Rechercher un chapitre…" oninput="filterChapterList()" style="background:none; border:none; outline:none; font-family:var(--font-body); font-size:13px; color:var(--text); width:100%; placeholder-color:var(--text-3);">
+          <button id="chapters-clear-search" onclick="clearChapterSearch(event)" style="display:none; background:none; border:none; color:var(--text-3); cursor:pointer; font-size:16px; line-height:1; padding:0 2px; font-family:var(--font-body);">×</button>
+        </div>
+        <!-- Tout sélectionner / Désélectionner -->
+        <div id="chapters-select-all-row" style="display:flex; align-items:center; justify-content:space-between; padding:7px 14px; border-bottom:1px solid var(--border); background:var(--bg-3);">
+          <span style="font-size:12px; color:var(--text-3);">Sélection rapide</span>
+          <div style="display:flex; gap:10px;">
+            <button onclick="selectAllChapters(event)" style="font-size:12px; color:var(--yellow); background:none; border:none; cursor:pointer; font-family:var(--font-body); padding:0;">Tout sélectionner</button>
+            <button onclick="deselectAllChapters(event)" style="font-size:12px; color:var(--text-3); background:none; border:none; cursor:pointer; font-family:var(--font-body); padding:0;">Tout désélectionner</button>
+          </div>
+        </div>
+        <!-- List of chapters -->
+        <div id="chapters-list" style="max-height:260px; overflow-y:auto;"></div>
+      </div>
     </div>
 
     <div style="margin-bottom:2rem;">
@@ -334,36 +362,128 @@ function setTypeFilter(type) {
   updateSlider();
 }
 
+let allTags = [];
+
 function renderHome() {
-  const tags = [...new Set(questions.map(q => q.tag).filter(Boolean))];
-  const container = document.getElementById('tags-container');
-  container.innerHTML = '';
-  if (!tags.length) {
-    container.innerHTML = '<span style="font-size:13px;color:var(--text-3);">Aucune question — <a href="ajouter.html" style="color:var(--text-2);">ajoute-en ici</a>.</span>';
+  allTags = [...new Set(questions.map(q => q.tag).filter(Boolean))];
+  if (!allTags.length) {
+    document.getElementById('chapters-trigger-label').textContent = 'Aucune question disponible';
     document.getElementById('btn-start').disabled = true;
     return;
   }
-  const allBtn = mkTag('Tous les chapitres', selectedTags.length === 0);
-  allBtn.onclick = () => { selectedTags = []; renderHome(); };
-  container.appendChild(allBtn);
-  tags.forEach(tag => {
-    const btn = mkTag(tag, selectedTags.includes(tag));
-    btn.onclick = () => {
-      selectedTags = selectedTags.includes(tag) ? selectedTags.filter(t => t !== tag) : [...selectedTags, tag];
-      if (!selectedTags.length || selectedTags.length === tags.length) selectedTags = [];
-      renderHome();
-    };
-    container.appendChild(btn);
-  });
+  renderChapterList();
+  updateChapterTrigger();
   updateSlider();
 }
 
-function mkTag(text, active) {
-  const btn = document.createElement('button');
-  btn.className = 'tag-chip' + (active ? ' active' : '');
-  btn.textContent = text;
-  return btn;
+function renderChapterList(filter) {
+  const list = document.getElementById('chapters-list');
+  list.innerHTML = '';
+  const searchVal = (filter !== undefined ? filter : (document.getElementById('chapters-search').value || '')).toLowerCase().trim();
+  const filtered = searchVal ? allTags.filter(t => t.toLowerCase().includes(searchVal)) : allTags;
+
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:14px; font-size:13px; color:var(--text-3); text-align:center;">Aucun chapitre trouvé</div>';
+    return;
+  }
+
+  filtered.forEach(tag => {
+    const count = questions.filter(q => q.tag === tag).length;
+    const isSelected = selectedTags.includes(tag);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; align-items:center; gap:10px; padding:9px 14px; border-bottom:0.5px solid var(--border); cursor:pointer; transition:background 0.1s;';
+    row.onmouseover = () => row.style.background = 'var(--bg-3)';
+    row.onmouseout = () => row.style.background = '';
+    row.innerHTML = `
+      <div style="width:16px; height:16px; border-radius:3px; border:1px solid ${isSelected ? 'var(--yellow)' : 'var(--border-2)'}; background:${isSelected ? 'var(--yellow)' : 'transparent'}; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.1s;">
+        ${isSelected ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0d0d0d" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </div>
+      <span style="font-size:13px; color:var(--text); flex:1;">${tag}</span>
+      <span style="font-size:11px; color:var(--text-3);">${count} q</span>`;
+    row.onclick = () => {
+      selectedTags = isSelected ? selectedTags.filter(t => t !== tag) : [...selectedTags, tag];
+      if (selectedTags.length === allTags.length) selectedTags = [];
+      renderChapterList();
+      updateChapterTrigger();
+      updateSlider();
+    };
+    list.appendChild(row);
+  });
 }
+
+function updateChapterTrigger() {
+  const label = document.getElementById('chapters-trigger-label');
+  const badge = document.getElementById('chapters-badge');
+  if (!selectedTags.length) {
+    label.textContent = 'Tous les chapitres';
+    badge.style.display = 'none';
+  } else {
+    label.textContent = selectedTags.length === 1 ? selectedTags[0] : selectedTags.length + ' chapitres sélectionnés';
+    badge.textContent = selectedTags.length;
+    badge.style.display = 'inline-block';
+  }
+}
+
+function toggleChapterDropdown() {
+  const panel = document.getElementById('chapters-panel');
+  const chevron = document.getElementById('chapters-chevron');
+  const trigger = document.getElementById('chapters-trigger');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    panel.style.display = 'none';
+    panel.classList.remove('open');
+    chevron.style.transform = '';
+    trigger.style.borderColor = 'var(--border)';
+  } else {
+    panel.style.display = 'block';
+    panel.classList.add('open');
+    chevron.style.transform = 'rotate(180deg)';
+    trigger.style.borderColor = 'var(--yellow)';
+    document.getElementById('chapters-search').focus();
+  }
+}
+
+function filterChapterList() {
+  const val = document.getElementById('chapters-search').value;
+  document.getElementById('chapters-clear-search').style.display = val ? 'block' : 'none';
+  renderChapterList(val);
+}
+
+function clearChapterSearch(e) {
+  e.stopPropagation();
+  document.getElementById('chapters-search').value = '';
+  document.getElementById('chapters-clear-search').style.display = 'none';
+  renderChapterList('');
+  document.getElementById('chapters-search').focus();
+}
+
+function selectAllChapters(e) {
+  e.stopPropagation();
+  selectedTags = [];
+  renderChapterList();
+  updateChapterTrigger();
+  updateSlider();
+}
+
+function deselectAllChapters(e) {
+  e.stopPropagation();
+  selectedTags = [];
+  renderChapterList();
+  updateChapterTrigger();
+  updateSlider();
+}
+
+// Fermer le dropdown en cliquant ailleurs
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('chapters-panel');
+  const trigger = document.getElementById('chapters-trigger');
+  if (panel && panel.classList.contains('open') && !panel.contains(e.target) && !trigger.contains(e.target)) {
+    panel.style.display = 'none';
+    panel.classList.remove('open');
+    document.getElementById('chapters-chevron').style.transform = '';
+    trigger.style.borderColor = 'var(--border)';
+  }
+});
 
 function getPool() {
   let pool = !selectedTags.length ? questions : questions.filter(q => selectedTags.includes(q.tag));
@@ -1224,8 +1344,9 @@ function restart() {
   selectedTags = session.lastTags || [];
   typeFilter = session.lastType || 'all';
   currentMode = session.mode || 'entrainement';
-  show('home'); renderHome();
-  setTimeout(() => document.getElementById('btn-start').click(), 50);
+  show('home');
+  renderHome();
+  updateChapterTrigger();
 }
 
 // ─── INIT ───
