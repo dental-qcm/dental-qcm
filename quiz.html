@@ -105,6 +105,10 @@
 
     <div style="margin-bottom:2rem;">
       <div class="section-title">Chapitres</div>
+      <div style="position:relative; margin-bottom:0.75rem;">
+        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--text-3);fill:none;stroke-width:2;stroke-linecap:round;" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="chap-search" placeholder="Rechercher un chapitre…" oninput="filterChaps(this.value)" style="width:100%;box-sizing:border-box;padding:8px 12px 8px 34px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;font-family:var(--font-body);outline:none;" onfocus="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onblur="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')">
+      </div>
       <div class="tags-wrap" id="tags-container"></div>
     </div>
 
@@ -356,6 +360,14 @@ function renderHome() {
     container.appendChild(btn);
   });
   updateSlider();
+}
+
+function filterChaps(val) {
+  const q = val.toLowerCase().trim();
+  document.querySelectorAll('#tags-container .tag-chip').forEach(btn => {
+    const match = btn.textContent.toLowerCase().includes(q);
+    btn.style.display = match ? '' : 'none';
+  });
 }
 
 function mkTag(text, active) {
