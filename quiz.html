@@ -1005,7 +1005,7 @@ function validateQ() {
 
       html += '<div style="display:grid; grid-template-columns:1fr 80px 80px 70px; border-top:1px solid rgba(255,255,255,0.12); background:' + rowBg + '; align-items:stretch;">';
       html += '<div style="display:flex; align-items:flex-start; gap:10px; padding:12px 14px;">';
-      html += '<div style="width:26px;height:26px;border-radius:5px;background:' + letterBg + ';color:' + letterColor + ';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">' + LETTERS[oi] + '</div>';
+      html += '<div style="width:26px;height:26px;border-radius:' + (q.type==='qru'?'50%':'5px') + ';background:' + letterBg + ';color:' + letterColor + ';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">' + LETTERS[oi] + '</div>';
       html += '<div><div style="font-size:13px;color:' + textColor + ';line-height:1.5;">' + opt + '</div>';
       if (exp) html += '<div style="font-size:11px;color:' + expColor + ';font-style:italic;margin-top:3px;opacity:.8;">' + exp + '</div>';
       html += '</div></div>';
@@ -1426,7 +1426,7 @@ function renderTrainResults() {
         html += '<div style="display:grid; grid-template-columns:1fr 80px 80px 70px; border-top:1px solid rgba(255,255,255,0.12); background:' + rowBg + '; align-items:stretch;">';
         // Texte option
         html += '<div style="display:flex; align-items:flex-start; gap:10px; padding:16px 14px;">';
-        html += '<div style="width:26px;height:26px;border-radius:5px;background:' + letterBg + ';color:' + letterColor + ';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">' + LETTERS[oi] + '</div>';
+        html += '<div style="width:26px;height:26px;border-radius:' + (q.type==='qru'?'50%':'5px') + ';background:' + letterBg + ';color:' + letterColor + ';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">' + LETTERS[oi] + '</div>';
         html += '<div><div style="font-size:13px;color:' + textColor + ';line-height:1.5;">' + opt + '</div>';
         if (exp) html += '<div style="font-size:11px;color:' + expColor + ';font-style:italic;margin-top:3px;opacity:.8;">' + exp + '</div>';
         html += '</div></div>';
