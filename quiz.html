@@ -400,13 +400,13 @@ function renderChapterList(filter) {
       </div>
       <span style="font-size:13px; color:var(--text); flex:1;">${tag}</span>
       <span style="font-size:11px; color:var(--text-3);">${count} q</span>`;
-    row.onclick = () => {
+    row.onclick = (e) => {
+      e.stopPropagation();
       selectedTags = isSelected ? selectedTags.filter(t => t !== tag) : [...selectedTags, tag];
       if (selectedTags.length === allTags.length) selectedTags = [];
       renderChapterList();
       updateChapterTrigger();
       updateSlider();
-      document.getElementById('chapters-search').focus();
     };
     list.appendChild(row);
   });
