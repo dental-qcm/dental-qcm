@@ -525,6 +525,8 @@ function startSession(mode) {
     validated: false,
     validatedArr: pool.map(() => false),
     lastTags: [...selectedTags],
+    lastType: typeFilter,
+    lastPool: pool,
     mode: mode
   };
   if (mode === 'examen') {
@@ -1342,12 +1344,31 @@ function renderTrainResults() {
 }
 
 function restart() {
-  selectedTags = session.lastTags || [];
-  typeFilter = session.lastType || 'all';
-  currentMode = session.mode || 'entrainement';
-  show('home');
-  renderHome();
-  updateChapterTrigger();
+  const pool = session.lastPool || session.questions;
+  const mode = session.mode || 'entrainement';
+  session = {
+    questions: pool,
+    current: 0,
+    answers: pool.map(q => q.type === 'qroc' ? '' : []),
+    scoreTotal: 0,
+    scorePoints: [],
+    validated: false,
+    validatedArr: pool.map(() => false),
+    lastTags: session.lastTags || [],
+    lastType: session.lastType || 'all',
+    lastPool: pool,
+    mode: mode
+  };
+  if (mode === 'examen') {
+    renderExamAll();
+    show('exam');
+    session.chronoTotal = session.chronoTotal || 1800;
+    session.chronoLeft = session.chronoTotal;
+    startChrono();
+  } else {
+    show('quiz');
+    renderQ();
+  }
 }
 
 // ─── INIT ───
