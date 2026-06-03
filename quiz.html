@@ -1299,7 +1299,7 @@ function renderTrainResults() {
     const pts = session.scorePoints[i];
     const ptsColor = pts === 1 ? 'var(--green-text)' : pts === 0 ? 'var(--red-text)' : pts === null ? 'var(--text-3)' : '#f0a832';
     const ptsStr = pts === 1 ? '+1 pt' : pts === 0 ? '+0 pt' : pts === null ? '?' : pts === 0.5 ? '+0,5 pt' : '+0,2 pt';
-    const topBarColor = pts === 1 ? '#6fcf97' : pts === 0 ? '#eb8080' : pts === null ? 'var(--border-2)' : '#f0a832';
+    const topBarColor = pts === 1 ? '#22c55e' : pts === 0 ? '#ef4444' : pts === null ? 'var(--border-2)' : '#eab308';
 
     const block = document.createElement('div');
     block.style.cssText = 'border:1px solid var(--border); border-top:3px solid ' + topBarColor + '; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:1.25rem;';
@@ -1317,48 +1317,81 @@ function renderTrainResults() {
     html += '<div style="padding:1rem 1.25rem; font-size:15px; color:var(--text); font-weight:300; line-height:1.65;">' + q.question + '</div>';
     if (q.image) html += '<div style="padding:0 1.25rem 1rem;"><img src="' + q.image + '" style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);display:block;"></div>';
 
-    // Options
     if (q.type === 'qroc') {
       const userAns = session.answers[i] || '';
       html += '<div style="display:flex; flex-direction:column; gap:6px; padding:0 1.25rem 1rem;">';
       html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--bg-3); color:var(--text-2);">Ta réponse : <em>' + (userAns || '—') + '</em></div>';
-      html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--green-bg); color:var(--green-text); border:1px solid rgba(111,207,151,0.25);">✓ Attendu : ' + q.answer + '</div>';
+      html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--green-bg); color:var(--green-text); border:1px solid rgba(34,197,94,0.25);">✓ Attendu : ' + q.answer + '</div>';
       html += '</div>';
     } else if (q.type !== 'qzone') {
       const userAns = session.answers[i] || [];
-      html += '<div style="display:flex; flex-direction:column; gap:0;">';
+
+      // Colonnes header
+      html += '<div style="display:grid; grid-template-columns:1fr 50px 50px 42px; border-bottom:1px solid var(--border); background:var(--bg-3);">';
+      html += '<div style="padding:6px 14px; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3);">Option</div>';
+      html += '<div style="padding:6px 0; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); text-align:center; border-left:0.5px solid var(--border);">Ta rép.</div>';
+      html += '<div style="padding:6px 0; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); text-align:center; border-left:0.5px solid var(--border);">Correct</div>';
+      html += '<div style="padding:6px 0; font-size:10px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); text-align:center; border-left:0.5px solid var(--border);">Résultat</div>';
+      html += '</div>';
+
       q.options.forEach((opt, oi) => {
         const isCorrect = q.correct.includes(oi);
         const isSelected = userAns.includes(oi);
         const exp = q.optExps && q.optExps[oi] ? q.optExps[oi] : '';
 
-        let bg, color, letterBg, letterColor;
+        // État de la ligne
+        let rowBg, textColor, expColor, letterBg, letterColor;
         if (isCorrect && isSelected) {
-          bg = 'rgba(47,133,90,0.18)'; color = '#6fcf97';
-          letterBg = 'rgba(47,133,90,0.35)'; letterColor = '#6fcf97';
+          rowBg = 'rgba(34,197,94,0.06)'; textColor = '#dcfce7'; expColor = '#86efac';
+          letterBg = 'rgba(34,197,94,0.25)'; letterColor = '#4ade80';
         } else if (!isCorrect && isSelected) {
-          bg = 'rgba(235,128,128,0.15)'; color = '#eb8080';
-          letterBg = 'rgba(235,128,128,0.3)'; letterColor = '#eb8080';
+          rowBg = 'rgba(239,68,68,0.07)'; textColor = '#fee2e2'; expColor = '#fca5a5';
+          letterBg = 'rgba(239,68,68,0.25)'; letterColor = '#f87171';
         } else if (isCorrect && !isSelected) {
-          bg = 'rgba(232,255,0,0.07)'; color = 'var(--yellow-text)';
-          letterBg = 'rgba(232,255,0,0.15)'; letterColor = 'var(--yellow-text)';
+          rowBg = 'rgba(234,179,8,0.05)'; textColor = '#fef9c3'; expColor = '#fde047';
+          letterBg = 'rgba(234,179,8,0.2)'; letterColor = '#fbbf24';
         } else {
-          bg = 'var(--bg-2)'; color = 'var(--text-3)';
+          rowBg = 'transparent'; textColor = 'var(--text-3)'; expColor = 'var(--text-3)';
           letterBg = 'var(--bg-3)'; letterColor = 'var(--text-3)';
         }
 
-        html += '<div style="display:flex; align-items:stretch; border-top:1px solid var(--border); background:' + bg + ';">';
-        // Lettre
-        html += '<div style="display:flex; align-items:center; justify-content:center; min-width:48px; background:' + letterBg + '; font-size:13px; font-weight:600; color:' + letterColor + '; flex-shrink:0;">' + LETTERS[oi] + '</div>';
-        // Texte option + explication
-        html += '<div style="flex:1; padding:10px 14px;">';
-        html += '<div style="font-size:13px; color:' + color + '; line-height:1.5;">' + opt + '</div>';
-        if (exp) html += '<div style="font-size:12px; color:' + color + '; opacity:0.75; font-style:italic; margin-top:4px;">' + exp + '</div>';
-        html += '</div></div>';
-      });
-      html += '</div>';
+        // Colonne "Ta réponse"
+        const taRepHtml = isSelected
+          ? '<div style="width:22px;height:22px;border-radius:4px;background:rgba(180,180,180,0.2);border:1.5px solid #777;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:13px;">✓</div>'
+          : '<div style="width:22px;height:22px;border-radius:4px;border:1.5px solid var(--border);"></div>';
 
-      // Bonnes réponses résumé
+        // Colonne "Correct"
+        const correctHtml = isCorrect
+          ? '<div style="width:22px;height:22px;border-radius:4px;background:rgba(34,197,94,0.2);border:1.5px solid #22c55e;display:flex;align-items:center;justify-content:center;color:#22c55e;font-size:13px;">✓</div>'
+          : '<div style="width:22px;height:22px;border-radius:4px;background:rgba(239,68,68,0.15);border:1.5px solid #ef4444;display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:13px;">✗</div>';
+
+        // Colonne "Résultat"
+        let resultHtml;
+        if (isCorrect && isSelected) {
+          resultHtml = '<span style="color:#22c55e;font-size:18px;">✓</span>';
+        } else if (!isCorrect && isSelected) {
+          resultHtml = '<span style="color:#ef4444;font-size:18px;">✗</span>';
+        } else if (isCorrect && !isSelected) {
+          resultHtml = '<span style="color:#eab308;font-size:18px;">→</span>';
+        } else {
+          resultHtml = '<span style="color:var(--border-2);font-size:18px;">✓</span>';
+        }
+
+        html += '<div style="display:grid; grid-template-columns:1fr 50px 50px 42px; border-top:0.5px solid var(--border); background:' + rowBg + '; align-items:stretch;">';
+        // Texte option
+        html += '<div style="display:flex; align-items:flex-start; gap:10px; padding:10px 14px;">';
+        html += '<div style="width:26px;height:26px;border-radius:5px;background:' + letterBg + ';color:' + letterColor + ';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">' + LETTERS[oi] + '</div>';
+        html += '<div><div style="font-size:13px;color:' + textColor + ';line-height:1.5;">' + opt + '</div>';
+        if (exp) html += '<div style="font-size:11px;color:' + expColor + ';font-style:italic;margin-top:3px;opacity:.8;">' + exp + '</div>';
+        html += '</div></div>';
+        // 3 cellules
+        html += '<div style="display:flex;align-items:center;justify-content:center;border-left:0.5px solid var(--border);">' + taRepHtml + '</div>';
+        html += '<div style="display:flex;align-items:center;justify-content:center;border-left:0.5px solid var(--border);">' + correctHtml + '</div>';
+        html += '<div style="display:flex;align-items:center;justify-content:center;border-left:0.5px solid var(--border);">' + resultHtml + '</div>';
+        html += '</div>';
+      });
+
+      // Footer résumé
       const correctLetters = q.correct.map(ci => LETTERS[ci]).join(', ');
       html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 1.25rem; border-top:1px solid var(--border); background:var(--bg-3);">';
       html += '<span style="font-size:13px; font-weight:500; color:var(--text-2);">Bonnes réponses : ' + correctLetters + '</span>';
@@ -1368,7 +1401,7 @@ function renderTrainResults() {
 
     // Explication globale
     if (q.explanation) {
-      html += '<div style="padding:0.75rem 1.25rem; border-top:1px solid var(--border); font-size:13px; color:var(--text-2); line-height:1.6; border-left:3px solid var(--yellow);">' + q.explanation + '</div>';
+      html += '<div style="padding:0.75rem 1.25rem; border-top:1px solid var(--border); font-size:13px; color:var(--text-2); line-height:1.6; border-left:3px solid var(--yellow); background:var(--bg-2);">' + q.explanation + '</div>';
     }
 
     block.innerHTML = html;
