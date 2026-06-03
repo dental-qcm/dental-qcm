@@ -828,8 +828,6 @@ function scoreQzone(q) {
 function renderQ() {
   const q = session.questions[session.current];
   const total = session.questions.length;
-  // Restore layout pour nouvelle question
-  document.querySelector('.quiz-card-wrap').style.maxWidth = '';
   document.getElementById('header-info').textContent = `${session.current + 1} / ${total}`;
   document.getElementById('q-counter').textContent = `Question ${session.current + 1}`;
   const validatedSoFar = session.validatedArr.filter(Boolean).length;
@@ -967,8 +965,6 @@ function validateQ() {
 
     // Masquer les options, elles sont remplacées par le tableau
     document.getElementById('q-qcm-block').style.display = 'none';
-    // Élargir le conteneur
-    document.querySelector('.quiz-card-wrap').style.maxWidth = '1200px';
 
     // Tableau colonnée identique à la correction finale
     let html = '<div style="border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); margin-bottom:.5rem;">';
