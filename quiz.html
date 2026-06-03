@@ -1296,9 +1296,9 @@ function renderTrainResults() {
   const container = document.getElementById('results-correction');
   container.innerHTML = '';
   session.questions.forEach((q, i) => {
-    const pts = session.scorePoints[i];
+    const pts = session.scorePoints[i] !== undefined ? session.scorePoints[i] : 0;
     const ptsColor = pts === 1 ? 'var(--green-text)' : pts === 0 ? 'var(--red-text)' : pts === null ? 'var(--text-3)' : '#f0a832';
-    const ptsStr = pts === 1 ? '+1 pt' : pts === 0 ? '+0 pt' : pts === null ? '?' : pts === 0.5 ? '+0,5 pt' : '+0,2 pt';
+    const ptsStr = pts === 1 ? '+1 pt' : pts === 0 ? '+0 pt' : pts === null ? '?' : pts === 0.5 ? '+0,5 pt' : pts === 0.2 ? '+0,2 pt' : '+0 pt';
     const topBarColor = pts === 1 ? '#22c55e' : pts === 0 ? '#ef4444' : pts === null ? 'var(--border-2)' : '#eab308';
 
     const block = document.createElement('div');
