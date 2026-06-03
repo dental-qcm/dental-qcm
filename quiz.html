@@ -1297,47 +1297,80 @@ function renderTrainResults() {
   container.innerHTML = '';
   session.questions.forEach((q, i) => {
     const pts = session.scorePoints[i];
-    const borderColor = pts === 1 ? '#2d6a4f' : pts === 0 ? '#8b2424' : pts === null ? 'var(--border)' : '#7a5200';
-    const topBarColor = pts === 1 ? '#6fcf97' : pts === 0 ? '#eb8080' : pts === null ? 'var(--border-2)' : '#f0a832';
-    const bgColor = pts === 1 ? 'rgba(111,207,151,0.04)' : pts === 0 ? 'rgba(235,128,128,0.04)' : pts === null ? 'transparent' : 'rgba(240,168,50,0.04)';
     const ptsColor = pts === 1 ? 'var(--green-text)' : pts === 0 ? 'var(--red-text)' : pts === null ? 'var(--text-3)' : '#f0a832';
     const ptsStr = pts === 1 ? '+1 pt' : pts === 0 ? '+0 pt' : pts === null ? '?' : pts === 0.5 ? '+0,5 pt' : '+0,2 pt';
+    const topBarColor = pts === 1 ? '#6fcf97' : pts === 0 ? '#eb8080' : pts === null ? 'var(--border-2)' : '#f0a832';
 
     const block = document.createElement('div');
-    block.style.cssText = 'border:1px solid ' + borderColor + '; border-top:3px solid ' + topBarColor + '; border-radius:var(--radius-lg); padding:1.25rem; margin-bottom:1rem; background:' + bgColor + ';';
+    block.style.cssText = 'border:1px solid var(--border); border-top:3px solid ' + topBarColor + '; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:1.25rem;';
 
-    let html = '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">';
-    html += '<div>';
-    if (q.tag) html += '<div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;">' + q.tag + '</div>';
-    html += '<div style="font-size:11px; color:var(--text-3);">Question ' + (i+1) + '</div></div>';
-    html += '<span style="font-size:13px; font-weight:500; color:' + ptsColor + ';">' + ptsStr + '</span></div>';
-    html += '<div style="font-size:15px; color:var(--text); font-weight:300; line-height:1.6; margin-bottom:1rem;">' + q.question + '</div>';
+    // Header
+    let html = '<div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1.25rem; background:var(--bg-2); border-bottom:1px solid var(--border);">';
+    html += '<div style="display:flex; align-items:center; gap:10px;">';
+    html += '<span style="background:var(--bg-3); color:var(--text-2); font-size:11px; font-weight:600; padding:4px 10px; border-radius:4px; letter-spacing:0.06em; text-transform:uppercase; border:1px solid var(--border);">Question ' + (i+1) + '</span>';
+    if (q.tag) html += '<span style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em;">' + q.tag + '</span>';
+    html += '</div>';
+    html += '<span style="font-size:14px; font-weight:500; color:' + ptsColor + ';">' + ptsStr + '</span>';
+    html += '</div>';
 
+    // Question text
+    html += '<div style="padding:1rem 1.25rem; font-size:15px; color:var(--text); font-weight:300; line-height:1.65;">' + q.question + '</div>';
+    if (q.image) html += '<div style="padding:0 1.25rem 1rem;"><img src="' + q.image + '" style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);display:block;"></div>';
+
+    // Options
     if (q.type === 'qroc') {
       const userAns = session.answers[i] || '';
-      html += '<div style="display:flex; flex-direction:column; gap:6px;" id="exam-qroc-card-' + i + '">';
+      html += '<div style="display:flex; flex-direction:column; gap:6px; padding:0 1.25rem 1rem;">';
       html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--bg-3); color:var(--text-2);">Ta réponse : <em>' + (userAns || '—') + '</em></div>';
-      html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--green-bg); color:var(--green-text);">✓ Attendu : ' + q.answer + '</div>';
-      if (session.mode === 'examen' && (pts === null || pts === undefined)) {
-        html += '<div class="qroc-btns" style="display:flex;gap:8px;align-items:center;margin-top:4px;"><span style="font-size:13px;color:var(--text-2);">Tu avais bon ?</span><button onclick="markExamQroc(' + i + ',true)" style="padding:5px 14px;border-radius:4px;border:1px solid var(--green);background:var(--green-bg);color:var(--green-text);font-size:13px;cursor:pointer;font-family:var(--font-body);">Oui</button><button onclick="markExamQroc(' + i + ',false)" style="padding:5px 14px;border-radius:4px;border:1px solid var(--red);background:var(--red-bg);color:var(--red-text);font-size:13px;cursor:pointer;font-family:var(--font-body);">Non</button></div>';
-      }
+      html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--green-bg); color:var(--green-text); border:1px solid rgba(111,207,151,0.25);">✓ Attendu : ' + q.answer + '</div>';
       html += '</div>';
     } else if (q.type !== 'qzone') {
       const userAns = session.answers[i] || [];
-      html += '<div style="display:flex; flex-direction:column; gap:6px;">';
+      html += '<div style="display:flex; flex-direction:column; gap:0;">';
       q.options.forEach((opt, oi) => {
-        const isCorrect = q.correct.includes(oi), isSelected = userAns.includes(oi);
-        let bg, color, prefix;
-        if (isCorrect && isSelected) { bg='var(--green-bg)'; color='var(--green-text)'; prefix='✓ '; }
-        else if (isCorrect && !isSelected) { bg='var(--yellow-dim)'; color='var(--yellow-text)'; prefix='→ '; }
-        else if (!isCorrect && isSelected) { bg='var(--red-bg)'; color='var(--red-text)'; prefix='✗ '; }
-        else { bg='transparent'; color='var(--text-3)'; prefix=''; }
-        html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:var(--radius);background:'+bg+';font-size:13px;color:'+color+';">';
-        html += '<span style="font-weight:500;flex-shrink:0;">'+prefix+LETTERS[oi]+'.</span><span>'+opt+'</span></div>';
+        const isCorrect = q.correct.includes(oi);
+        const isSelected = userAns.includes(oi);
+        const exp = q.optExps && q.optExps[oi] ? q.optExps[oi] : '';
+
+        let bg, color, letterBg, letterColor;
+        if (isCorrect && isSelected) {
+          bg = 'rgba(47,133,90,0.18)'; color = '#6fcf97';
+          letterBg = 'rgba(47,133,90,0.35)'; letterColor = '#6fcf97';
+        } else if (!isCorrect && isSelected) {
+          bg = 'rgba(235,128,128,0.15)'; color = '#eb8080';
+          letterBg = 'rgba(235,128,128,0.3)'; letterColor = '#eb8080';
+        } else if (isCorrect && !isSelected) {
+          bg = 'rgba(232,255,0,0.07)'; color = 'var(--yellow-text)';
+          letterBg = 'rgba(232,255,0,0.15)'; letterColor = 'var(--yellow-text)';
+        } else {
+          bg = 'var(--bg-2)'; color = 'var(--text-3)';
+          letterBg = 'var(--bg-3)'; letterColor = 'var(--text-3)';
+        }
+
+        html += '<div style="display:flex; align-items:stretch; border-top:1px solid var(--border); background:' + bg + ';">';
+        // Lettre
+        html += '<div style="display:flex; align-items:center; justify-content:center; min-width:48px; background:' + letterBg + '; font-size:13px; font-weight:600; color:' + letterColor + '; flex-shrink:0;">' + LETTERS[oi] + '</div>';
+        // Texte option + explication
+        html += '<div style="flex:1; padding:10px 14px;">';
+        html += '<div style="font-size:13px; color:' + color + '; line-height:1.5;">' + opt + '</div>';
+        if (exp) html += '<div style="font-size:12px; color:' + color + '; opacity:0.75; font-style:italic; margin-top:4px;">' + exp + '</div>';
+        html += '</div></div>';
       });
       html += '</div>';
+
+      // Bonnes réponses résumé
+      const correctLetters = q.correct.map(ci => LETTERS[ci]).join(', ');
+      html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 1.25rem; border-top:1px solid var(--border); background:var(--bg-3);">';
+      html += '<span style="font-size:13px; font-weight:500; color:var(--text-2);">Bonnes réponses : ' + correctLetters + '</span>';
+      html += '<span style="font-size:13px; font-weight:500; color:' + ptsColor + ';">' + ptsStr + '</span>';
+      html += '</div>';
     }
-    if (q.explanation) html += '<div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);font-size:13px;color:var(--text-2);line-height:1.6;">'+q.explanation+'</div>';
+
+    // Explication globale
+    if (q.explanation) {
+      html += '<div style="padding:0.75rem 1.25rem; border-top:1px solid var(--border); font-size:13px; color:var(--text-2); line-height:1.6; border-left:3px solid var(--yellow);">' + q.explanation + '</div>';
+    }
+
     block.innerHTML = html;
     container.appendChild(block);
   });
