@@ -971,7 +971,7 @@ function validateQ() {
         }
       });
     }
-    const pts = calcScore(correct, userAns);
+    const pts = calcScore(correct, userAns, q.type);
     session.scoreTotal += pts;
     session.scorePoints[session.current] = pts;
     session.validatedArr[session.current] = true;
@@ -1098,7 +1098,7 @@ function updateExamSidePanel() {
 function examFinish() {
   session.questions.forEach((q, i) => {
     if (q.type !== 'qroc') {
-      const pts = calcScore(q.correct, session.answers[i] || []);
+      const pts = calcScore(q.correct, session.answers[i] || [], q.type);
       session.scoreTotal += pts;
       session.scorePoints[i] = pts;
     }
