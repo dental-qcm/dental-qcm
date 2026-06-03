@@ -105,13 +105,7 @@
 
     <div style="margin-bottom:2rem;">
       <div class="section-title">Chapitres</div>
-      <div style="position:relative;">
-        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--text-3);fill:none;stroke-width:2;stroke-linecap:round;z-index:1;" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="chap-search" placeholder="Tous les chapitres" autocomplete="off" oninput="filterChaps(this.value)" onfocus="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow');filterChaps(this.value);" onblur="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border');" style="width:100%;box-sizing:border-box;padding:8px 12px 8px 34px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;font-family:var(--font-body);outline:none;">
-        <div id="chap-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg-2);border:1px solid var(--yellow);border-radius:var(--radius);z-index:100;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.3);">
-        </div>
-      </div>
-      <div id="selected-tags-display" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div>
+      <div class="tags-wrap" id="tags-container"></div>
     </div>
 
     <div style="margin-bottom:2rem;">
@@ -342,92 +336,27 @@ function setTypeFilter(type) {
 
 function renderHome() {
   const tags = [...new Set(questions.map(q => q.tag).filter(Boolean))];
+  const container = document.getElementById('tags-container');
+  container.innerHTML = '';
   if (!tags.length) {
-    document.getElementById('chap-search').placeholder = 'Aucune question disponible';
+    container.innerHTML = '<span style="font-size:13px;color:var(--text-3);">Aucune question — <a href="ajouter.html" style="color:var(--text-2);">ajoute-en ici</a>.</span>';
     document.getElementById('btn-start').disabled = true;
     return;
   }
-  renderSelectedTags();
-  updateSlider();
-}
-
-function renderSelectedTags() {
-  const display = document.getElementById('selected-tags-display');
-  display.innerHTML = '';
-  if (selectedTags.length === 0) return;
-  selectedTags.forEach(tag => {
-    const pill = document.createElement('span');
-    pill.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--yellow-dim);border:1px solid var(--yellow);border-radius:999px;font-size:12px;color:var(--yellow-text);';
-    pill.innerHTML = tag + '<span onclick="removeTag('' + tag.replace(/'/g,"\'") + '')" style="cursor:pointer;font-size:14px;line-height:1;opacity:0.7;">×</span>';
-    display.appendChild(pill);
-  });
-}
-
-function removeTag(tag) {
-  selectedTags = selectedTags.filter(t => t !== tag);
-  renderSelectedTags();
-  updateSlider();
-  const inp = document.getElementById('chap-search');
-  if (inp) filterChaps(inp.value);
-}
-
-function openDropdown() {
-  const inp = document.getElementById('chap-search');
-  filterChaps(inp ? inp.value : '');
-}
-
-function closeDropdown() {
-  const d = document.getElementById('chap-dropdown');
-  if (d) d.style.display = 'none';
-}
-
-function filterChaps(val) {
-  const q = val.toLowerCase().trim();
-  const tags = [...new Set(questions.map(qu => qu.tag).filter(Boolean))];
-  const dropdown = document.getElementById('chap-dropdown');
-  dropdown.innerHTML = '';
-  const filtered = tags.filter(t => !q || t.toLowerCase().includes(q));
-
-  // "Tous les chapitres" en premier
-  const allItem = document.createElement('div');
-  const allActive = selectedTags.length === 0;
-  allItem.style.cssText = 'padding:9px 14px;font-size:13px;cursor:pointer;color:' + (allActive ? 'var(--yellow-text)' : 'var(--text)') + ';background:' + (allActive ? 'var(--yellow-dim)' : 'transparent') + ';transition:background 0.1s;';
-  allItem.textContent = 'Tous les chapitres';
-  allItem.onmousedown = (e) => { e.preventDefault(); selectedTags = []; renderSelectedTags(); updateSlider(); document.getElementById('chap-search').value = ''; closeDropdown(); };
-  allItem.onmouseover = () => { if (!allActive) allItem.style.background = 'var(--bg-3)'; };
-  allItem.onmouseout = () => { allItem.style.background = allActive ? 'var(--yellow-dim)' : 'transparent'; };
-  dropdown.appendChild(allItem);
-
-  filtered.forEach(tag => {
-    const active = selectedTags.includes(tag);
-    const item = document.createElement('div');
-    item.style.cssText = 'padding:9px 14px;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:' + (active ? 'var(--yellow-text)' : 'var(--text)') + ';background:' + (active ? 'var(--yellow-dim)' : 'transparent') + ';transition:background 0.1s;';
-    item.innerHTML = '<span>' + tag + '</span>' + (active ? '<span style="font-size:12px;">✓</span>' : '');
-    item.onmousedown = (e) => {
-      e.preventDefault();
-      if (active) {
-        selectedTags = selectedTags.filter(t => t !== tag);
-      } else {
-        selectedTags = [...selectedTags, tag];
-      }
-      renderSelectedTags();
-      updateSlider();
-      document.getElementById('chap-search').value = '';
-      filterChaps('');
+  const allBtn = mkTag('Tous les chapitres', selectedTags.length === 0);
+  allBtn.onclick = () => { selectedTags = []; renderHome(); };
+  container.appendChild(allBtn);
+  tags.forEach(tag => {
+    const btn = mkTag(tag, selectedTags.includes(tag));
+    btn.onclick = () => {
+      selectedTags = selectedTags.includes(tag) ? selectedTags.filter(t => t !== tag) : [...selectedTags, tag];
+      if (!selectedTags.length || selectedTags.length === tags.length) selectedTags = [];
+      renderHome();
     };
-    item.onmouseover = () => { if (!active) item.style.background = 'var(--bg-3)'; };
-    item.onmouseout = () => { item.style.background = active ? 'var(--yellow-dim)' : 'transparent'; };
-    dropdown.appendChild(item);
+    container.appendChild(btn);
   });
-
-  dropdown.style.display = filtered.length || !q ? 'block' : 'none';
+  updateSlider();
 }
-
-document.addEventListener('click', function(e) {
-  if (!document.getElementById('chap-search')?.contains(e.target) && !document.getElementById('chap-dropdown')?.contains(e.target)) {
-    closeDropdown();
-  }
-});
 
 function mkTag(text, active) {
   const btn = document.createElement('button');
@@ -1002,13 +931,12 @@ function updateSidePanel() {
     else if (isCurrent)                { bg='rgba(59,130,246,0.12)'; color='#3b82f6';           border='#3b82f6'; }
     else                               { bg='var(--bg-3)';           color='var(--text-3)';     border='var(--border)'; }
     const btn = document.createElement('button');
-    btn.style.cssText = 'width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:1px solid ' + border + ';cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:' + (isCurrent?'500':'400') + ';background:' + bg + ';color:' + color + ';transition:all 0.15s;';
+    btn.style.cssText = 'width:100%;text-align:left;padding:9px 12px;border-radius:8px;border:1px solid ' + border + ';cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:' + (isCurrent?'500':'400') + ';background:' + bg + ';color:' + color + ';transition:all 0.15s;margin-bottom:6px;';
     btn.textContent = 'Question ' + (i + 1);
     btn.onclick = (function(idx){ return function(){ session.current = idx; renderQ(); }; })(i);
     list.appendChild(btn);
   });
 }
-
 
 function examToggle(qi, oi, el) {
   if (!Array.isArray(session.answers[qi])) session.answers[qi] = [];
@@ -1024,6 +952,8 @@ function examToggle(qi, oi, el) {
   }
   updateExamSidePanel();
 }
+
+function examSaveQroc(qi, val) { session.answers[qi] = val; updateExamSidePanel(); }
 
 function examSaveQroc(qi, val) { session.answers[qi] = val; updateExamSidePanel(); }
 
@@ -1107,6 +1037,20 @@ function renderExamAll() {
     list.appendChild(block);
   });
   updateExamSidePanel();
+}
+
+function examToggle(qi, oi, el) {
+  if (!Array.isArray(session.answers[qi])) session.answers[qi] = [];
+  const q = session.questions[qi];
+  if (q.type === 'qru') {
+    document.querySelectorAll('#exam-opts-' + qi + ' .option-item').forEach(o => o.classList.remove('selected'));
+    session.answers[qi] = [oi];
+    el.classList.add('selected');
+  } else {
+    const ans = session.answers[qi];
+    if (ans.includes(oi)) { session.answers[qi] = ans.filter(a => a !== oi); el.classList.remove('selected'); }
+    else { session.answers[qi].push(oi); el.classList.add('selected'); }
+  }
 }
 
 function examFinish(timeUp = false) {
