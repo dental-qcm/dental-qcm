@@ -1342,17 +1342,17 @@ function renderTrainResults() {
         // État de la ligne
         let rowBg, textColor, expColor, letterBg, letterColor;
         if (isCorrect && isSelected) {
-          rowBg = 'rgba(34,197,94,0.08)'; textColor = '#dcfce7'; expColor = '#86efac';
-          letterBg = 'rgba(34,197,94,0.3)'; letterColor = '#4ade80';
+          rowBg = 'rgba(34,197,94,0.18)'; textColor = '#dcfce7'; expColor = '#86efac';
+          letterBg = 'rgba(34,197,94,0.4)'; letterColor = '#4ade80';
         } else if (!isCorrect && isSelected) {
-          rowBg = 'rgba(239,68,68,0.09)'; textColor = '#fee2e2'; expColor = '#fca5a5';
-          letterBg = 'rgba(239,68,68,0.3)'; letterColor = '#f87171';
+          rowBg = 'rgba(239,68,68,0.2)'; textColor = '#fee2e2'; expColor = '#fca5a5';
+          letterBg = 'rgba(239,68,68,0.4)'; letterColor = '#f87171';
         } else if (isCorrect && !isSelected) {
-          rowBg = 'rgba(239,68,68,0.07)'; textColor = '#fee2e2'; expColor = '#fca5a5';
-          letterBg = 'rgba(239,68,68,0.25)'; letterColor = '#f87171';
+          rowBg = 'rgba(239,68,68,0.18)'; textColor = '#fee2e2'; expColor = '#fca5a5';
+          letterBg = 'rgba(239,68,68,0.38)'; letterColor = '#f87171';
         } else {
-          rowBg = 'rgba(34,197,94,0.08)'; textColor = '#dcfce7'; expColor = '#86efac';
-          letterBg = 'rgba(34,197,94,0.3)'; letterColor = '#4ade80';
+          rowBg = 'rgba(34,197,94,0.18)'; textColor = '#dcfce7'; expColor = '#86efac';
+          letterBg = 'rgba(34,197,94,0.4)'; letterColor = '#4ade80';
         }
 
         // Colonne "Ta réponse"
