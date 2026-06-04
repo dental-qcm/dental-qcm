@@ -1285,6 +1285,15 @@ function showResults() {
   // Save to history
   const details = session.questions.map((q, i) => ({
     question: q.question,
+    tag: q.tag || '',
+    type: q.type || 'qcm',
+    options: q.options || [],
+    correct: q.correct || [],
+    optExps: q.optExps || [],
+    explanation: q.explanation || '',
+    answer: q.answer || '',
+    image: q.image || '',
+    userAns: session.answers[i] !== undefined ? session.answers[i] : [],
     pts: session.scorePoints[i] || 0
   }));
   qcmHistory.push({
