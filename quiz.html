@@ -1015,7 +1015,8 @@ function validateQ() {
     session.scorePoints[session.current] = pts;
     session.validatedArr[session.current] = true;
     const corrDiv = document.getElementById('correction');
-    const ptsStr = pts === 0 ? '0' : parseFloat(pts.toFixed(2)).toString().replace('.', ',');
+    const _r = Math.round(pts * 100) / 100;
+    const ptsStr = _r === 0 ? '0' : _r.toString().replace('.', ',');
     const ptsColor = pts === 1 ? 'var(--green-text)' : pts > 0 ? 'var(--amber-text)' : 'var(--red-text)';
     const parfait = pts === 1 ? ' — Parfait !' : '';
     const ptsLabel = '<span style="color:' + ptsColor + ';font-weight:500;">+' + ptsStr + ' pt' + parfait + '</span>';
