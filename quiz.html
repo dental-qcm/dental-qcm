@@ -796,6 +796,24 @@ function scoreQzone(q) {
   });
 
   drawQzoneOverlay(groups, true);
+
+  // Capture canvas + image as base64 for history correction
+  setTimeout(() => {
+    try {
+      const cv = document.getElementById('qzone-overlay');
+      const img = document.querySelector('#qzone-img-container img');
+      if (cv && img) {
+        const offscreen = document.createElement('canvas');
+        offscreen.width = cv.width; offscreen.height = cv.height;
+        const octx = offscreen.getContext('2d');
+        octx.drawImage(img, 0, 0, cv.width, cv.height);
+        octx.drawImage(cv, 0, 0);
+        if (!session.qzoneCorrectedImages) session.qzoneCorrectedImages = {};
+        session.qzoneCorrectedImages[session.current] = offscreen.toDataURL('image/jpeg', 0.85);
+      }
+    } catch(e) {}
+  }, 100);
+
   groups.forEach((g, gi) => {
     const tagEl = document.getElementById('qtag-' + gi);
     if (!tagEl) return;
@@ -1369,6 +1387,7 @@ function showResults() {
     explanation: q.explanation || '',
     answer: q.answer || '',
     image: q.image || '',
+    correctedImage: (session.qzoneCorrectedImages && session.qzoneCorrectedImages[i]) || '',
     userAns: session.answers[i] !== undefined ? session.answers[i] : [],
     pts: session.scorePoints[i] || 0
   }));
@@ -1445,7 +1464,8 @@ function renderTrainResults() {
 
     // Question text
     html += '<div style="padding:1.25rem 1.25rem; font-size:15px; color:var(--text); font-weight:300; line-height:1.65;">' + q.question + '</div>';
-    if (q.image) html += '<div style="padding:0 1.25rem 1rem;"><img src="' + q.image + '" style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);display:block;"></div>';
+    const displayImg = (q.type === 'qzone' && session.qzoneCorrectedImages && session.qzoneCorrectedImages[i]) ? session.qzoneCorrectedImages[i] : q.image;
+    if (displayImg) html += '<div style="padding:0 1.25rem 1rem;"><img src="' + displayImg + '" style="max-width:100%;max-height:400px;border-radius:8px;border:1px solid var(--border);display:block;"></div>';
 
     if (q.type === 'qroc') {
       const userAns = session.answers[i] || '';

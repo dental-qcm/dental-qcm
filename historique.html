@@ -320,7 +320,8 @@ function ouvrirRevue(index) {
 
     // Question text
     bhtml += '<div style="padding:1.25rem;font-size:15px;color:var(--text);font-weight:300;line-height:1.65;">' + d.question + '</div>';
-    if (d.image) bhtml += '<div style="padding:0 1.25rem 1rem;"><img src="' + d.image + '" style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);display:block;"></div>';
+    const displayImg = (d.type === 'qzone' && d.correctedImage) ? d.correctedImage : d.image;
+    if (displayImg) bhtml += '<div style="padding:0 1.25rem 1rem;"><img src="' + displayImg + '" style="max-width:100%;max-height:400px;border-radius:8px;border:1px solid var(--border);display:block;"></div>';
 
     if (d.type === 'qroc') {
       const userAns = typeof d.userAns === 'string' ? d.userAns : '';
