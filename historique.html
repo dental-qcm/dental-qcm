@@ -289,67 +289,101 @@ function ouvrirRevue(index) {
   const sur20 = h.sur20 || 0;
   const mode = h.mode === 'examen' ? 'Examen' : 'Entraînement';
 
-  // Calcul des chapitres et leur nb de questions
+  // Badges chapitres
   const tagMap = {};
-  h.details.forEach(d => {
-    const t = d.tag || 'Sans chapitre';
-    tagMap[t] = (tagMap[t] || 0) + 1;
-  });
+  h.details.forEach(d => { const t = d.tag || 'Sans chapitre'; tagMap[t] = (tagMap[t] || 0) + 1; });
   const tagEntries = Object.entries(tagMap);
 
-  let html = `
-    <div style="margin-bottom:2rem;">
-      <div style="font-size:12px;color:var(--text-3);margin-bottom:.4rem;">${formatDate(h.date)} · ${mode}</div>
-      <div style="font-size:1.75rem;font-weight:400;color:var(--text);margin-bottom:1.25rem;">Correction — <span style="color:var(--yellow);">${sur20}/20</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;">
-        ${tagEntries.map(([tag, count]) => `
-          <div style="display:inline-flex;align-items:center;gap:7px;background:var(--bg-3);border:1px solid var(--border);border-radius:6px;padding:6px 12px;">
-            <span style="font-size:12px;font-weight:500;color:var(--text);">${tag}</span>
-            <span style="font-size:11px;background:var(--yellow);color:#0d0d0d;border-radius:4px;padding:1px 6px;font-weight:600;">${count}q</span>
-          </div>`).join('')}
-      </div>
-    </div>`;
+  let html = `<div style="margin-bottom:2rem;">
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:.4rem;">${formatDate(h.date)} · ${mode}</div>
+    <div style="font-size:1.75rem;font-weight:400;color:var(--text);margin-bottom:1.25rem;">Correction — <span style="color:var(--yellow);">${sur20}/20</span></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      ${tagEntries.map(([tag, count]) => `<div style="display:inline-flex;align-items:center;gap:7px;background:var(--bg-3);border:1px solid var(--border);border-radius:6px;padding:6px 12px;"><span style="font-size:12px;font-weight:500;color:var(--text);">${tag}</span><span style="font-size:11px;background:var(--yellow);color:#0d0d0d;border-radius:4px;padding:1px 6px;font-weight:600;">${count}q</span></div>`).join('')}
+    </div>
+  </div>`;
 
   h.details.forEach((d, i) => {
-    const isQroc = d.type === 'qroc';
     const pts = d.pts !== undefined ? d.pts : 0;
-    const ptsColor = pts > 0 ? '#6fcf97' : '#eb8080';
+    const ptsColor = pts === 1 ? 'var(--green-text)' : pts === 0 ? 'var(--red-text)' : '#f0a832';
+    const ptsStr = pts === 1 ? '+1 pt' : pts === 0 ? '+0 pt' : pts === 0.5 ? '+0,5 pt' : pts === 0.2 ? '+0,2 pt' : '+' + pts + ' pt';
+    const topBarColor = pts === 1 ? '#22c55e' : pts === 0 ? '#ef4444' : '#eab308';
 
-    html += `<div class="revue-q">`;
-    if (d.tag) html += `<div class="revue-q-tag">${d.tag}</div>`;
-    html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
-      <div class="revue-q-text">${i+1}. ${d.question}</div>
-      <span style="font-size:13px;font-weight:500;color:${ptsColor};flex-shrink:0;">${pts} pt${pts !== 1 ? 's' : ''}</span>
-    </div>`;
+    let bhtml = '';
+    // Header
+    bhtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.25rem;background:var(--bg-2);border-bottom:1px solid var(--border);">';
+    bhtml += '<div style="display:flex;align-items:center;gap:10px;">';
+    bhtml += '<span style="background:var(--bg-3);color:var(--text-2);font-size:11px;font-weight:600;padding:4px 10px;border-radius:4px;letter-spacing:0.06em;text-transform:uppercase;border:1px solid var(--border);">Question ' + (i+1) + '</span>';
+    if (d.tag) bhtml += '<span style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;">' + d.tag + '</span>';
+    bhtml += '</div>';
+    bhtml += '<span style="font-size:14px;font-weight:500;color:' + ptsColor + ';">' + ptsStr + '</span>';
+    bhtml += '</div>';
 
-    if (d.image) html += `<img src="${d.image}" style="max-width:100%;border-radius:6px;margin-bottom:.75rem;">`;
+    // Question text
+    bhtml += '<div style="padding:1.25rem;font-size:15px;color:var(--text);font-weight:300;line-height:1.65;">' + d.question + '</div>';
+    if (d.image) bhtml += '<div style="padding:0 1.25rem 1rem;"><img src="' + d.image + '" style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);display:block;"></div>';
 
-    if (isQroc) {
+    if (d.type === 'qroc') {
       const userAns = typeof d.userAns === 'string' ? d.userAns : '';
-      html += `<div class="revue-qroc-ans"><strong>Ta réponse :</strong> ${userAns || '<em>Aucune réponse</em>'}</div>`;
-      if (d.answer) html += `<div class="revue-qroc-ans" style="border-color:var(--yellow);"><strong>Réponse attendue :</strong> ${d.answer}</div>`;
+      bhtml += '<div style="display:flex;flex-direction:column;gap:6px;padding:0 1.25rem 1rem;">';
+      bhtml += '<div style="font-size:13px;padding:8px 12px;border-radius:var(--radius);background:var(--bg-3);color:var(--text-2);">Ta réponse : <em>' + (userAns || '—') + '</em></div>';
+      if (d.answer) bhtml += '<div style="font-size:13px;padding:8px 12px;border-radius:var(--radius);background:var(--green-bg);color:var(--green-text);border:1px solid rgba(34,197,94,0.25);">✓ Attendu : ' + d.answer + '</div>';
+      bhtml += '</div>';
     } else {
       const userAns = Array.isArray(d.userAns) ? d.userAns : [];
+      // Colonnes header
+      bhtml += '<div style="display:grid;grid-template-columns:1fr 80px 80px 70px;border-bottom:1px solid var(--border);background:var(--bg-3);">';
+      bhtml += '<div style="padding:9px 14px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);">Option</div>';
+      bhtml += '<div style="padding:9px 0;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);text-align:center;border-left:0.5px solid var(--border);">Ta rép.</div>';
+      bhtml += '<div style="padding:9px 0;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);text-align:center;border-left:0.5px solid var(--border);">Correct</div>';
+      bhtml += '<div style="padding:9px 0;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);text-align:center;border-left:0.5px solid var(--border);">Résultat</div>';
+      bhtml += '</div>';
+
       (d.options || []).forEach((opt, oi) => {
         const isCorrect = (d.correct || []).includes(oi);
         const isSelected = userAns.includes(oi);
-        let cls = 'neutral';
-        if (isCorrect) cls = 'correct';
-        else if (isSelected) cls = 'wrong';
-        const prefix = isCorrect ? '✓' : (isSelected ? '✗' : LETTERS[oi]);
         const exp = d.optExps && d.optExps[oi] ? d.optExps[oi] : '';
-        html += `<div class="revue-opt ${cls}">
-          <span class="opt-prefix">${prefix}</span>
-          <div>
-            <div>${opt}</div>
-            ${exp ? `<div class="opt-exp">${exp}</div>` : ''}
-          </div>
-        </div>`;
+
+        let rowBg, textColor, expColor, letterBg, letterColor;
+        if (isCorrect && isSelected) { rowBg='rgba(34,197,94,0.18)'; textColor='#dcfce7'; expColor='#86efac'; letterBg='rgba(34,197,94,0.4)'; letterColor='#4ade80'; }
+        else if (!isCorrect && isSelected) { rowBg='rgba(239,68,68,0.2)'; textColor='#fee2e2'; expColor='#fca5a5'; letterBg='rgba(239,68,68,0.4)'; letterColor='#f87171'; }
+        else if (isCorrect && !isSelected) { rowBg='rgba(239,68,68,0.18)'; textColor='#fee2e2'; expColor='#fca5a5'; letterBg='rgba(239,68,68,0.38)'; letterColor='#f87171'; }
+        else { rowBg='rgba(34,197,94,0.18)'; textColor='#dcfce7'; expColor='#86efac'; letterBg='rgba(34,197,94,0.4)'; letterColor='#4ade80'; }
+
+        const shape = d.type === 'qru' ? '50%' : '4px';
+        const taRepHtml = isSelected
+          ? '<div style="width:22px;height:22px;border-radius:'+shape+';background:rgba(180,180,180,0.2);border:1.5px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.7);font-size:13px;">✓</div>'
+          : '<div style="width:22px;height:22px;border-radius:'+shape+';border:1.5px solid rgba(255,255,255,0.2);"></div>';
+        const correctHtml = isCorrect
+          ? '<div style="width:22px;height:22px;border-radius:'+shape+';background:rgba(34,197,94,0.2);border:1.5px solid #22c55e;display:flex;align-items:center;justify-content:center;color:#22c55e;font-size:13px;">✓</div>'
+          : '<div style="width:22px;height:22px;border-radius:'+shape+';background:rgba(239,68,68,0.15);border:1.5px solid #ef4444;display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:13px;">✗</div>';
+        const resultHtml = (isCorrect && isSelected) || (!isCorrect && !isSelected)
+          ? '<span style="color:#22c55e;font-size:18px;">✓</span>'
+          : '<span style="color:#ef4444;font-size:18px;">✗</span>';
+
+        bhtml += '<div style="display:grid;grid-template-columns:1fr 80px 80px 70px;border-top:1px solid rgba(255,255,255,0.12);background:'+rowBg+';align-items:stretch;">';
+        bhtml += '<div style="display:flex;align-items:flex-start;gap:10px;padding:16px 14px;">';
+        bhtml += '<div style="width:26px;height:26px;border-radius:'+(d.type==='qru'?'50%':'5px')+';background:'+letterBg+';color:'+letterColor+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px;">'+LETTERS[oi]+'</div>';
+        bhtml += '<div><div style="font-size:13px;color:'+textColor+';line-height:1.5;">'+opt+'</div>';
+        if (exp) bhtml += '<div style="font-size:11px;color:'+expColor+';font-style:italic;margin-top:3px;opacity:.8;">'+exp+'</div>';
+        bhtml += '</div></div>';
+        bhtml += '<div style="display:flex;align-items:center;justify-content:center;border-left:1px solid rgba(255,255,255,0.12);">'+taRepHtml+'</div>';
+        bhtml += '<div style="display:flex;align-items:center;justify-content:center;border-left:1px solid rgba(255,255,255,0.12);">'+correctHtml+'</div>';
+        bhtml += '<div style="display:flex;align-items:center;justify-content:center;border-left:1px solid rgba(255,255,255,0.12);">'+resultHtml+'</div>';
+        bhtml += '</div>';
       });
+
+      const correctLetters = (d.correct || []).map(ci => LETTERS[ci]).join(', ');
+      bhtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 1.25rem;border-top:1px solid var(--border);background:var(--bg-3);">';
+      bhtml += '<span style="font-size:13px;font-weight:500;color:var(--text-2);">Bonnes réponses : ' + correctLetters + '</span>';
+      bhtml += '<span style="font-size:13px;font-weight:500;color:'+ptsColor+';">'+ptsStr+'</span>';
+      bhtml += '</div>';
     }
 
-    if (d.explanation) html += `<div class="revue-expl">${d.explanation}</div>`;
-    html += `</div>`;
+    if (d.explanation) {
+      bhtml += '<div style="padding:0.75rem 1.25rem;border-top:1px solid var(--border);font-size:13px;color:var(--text-2);line-height:1.6;border-left:3px solid var(--yellow);background:var(--bg-2);">'+d.explanation+'</div>';
+    }
+
+    html += '<div style="border:1px solid var(--border);border-top:3px solid '+topBarColor+';border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.25rem;">'+bhtml+'</div>';
   });
 
   modalContent.innerHTML = html;
