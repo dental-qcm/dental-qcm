@@ -97,35 +97,38 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.6);
       z-index: 1000;
-      overflow-y: auto;
-      padding: 2rem 1rem;
     }
-    .modal-overlay.show { display: flex; align-items: flex-start; justify-content: center; }
+    .modal-overlay.show { display: flex; align-items: stretch; justify-content: flex-end; }
     .modal {
       background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
+      border-left: 1px solid var(--border);
       width: 100%;
-      max-width: 700px;
-      padding: 2rem;
+      max-width: 860px;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 2.5rem 3rem;
       position: relative;
     }
     .modal-close {
-      position: absolute;
-      top: 1rem; right: 1rem;
+      position: sticky;
+      top: 1rem;
+      float: right;
       background: var(--bg-3);
       border: 1px solid var(--border);
       border-radius: 50%;
-      width: 32px; height: 32px;
+      width: 36px; height: 36px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 20px;
       color: var(--text-2);
       line-height: 1;
+      z-index: 10;
     }
-    .modal-close:hover { color: var(--text); }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+    @keyframes slideIn { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .modal-overlay.show .modal { animation: slideIn 0.22s cubic-bezier(0.4,0,0.2,1); }
 
     /* CORRECTION QUESTIONS */
     .revue-q {
