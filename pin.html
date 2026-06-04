@@ -37,7 +37,7 @@
     <input type="password" id="pin-input" placeholder="Code PIN..." style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; font-size:1.2rem; text-align:center; background:var(--bg); color:var(--text); margin-bottom:1.5rem; letter-spacing:0.2em; box-sizing:border-box;">
     <button onclick="verifierPin()" style="width:100%; padding:12px; background:var(--yellow); color:#000; border:none; border-radius:6px; font-size:15px; font-weight:600; cursor:pointer; font-family:var(--font-body);">Déverrouiller →</button>
     <div style="margin-top:1.5rem;">
-      <a href="index.html" style="color:var(--text-3); font-size:13px; text-decoration:none;">← Retour à l'accueil</a>
+      <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Accueil</a>
     </div>
   </div>
   <script>
