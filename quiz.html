@@ -1015,7 +1015,7 @@ function validateQ() {
     session.scorePoints[session.current] = pts;
     session.validatedArr[session.current] = true;
     const corrDiv = document.getElementById('correction');
-    const ptsStr = pts === 0 ? '0' : parseFloat(pts.toFixed(2)).toString().replace('.', ',');
+    const ptsStr = pts === 0 ? '0' : parseFloat((Math.round(pts * 100) / 100).toFixed(2)).toString().replace('.', ',');
     const ptsColor = pts === 1 ? 'var(--green-text)' : pts > 0 ? 'var(--amber-text)' : 'var(--red-text)';
     const parfait = pts === 1 ? ' — Parfait !' : '';
     const ptsLabel = '<span style="color:' + ptsColor + ';font-weight:500;">+' + ptsStr + ' pt' + parfait + '</span>';
@@ -1138,7 +1138,8 @@ function showNextBtn() {
 function updateScoreLive() {
   const done = session.validated ? session.current + 1 : session.current;
   if (done === 0) { document.getElementById('score-live').textContent = '—'; return; }
-  const sur20 = parseFloat(((session.scoreTotal / done) * 20).toFixed(1));
+  const total = session.questions.length || 1;
+  const sur20 = parseFloat(((session.scoreTotal / total) * 20).toFixed(1));
   const sur20Str = Number.isInteger(sur20) ? sur20.toString() : sur20.toString().replace('.', ',');
   document.getElementById('score-live').textContent = sur20Str + ' / 20';
 }
@@ -1353,12 +1354,13 @@ function showResults() {
   show('results');
   const scoreTotal = parseFloat(session.scoreTotal.toFixed(1));
   const validatedCount = session.validatedArr.filter(Boolean).length || 1;
-  const pct = Math.round((scoreTotal / validatedCount) * 100);
-  const sur20 = parseFloat(((scoreTotal / validatedCount) * 20).toFixed(1));
+  const totalQuestions = session.questions.length || 1;
+  const pct = Math.round((scoreTotal / totalQuestions) * 100);
+  const sur20 = parseFloat(((scoreTotal / totalQuestions) * 20).toFixed(1));
   const sur20Str = Number.isInteger(sur20) ? sur20.toString() : sur20.toString().replace('.', ',');
 
   document.getElementById('res-big').textContent = sur20Str + ' / 20';
-  document.getElementById('res-label').textContent = pct + '% — ' + scoreTotal.toString().replace('.', ',') + ' pts / ' + validatedCount + ' questions';
+  document.getElementById('res-label').textContent = pct + '% — ' + scoreTotal.toString().replace('.', ',') + ' pts / ' + totalQuestions + ' questions';
   document.getElementById('res-msg').textContent = pct >= 80 ? 'Excellent travail !' : pct >= 60 ? 'Bon résultat, continue !' : 'Encore un effort — reprends ces chapitres.';
 
   // Badges chapitres
