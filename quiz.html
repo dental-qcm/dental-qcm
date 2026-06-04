@@ -1395,11 +1395,10 @@ function showResults() {
     userAns: session.answers[i] !== undefined ? session.answers[i] : [],
     pts: session.scorePoints[i] || 0
   }));
-  const total = totalQuestions;
   qcmHistory.push({
     date: new Date().toISOString(),
     mode: session.mode,
-    total,
+    total: totalQuestions,
     scoreTotal,
     sur20,
     tags: session.lastTags,
