@@ -302,6 +302,7 @@
       <div class="big-score" id="res-big">0/20</div>
       <div class="score-label" id="res-label"></div>
       <div class="score-msg" id="res-msg"></div>
+      <div id="res-tags" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:1.5rem;"></div>
     </div>
 
     <!-- Correction examen -->
@@ -1277,6 +1278,20 @@ function showResults() {
   document.getElementById('res-big').textContent = sur20Str + ' / 20';
   document.getElementById('res-label').textContent = pct + '% — ' + scoreTotal.toString().replace('.', ',') + ' pts / ' + validatedCount + ' questions';
   document.getElementById('res-msg').textContent = pct >= 80 ? 'Excellent travail !' : pct >= 60 ? 'Bon résultat, continue !' : 'Encore un effort — reprends ces chapitres.';
+
+  // Badges chapitres
+  const tagMap = {};
+  session.questions.forEach(q => {
+    const t = q.tag || 'Sans chapitre';
+    tagMap[t] = (tagMap[t] || 0) + 1;
+  });
+  const badgesHtml = Object.entries(tagMap).map(([tag, count]) =>
+    `<div style="display:inline-flex;align-items:center;gap:7px;background:var(--bg-3);border:1px solid var(--border);border-radius:6px;padding:6px 12px;">
+      <span style="font-size:12px;font-weight:500;color:var(--text);">${tag}</span>
+      <span style="font-size:11px;background:var(--yellow);color:#0d0d0d;border-radius:4px;padding:1px 6px;font-weight:600;">${count}q</span>
+    </div>`
+  ).join('');
+  document.getElementById('res-tags').innerHTML = badgesHtml;
     document.getElementById('exam-correction-block').style.display = 'none';
     document.getElementById('train-results-block').style.display = 'block';
     renderTrainResults();
