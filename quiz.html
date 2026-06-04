@@ -1015,8 +1015,7 @@ function validateQ() {
     session.scorePoints[session.current] = pts;
     session.validatedArr[session.current] = true;
     const corrDiv = document.getElementById('correction');
-    const _r = Math.round(pts * 100) / 100;
-    const ptsStr = _r === 0 ? '0' : _r.toString().replace('.', ',');
+    const ptsStr = pts === 0 ? '0' : parseFloat(pts.toFixed(2)).toString().replace('.', ',');
     const ptsColor = pts === 1 ? 'var(--green-text)' : pts > 0 ? 'var(--amber-text)' : 'var(--red-text)';
     const parfait = pts === 1 ? ' — Parfait !' : '';
     const ptsLabel = '<span style="color:' + ptsColor + ';font-weight:500;">+' + ptsStr + ' pt' + parfait + '</span>';
@@ -1392,7 +1391,6 @@ function showResults() {
     explanation: q.explanation || '',
     answer: q.answer || '',
     image: q.image || '',
-    correctedImage: (session.qzoneCorrectedImages && session.qzoneCorrectedImages[i]) || '',
     userAns: session.answers[i] !== undefined ? session.answers[i] : [],
     pts: session.scorePoints[i] || 0
   }));
@@ -1469,11 +1467,7 @@ function renderTrainResults() {
 
     // Question text
     html += '<div style="padding:1.25rem 1.25rem; font-size:15px; color:var(--text); font-weight:300; line-height:1.65;">' + q.question + '</div>';
-    const displayImg = (q.type === 'qzone' && session.qzoneCorrectedImages && session.qzoneCorrectedImages[i]) ? session.qzoneCorrectedImages[i] : q.image;
-    if (displayImg) {
-      const isQzoneImg = q.type === 'qzone' && session.qzoneCorrectedImages && session.qzoneCorrectedImages[i];
-      html += '<div style="padding:0 1.25rem 1rem;"><img src="' + displayImg + '" style="max-width:100%;' + (isQzoneImg ? 'max-height:600px;' : 'max-height:260px;') + 'border-radius:8px;border:1px solid var(--border);display:block;"></div>';
-    }
+    if (q.image && q.type !== 'qzone') html += '<div style="padding:0 1.25rem 1rem;"><img src="' + q.image + '" style="max-width:100%;max-height:260px;border-radius:8px;border:1px solid var(--border);display:block;"></div>';
 
     if (q.type === 'qroc') {
       const userAns = session.answers[i] || '';
