@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes stats — Annales QCM</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<script src="theme.js"></script><link rel="stylesheet" href="style.css">
+<script src="qcm-ui.js"></script><script src="sync.js"></script>
+<style>
+body{font-family:'Nunito',system-ui,sans-serif;color:var(--text);background:var(--bg);margin:0}
+.page{max-width:960px;margin:0 auto;padding:28px 24px 60px;display:flex;flex-direction:column;gap:20px}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{margin:0;font-weight:900;font-size:38px}
+.back{height:44px;padding:0 18px;border-radius:999px;background:var(--bg-2);border:2px solid var(--border);display:flex;align-items:center;font-weight:800;color:var(--text);text-decoration:none}
+.back:hover{border-color:var(--yellow)}
+.tools{display:flex;gap:12px;flex-wrap:wrap}
+.search{flex:1;min-width:220px;min-height:54px;box-sizing:border-box;border-radius:16px;border:2px solid var(--border);background:var(--bg-2);padding:0 16px;font-weight:800;font-size:17px;color:var(--text);font-family:inherit}
+.search:focus{outline:none;border-color:var(--yellow)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{height:54px;padding:0 18px;border-radius:16px;border:2px solid var(--border);background:var(--bg-2);font-weight:800;font-size:15px;color:var(--text-2);cursor:pointer;font-family:inherit}
+.chip.a{border-color:var(--yellow);color:var(--text)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.card{border-radius:24px;background:var(--bg-2);border:2px solid var(--border);border-bottom-width:6px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;align-items:center;gap:12px}
+.rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;background:var(--border);color:var(--text-2);flex:none}.rank.g{background:var(--gold);color:#3A2A00}
+.name{flex:1;font-weight:800;font-size:18px;line-height:1.2;word-break:break-word}
+.pct{font-weight:900;font-size:30px}.pct small{font-size:12px;color:var(--text-3);margin-left:2px}
+.bar{height:12px;border-radius:999px;background:var(--border);overflow:hidden}.bar>div{height:100%;border-radius:999px}
+.m{display:flex;flex-direction:column;gap:4px}.l{display:flex;justify-content:space-between;font-weight:800;font-size:14px;color:var(--text-2)}.l b{color:var(--text);font-weight:900}.s{font-size:12px;font-weight:700;color:var(--text-3)}
+.empty{font-weight:700;color:var(--text-3);padding:20px 0}
+.legend{font-size:13px;font-weight:700;color:var(--text-3);line-height:1.45}
+@media(max-width:700px){.grid{grid-template-columns:1fr}h1{font-size:30px}}
+</style></head><body>
+<div class="page">
+  <div class="hd"><h1>Mes stats</h1><a class="back" href="index.html">← Accueil</a></div>
+  <div class="tools">
+    <input class="search" id="q" type="search" placeholder="🔍 Rechercher un cours…" autocomplete="off">
+    <div class="chips" id="chips">
+      <button class="chip a" data-m="best">Meilleurs</button><button class="chip" data-m="worst">À revoir</button><button class="chip" data-m="az">A → Z</button>
+    </div>
+  </div>
+  <div class="legend"><b>Fait</b> : questions déjà vues · <b>Réussite</b> : % de bonnes réponses · <b>Ancrage</b> : questions réussies 3 fois de suite (les 3 dernières réponses justes).</div>
+  <div class="grid" id="grid"><div class="empty">Chargement…</div></div>
+</div>
+<script>
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let mode = 'best', all = [];
+function readHistory() { try { return JSON.parse(localStorage.getItem('qcm_history') || '[]'); } catch (e) { return []; } }
+function m(label, v, color, sub) {
+  return '<div class="m"><div class="l"><span>' + label + '</span><b>' + (v === null ? '–' : v + ' %') + '</b></div><div class="bar"><div style="width:' + (v || 0) + '%;background:' + color + '"></div></div><div class="s">' + sub + '</div></div>';
+}
+const pl = (n, w) => n + ' ' + w + (n > 1 ? 's' : '');
+function draw() {
+  const term = document.getElementById('q').value.trim().toLowerCase();
+  const sorted = qcmStatSort(all, mode);
+  const rankOf = {}; qcmStatSort(all, 'best').forEach((x, i) => rankOf[x.t] = i + 1);
+  const list = sorted.filter(x => !term || x.t.toLowerCase().includes(term));
+  document.getElementById('grid').innerHTML = !all.length ? '<div class="empty">Aucune question pour le moment.</div>'
+    : !list.length ? '<div class="empty">Aucun cours ne correspond à « ' + esc(term) + ' ».</div>'
+    : list.map(x => {
+      const r = rankOf[x.t];
+      return '<div class="card"><div class="top"><span class="rank' + (r <= 3 && x.reu !== null ? ' g' : '') + '">' + r + '</span><span class="name">' + esc(x.t) + '</span><span class="pct">' + (x.reu === null ? '–' : x.reu + '<small>%</small>') + '</span></div>'
+        + m('Fait', x.fait, 'var(--blue)', pl(x.seen, 'question') + (x.seen > 1 ? ' vues' : ' vue') + ' sur ' + x.total)
+        + m('Réussite', x.reu, qcmStatColor(x.reu), x.n ? pl(x.ok, 'bonne') + ' réponse' + (x.ok > 1 ? 's' : '') + ' sur ' + x.n : 'Pas encore de réponse')
+        + m('Ancrage', x.anc, 'var(--purple)', pl(x.anch, 'question') + (x.anch > 1 ? ' réussies' : ' réussie') + ' 3 fois de suite') + '</div>';
+    }).join('');
+}
+function refresh() { all = qcmStats(window.__questions || [], readHistory()); draw(); }
+document.getElementById('q').addEventListener('input', draw);
+document.getElementById('chips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  mode = b.dataset.m;
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('a', c === b));
+  draw();
+});
+window.addEventListener('qcm-synced', ev => { if (ev.detail.changed) refresh(); });
+const pre = new URLSearchParams(location.search).get('q'); if (pre) document.getElementById('q').value = pre;
+(async () => {
+  try {
+    window.__questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
+    refresh();
+    const U = 'https://rcrkksvkkoujrmpnpvov.supabase.co', K = 'sb_publishable_cfjmRq5I4YvrEZB0hbSK-w_-GQ_WWzz';
+    const res = await fetch(U + '/rest/v1/questions?id=eq.1&select=data', { headers: { apikey: K, Authorization: 'Bearer ' + K } });
+    const j = await res.json();
+    if (j[0] && j[0].data && j[0].data.length) { window.__questions = j[0].data; refresh(); }
+  } catch (e) { refresh(); }
+})();
+</script>
+</body></html>

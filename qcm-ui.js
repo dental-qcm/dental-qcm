@@ -50,3 +50,42 @@
     return h;
   };
 })();
+
+/* Stats par tag : Fait / Réussite / Ancrage (3 dernières réponses justes). Utilisé par l'accueil et stats.html */
+window.qcmStats = function (questions, hist) {
+  var total = {}, qtag = {}, attempts = {}, st = {};
+  questions.forEach(function (q) { var t = q.tag || 'Sans chapitre'; total[t] = (total[t] || 0) + 1; qtag[qKey(q)] = t; });
+  hist.slice().sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).forEach(function (h) {
+    (h.details || []).forEach(function (d) {
+      var answered = Array.isArray(d.userAns) ? d.userAns.length > 0 : String(d.userAns || '').trim() !== '';
+      if (!answered && d.type !== 'qzone') return;
+      if (typeof d.pts !== 'number') return;
+      (attempts[qKey(d)] = attempts[qKey(d)] || []).push(d.pts);
+    });
+  });
+  Object.keys(total).forEach(function (t) { st[t] = { t: t, total: total[t], seen: 0, ok: 0, n: 0, anch: 0 }; });
+  Object.keys(attempts).forEach(function (k) {
+    var t = qtag[k]; if (!t) return;
+    var a = attempts[k], x = st[t];
+    x.seen++; x.n += a.length; x.ok += a.filter(function (p) { return p >= 1; }).length;
+    if (a.length >= 3 && a.slice(-3).every(function (p) { return p >= 1; })) x.anch++;
+  });
+  return Object.keys(st).map(function (t) {
+    var x = st[t];
+    x.fait = Math.round(x.seen / x.total * 100);
+    x.reu = x.n ? Math.round(x.ok / x.n * 100) : null;
+    x.anc = Math.round(x.anch / x.total * 100);
+    return x;
+  });
+};
+window.qcmStatSort = function (list, mode) {
+  var l = list.slice();
+  if (mode === 'az') return l.sort(function (a, b) { return a.t.localeCompare(b.t, 'fr', { numeric: true }); });
+  var worst = mode === 'worst';
+  return l.sort(function (a, b) {
+    if ((a.reu === null) !== (b.reu === null)) return a.reu === null ? 1 : -1; // jamais travaillés en bas
+    var d = worst ? (a.reu || 0) - (b.reu || 0) : (b.reu || 0) - (a.reu || 0);
+    return d || (worst ? a.anc - b.anc : b.anc - a.anc) || a.t.localeCompare(b.t, 'fr', { numeric: true });
+  });
+};
+window.qcmStatColor = function (r) { return r === null ? 'var(--border-2)' : r >= 75 ? 'var(--green)' : r >= 50 ? 'var(--amber-text)' : 'var(--red)'; };

@@ -45,20 +45,15 @@
 .bar { height:14px; border-radius:999px; background:var(--border); overflow:hidden; }
 .bar > div { height:14px; border-radius:999px; background:var(--yellow); }
 .course-meta { display:flex; justify-content:space-between; font-size:13px; font-weight:800; color:var(--text-3); }
-.srow{border-radius:18px;background:var(--bg);padding:14px 16px;display:flex;flex-direction:column;gap:10px;cursor:pointer;border:2px solid transparent;margin-bottom:10px}
-.srow.open{border-color:var(--yellow)}
-.stop{display:flex;align-items:center;gap:12px}
-.rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;background:var(--border);color:var(--text-2);flex:none}
+.srow{border-radius:18px;background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--text);margin-bottom:10px;border:2px solid transparent}
+.srow:hover{border-color:var(--yellow)}
+.stop{display:flex;align-items:center;gap:10px}
+.rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;background:var(--border);color:var(--text-2);flex:none}
 .rank.g{background:var(--gold);color:#3A2A00}
-.sname{flex:1;font-weight:800;font-size:16px;color:var(--text);line-height:1.2;word-break:break-word}
-.spct{font-weight:900;font-size:22px;color:var(--text)}.spct small{font-size:12px;color:var(--text-3);margin-left:2px}
+.sname{flex:1;font-weight:800;font-size:15px;line-height:1.2;word-break:break-word}
+.spct{font-weight:900;font-size:19px}.spct small{font-size:11px;color:var(--text-3);margin-left:1px}
 .srow .bar{height:12px}.srow .bar>div{height:12px}
-.sdetail{display:flex;flex-direction:column;gap:12px;padding-top:4px}
-.sm{display:flex;flex-direction:column;gap:5px}.sl{display:flex;justify-content:space-between;font-weight:800;font-size:14px;color:var(--text-2)}.sl b{color:var(--text);font-weight:900}
-.ss{font-size:12px;font-weight:700;color:var(--text-3)}
-.stat-hint{font-size:13px;font-weight:700;color:var(--text-3);margin:-4px 0 10px}
-.stat-legend{font-size:12.5px;font-weight:700;color:var(--text-3);line-height:1.45;border-top:2px solid var(--border);padding-top:10px}
-#courses{max-height:70vh;overflow-y:auto}
+.stat-btn{display:flex;align-items:center;justify-content:center;text-decoration:none;width:100%;box-sizing:border-box;margin-top:4px}
 .side-empty { font-size:15px; font-weight:700; color:var(--text-3); line-height:1.5; }
 
 .errband { display:flex; align-items:center; gap:20px; flex-wrap:wrap; padding:22px 26px; border-radius:24px; background:var(--red-bg); border:2px solid var(--red-border); border-bottom-width:6px; }
@@ -211,55 +206,16 @@ function render(questions) {
     : nErr + ' question' + (nErr > 1 ? 's' : '') + ' à revoir. Réussis-les 3 fois de suite pour les valider.';
   document.getElementById('err-btn').style.display = nErr === 0 ? 'none' : 'inline-flex';
 
-  // Stats par tag : Fait / Réussite / Ancrage (3 dernières réponses justes)
-  const total = {}, qtag = {};
-  questions.forEach(q => { const t = q.tag || 'Sans chapitre'; total[t] = (total[t] || 0) + 1; qtag[qKey(q)] = t; });
-  const attempts = {}; // qkey -> [pts...] chronologique, réponses données uniquement
-  [...hist].sort((a, b) => String(a.date).localeCompare(String(b.date))).forEach(h => (h.details || []).forEach(d => {
-    const answered = Array.isArray(d.userAns) ? d.userAns.length > 0 : String(d.userAns || '').trim() !== '';
-    if (!answered && d.type !== 'qzone') return;
-    if (typeof d.pts !== 'number') return;
-    (attempts[qKey(d)] = attempts[qKey(d)] || []).push(d.pts);
-  }));
-  const st = {};
-  Object.keys(total).forEach(t => st[t] = { t, total: total[t], seen: 0, ok: 0, n: 0, anch: 0 });
-  Object.keys(attempts).forEach(k => {
-    const t = qtag[k]; if (!t) return; // question supprimée de la base
-    const a = attempts[k], x = st[t];
-    x.seen++; x.n += a.length; x.ok += a.filter(p => p >= 1).length;
-    if (a.length >= 3 && a.slice(-3).every(p => p >= 1)) x.anch++;
-  });
-  const list = Object.values(st).map(x => Object.assign(x, {
-    fait: Math.round(x.seen / x.total * 100),
-    reu: x.n ? Math.round(x.ok / x.n * 100) : null,
-    anc: Math.round(x.anch / x.total * 100)
-  })).sort((a, b) => (a.reu === null) - (b.reu === null) || (b.reu || 0) - (a.reu || 0) || b.anc - a.anc || a.t.localeCompare(b.t));
+  // Top 5 des tags (réussite) + bouton vers la page de stats
+  const list = qcmStatSort(qcmStats(questions, hist), 'best').filter(x => x.reu !== null).slice(0, 5);
   const box = document.getElementById('courses');
-  if (!list.length) { box.innerHTML = '<div class="side-empty">Aucune question pour le moment. Ajoute-en depuis « Ajouter ».</div>'; return; }
-  const col = r => r === null ? 'var(--border-2)' : r >= 75 ? 'var(--green)' : r >= 50 ? 'var(--amber-text)' : 'var(--red)';
-  const open = window.__openStats = window.__openStats || new Set();
-  box.innerHTML = '<div class="stat-hint">Classé du plus solide au plus fragile. Clique pour le détail.</div>' + list.map((x, i) => {
-    const isOpen = open.has(x.t);
-    return '<div class="srow' + (isOpen ? ' open' : '') + '" data-tag="' + esc(x.t) + '">'
-      + '<div class="stop"><span class="rank' + (i < 3 && x.reu !== null ? ' g' : '') + '">' + (i + 1) + '</span><span class="sname">' + esc(x.t) + '</span><span class="spct">' + (x.reu === null ? '–' : x.reu + '<small>%</small>') + '</span></div>'
-      + '<div class="bar"><div style="width:' + (x.reu || 0) + '%;background:' + col(x.reu) + '"></div></div>'
-      + (isOpen ? '<div class="sdetail">'
-        + stM('Fait', x.fait, 'var(--blue)', x.seen + ' question' + (x.seen > 1 ? 's' : '') + ' vue' + (x.seen > 1 ? 's' : '') + ' sur ' + x.total)
-        + stM('Réussite', x.reu, col(x.reu), x.n ? x.ok + ' bonne' + (x.ok > 1 ? 's' : '') + ' réponse' + (x.ok > 1 ? 's' : '') + ' sur ' + x.n : 'Pas encore de réponse')
-        + stM('Ancrage', x.anc, 'var(--purple)', x.anch + ' question' + (x.anch > 1 ? 's' : '') + ' réussie' + (x.anch > 1 ? 's' : '') + ' 3 fois de suite')
-        + '</div>' : '')
-      + '</div>';
-  }).join('') + '<div class="stat-legend"><b>Fait</b> : questions déjà vues · <b>Réussite</b> : % de bonnes réponses · <b>Ancrage</b> : questions réussies 3 fois de suite. Le % en gras = la réussite.</div>';
+  if (!questions.length) { box.innerHTML = '<div class="side-empty">Aucune question pour le moment. Ajoute-en depuis « Ajouter ».</div>'; return; }
+  const rows = list.length ? list.map((x, i) =>
+    '<a class="srow" href="stats.html?q=' + encodeURIComponent(x.t) + '"><div class="stop"><span class="rank' + (i < 3 ? ' g' : '') + '">' + (i + 1) + '</span><span class="sname">' + esc(x.t) + '</span><span class="spct">' + x.reu + '<small>%</small></span></div>'
+    + '<div class="bar"><div style="width:' + x.reu + '%;background:' + qcmStatColor(x.reu) + '"></div></div></a>').join('')
+    : '<div class="side-empty">Fais une première session pour voir tes stats ici.</div>';
+  box.innerHTML = rows + '<a class="btn-primary stat-btn" href="stats.html">Toutes mes stats →</a>';
 }
-function stM(label, v, color, sub) {
-  return '<div class="sm"><div class="sl"><span>' + label + '</span><b>' + (v === null ? '–' : v + ' %') + '</b></div><div class="bar"><div style="width:' + (v || 0) + '%;background:' + color + '"></div></div><div class="ss">' + sub + '</div></div>';
-}
-document.addEventListener('click', e => {
-  const r = e.target.closest && e.target.closest('.srow'); if (!r) return;
-  const t = r.dataset.tag, o = window.__openStats = window.__openStats || new Set();
-  o.has(t) ? o.delete(t) : o.add(t);
-  render(window.__questions || []);
-});
 
 (function authPill() {
   const p = document.getElementById('auth-pill'); if (!p) return;
