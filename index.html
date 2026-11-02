@@ -9,89 +9,180 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
   <script src="theme.js"></script>
   <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
-
 <style>
-body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity:0.03; pointer-events:none; z-index:0; }
-.home-header { padding:1.5rem 0; position:sticky; top:0; background:var(--bg); z-index:100; }
-.home-inner { max-width:1200px; margin:0 auto; padding:0 3rem; display:flex; justify-content:space-between; align-items:center; }
-.home-logo { font-family:var(--font-body); font-weight:800; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); }
-.home-nav { display:flex; gap:12px; align-items:center; }
-.home-nav a { font-size:13px; color:var(--text-3); text-decoration:none; padding:7px 14px; border-radius:var(--radius); transition:color 0.15s; }
-.home-nav a:hover { color:var(--text); }
-.home-nav .pill { background:var(--bg-2); border:2px solid var(--border); border-radius:999px; color:var(--text-2) !important; transition:all 0.15s !important; }
-.home-nav .pill:hover { color:var(--text) !important; border-color:var(--border-2); }
-.home-nav .cta { background:var(--yellow); color:var(--on-accent) !important; font-weight:800; border-radius:var(--radius); }
-.home-nav .cta:hover { opacity:0.85; }
-.page-wrap { max-width:1200px; margin:0 auto; padding:0 3rem; }
-.hero { padding:5rem 0 4rem; position:relative; overflow:hidden; }
-.hero-glow { position:absolute; top:-120px; right:-180px; width:600px; height:600px; background:radial-gradient(circle, var(--yellow) 0%, transparent 65%); opacity:0.04; pointer-events:none; border-radius:50%; }
-.hero-label { display:inline-flex; align-items:center; gap:12px; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:2rem; opacity:0; animation:fadeUp 0.6s ease forwards; }
-.hero-label::before { content:''; display:block; width:20px; height:1px; background:var(--yellow); }
-.hero-title { font-family:var(--font-display); font-size:clamp(2rem, 4vw, 3.2rem); line-height:1.1; color:var(--text); margin-bottom:2.5rem; opacity:0; animation:fadeUp 0.6s ease 0.1s forwards; }
-.hero-actions { display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; opacity:0; animation:fadeUp 0.6s ease 0.2s forwards; }
-.btn-hero-primary { display:inline-flex; align-items:center; gap:10px; background:var(--yellow); color:var(--on-accent); font-family:var(--font-body); font-size:14px; font-weight:800; padding:13px 28px; border-radius:var(--radius); text-decoration:none; transition:opacity 0.15s, transform 0.15s; }
-.btn-hero-primary:hover { opacity:.88; transform:translateY(-1px); }
-.btn-hero-secondary { font-size:14px; color:var(--text-2); text-decoration:none; transition:color 0.15s; padding:13px 0; }
-.btn-hero-secondary:hover { color:var(--text); }
-.q-badge { display:inline-flex; align-items:center; gap:6px; background:var(--bg-2); border:2px solid var(--border); padding:5px 12px; border-radius:999px; font-size:12px; color:var(--text-3); }
-.q-badge strong { color:var(--yellow); font-weight:800; }
-.divider { height:1px; background:var(--border); opacity:0; animation:fadeIn 0.6s ease 0.4s forwards; }
-.features { display:grid; grid-template-columns:repeat(3,1fr); opacity:0; animation:fadeUp 0.6s ease 0.5s forwards; }
-.feature { padding:2rem 0; padding-right:2rem; border-right:2px solid var(--yellow); }
-.feature:last-child { border-right:none; padding-right:0; padding-left:2rem; }
-.feature:nth-child(2) { padding-left:2rem; }
-.feature-icon { font-size:20px; margin-bottom:1rem; display:block; }
-.feature-title { font-size:14px; font-weight:800; color:var(--text); margin-bottom:.4rem; }
-.feature-desc { font-size:13px; color:var(--text-3); line-height:1.6; }
-.bottom-bar { border-top:1px solid var(--border); padding:1.5rem 0; display:flex; justify-content:space-between; align-items:center; opacity:0; animation:fadeIn 0.6s ease 0.7s forwards; }
-.bottom-bar-left { font-size:12px; color:var(--text-3); }
-.bottom-bar-right { display:flex; gap:1rem; }
-.bottom-bar-right a { font-size:12px; color:var(--text-3); text-decoration:none; transition:color 0.15s; }
-.bottom-bar-right a:hover { color:var(--text-2); }
-@keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
-@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.home { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; }
+.home-top { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom: 28px; }
+.brand { display:flex; align-items:center; gap:12px; font-weight:900; font-size:24px; letter-spacing:-.01em; color:var(--text); text-decoration:none; }
+.brand-logo { width:40px; height:40px; border-radius:12px; background:var(--yellow); display:flex; align-items:center; justify-content:center; box-shadow:0 3px 0 var(--accent-deep); }
+.top-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.stat-pill { display:flex; align-items:center; gap:8px; height:44px; padding:0 16px; border-radius:999px; background:var(--bg-2); border:2px solid var(--border); font-weight:800; font-size:16px; color:var(--text); }
+.nav-pill { display:flex; align-items:center; height:44px; padding:0 16px; border-radius:999px; font-weight:800; font-size:15px; color:var(--text-2); text-decoration:none; border:2px solid transparent; }
+.nav-pill:hover { color:var(--text); border-color:var(--border); background:var(--bg-2); }
+.layout { display:flex; gap:28px; align-items:flex-start; }
+.main-col { flex:1; min-width:0; display:flex; flex-direction:column; gap:24px; }
+.hello { font-weight:900; font-size:clamp(2.2rem, 6vw, 3.4rem); letter-spacing:-.02em; line-height:1.05; color:var(--text); }
+.hello-sub { margin-top:10px; font-size:20px; font-weight:700; color:var(--text-3); }
+.goal { display:flex; align-items:center; gap:28px; flex-wrap:wrap; padding:26px 30px; border-radius:28px; background:var(--bg-2); border:2px solid var(--border); border-bottom-width:6px; }
+.ring { position:relative; width:112px; height:112px; flex:none; }
+.ring-num { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:26px; color:var(--text); }
+.goal-body { flex:1; min-width:200px; }
+.goal-title { font-weight:900; font-size:26px; color:var(--text); }
+.goal-sub { margin-top:4px; font-size:17px; font-weight:700; color:var(--text-3); }
+.goal-edit { margin-top:6px; }
+.modes { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:18px; }
+.mode { box-sizing:border-box; min-height:150px; padding:20px 22px; border-radius:24px; border-bottom:6px solid; display:flex; flex-direction:column; justify-content:space-between; gap:14px; text-decoration:none; transition:transform .08s, border-bottom-width .08s; }
+.mode:active { transform:translateY(4px); border-bottom-width:2px; }
+.mode-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+.mode-title { font-weight:900; font-size:23px; }
+.mode-pill { font-size:13px; font-weight:900; padding:4px 10px; border-radius:999px; white-space:nowrap; }
+.mode-desc { font-size:15px; font-weight:700; line-height:1.35; }
+.side { width:300px; flex:none; box-sizing:border-box; padding:24px; border-radius:28px; background:var(--bg-2); border:2px solid var(--border); border-bottom-width:6px; display:flex; flex-direction:column; gap:14px; }
+.side h2 { font-weight:900; font-size:22px; color:var(--text); }
+.course { display:flex; flex-direction:column; gap:10px; padding:16px; border-radius:18px; background:var(--bg); text-decoration:none; color:var(--text); }
+.course-title { font-weight:800; font-size:16px; line-height:1.25; word-break:break-word; }
+.bar { height:14px; border-radius:999px; background:var(--border); overflow:hidden; }
+.bar > div { height:14px; border-radius:999px; background:var(--yellow); }
+.course-meta { display:flex; justify-content:space-between; font-size:13px; font-weight:800; color:var(--text-3); }
+.side-empty { font-size:15px; font-weight:700; color:var(--text-3); line-height:1.5; }
+.fade { opacity:0; animation:fadeUp .5s ease forwards; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
+@media (max-width: 900px) {
+  .layout { flex-direction:column; }
+  .side { width:100%; }
+}
+@media (max-width: 640px) {
+  .modes { grid-template-columns:1fr; }
+  .mode { min-height:0; }
+  .home { padding: 14px 14px 40px; }
+  .hello-sub { font-size:17px; }
+  .goal { padding:20px; }
+  .brand { font-size:20px; }
+}
 </style>
 </head>
 <body>
-<div style="display:flex; min-height:100vh;">
-  <!-- SIDEBAR -->
-  <aside style="width:260px; flex-shrink:0; background:var(--bg-2); border-right:2px solid var(--yellow); padding:1.5rem 1rem; display:flex; flex-direction:column; gap:12px; position:sticky; top:0; height:100vh; overflow-y:auto;">
-    <div style="font-size:11px; color:var(--text-3); letter-spacing:.15em; text-transform:uppercase; padding:.75rem .75rem 1.25rem; border-bottom:1px solid var(--border); margin-bottom:.75rem;"><span style="display:inline-flex;align-items:center;gap:6px;"><svg width="28" height="28" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#0d0d0d"/><text x="32" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="36">🦷</text><text x="32" y="56" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#00c853" letter-spacing="0.05em">QCM</text></svg><span style="color:var(--yellow)">QCM</span> <span style="color:var(--text-3)">Annales</span></span></div>
-    <a href="index.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Accueil</a>
-    <a href="quiz.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg> Quiz</a>
-    <a href="historique.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Historique</a>
-    <a href="pin.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter <span style="font-size:10px; padding:2px 7px; border-radius:10px; background:var(--border); color:var(--text-3); margin-left:auto;">admin</span></a>
-    <a href="reglages.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Réglages</a>
-    <div style="margin-top:auto; padding-top:1.5rem;">
-      <a href="quiz.html" class="btn-hero-primary" style="display:flex; justify-content:center; text-align:center;">Commencer →</a>
-    </div>
-  </aside>
+<div class="home">
 
-  <!-- CONTENU PRINCIPAL -->
-  <main style="flex:1; min-width:0;">
-    <div class="page-wrap">
-      <section class="hero">
-        <div class="hero-glow"></div>
-        <div class="hero-label">Révision active</div>
-        <h1 class="hero-title"><span style="color:var(--yellow)">QCMs d'annales de 2ème</span><br>année de dentaire</h1>
-        <div class="hero-actions">
-          <a href="quiz.html" class="btn-hero-primary">Lancer une session <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-          <a href="pin.html" style="display:inline-flex; align-items:center; gap:12px; font-size:14px; padding:9px 14px; border-radius:var(--radius); background:var(--bg-3); border:2px solid var(--border); color:var(--text); text-decoration:none;">+ Ajouter des questions <span style="font-size:10px; padding:2px 7px; border-radius:10px; background:var(--bg-3); border:2px solid var(--border); color:var(--text-3);">admin</span></a>
-          <span class="q-badge" id="q-badge"><strong id="q-count">…</strong> questions</span>
-        </div>
-      </section>
-      <div class="divider"></div>
-      <section class="features">
-        <div class="feature"><span class="feature-icon">📚</span><div class="feature-title">Tes vraies annales</div><div class="feature-desc">QCM, QROC et Qzones directement issus des sujets d'examens.</div></div>
-        <div class="feature"><span class="feature-icon">⚡</span><div class="feature-title">Correction immédiate</div><div class="feature-desc">Chaque réponse corrigée à la volée avec explication détaillée.</div></div>
-        <div class="feature"><span class="feature-icon">🎯</span><div class="feature-title">Par chapitre</div><div class="feature-desc">Filtre par matière, type de question, et concentre-toi sur tes points faibles.</div></div>
-      </section>
+  <header class="home-top">
+    <a class="brand" href="index.html">
+      <span class="brand-logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--on-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      Annales
+    </a>
+    <div class="top-right">
+      <div class="stat-pill" title="Jours d'affilée avec au moins une session">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#E8590C" aria-hidden="true"><path d="M12 2c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-1.8.8-3 1.8-4.2C9 9.5 10.5 10 11 11c.8-2.8.5-6-1-9z"/></svg>
+        <span id="streak">0 jour</span>
+      </div>
+      <div class="stat-pill" title="Questions dans ta base"><span style="width:18px;height:18px;border-radius:50%;background:var(--gold);display:inline-block"></span><span id="q-count">…</span>&nbsp;questions</div>
+      <a class="nav-pill" href="historique.html">Historique</a>
+      <a class="nav-pill" href="reglages.html">Réglages</a>
+      <a class="nav-pill" href="pin.html">Ajouter</a>
     </div>
-  </main>
+  </header>
+
+  <div class="layout">
+    <main class="main-col">
+      <div class="fade">
+        <h1 class="hello" style="margin:0;">Salut Marco !</h1>
+        <p class="hello-sub" id="hello-sub">Prêt pour une session ?</p>
+      </div>
+
+      <section class="goal fade" style="animation-delay:.08s">
+        <div class="ring">
+          <svg width="112" height="112" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border)" stroke-width="12"/>
+            <circle id="ring-arc" cx="50" cy="50" r="42" fill="none" stroke="var(--yellow)" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 264" transform="rotate(-90 50 50)"/>
+          </svg>
+          <div class="ring-num" id="ring-num">0/15</div>
+        </div>
+        <div class="goal-body">
+          <div class="goal-title">Objectif du jour</div>
+          <div class="goal-sub" id="goal-sub">Lance une session pour démarrer ta journée.</div>
+          <div class="goal-edit"><button class="btn-ghost" onclick="editGoal()" style="padding-left:0">Changer l'objectif</button></div>
+        </div>
+        <a href="quiz.html" class="btn-primary">Lancer une session</a>
+      </section>
+
+      <section class="modes fade" style="animation-delay:.16s">
+        <a class="mode" href="quiz.html" style="background:#1C6FD1;border-bottom-color:#134C93;color:#fff">
+          <div class="mode-head"><div class="mode-title">Entraînement</div><div class="mode-pill" style="background:#fff;color:#134C93">Libre</div></div>
+          <div class="mode-desc">Correction tout de suite, à ton rythme.</div>
+        </a>
+        <a class="mode" href="quiz.html" style="background:#7A3FD1;border-bottom-color:#552B93;color:#fff">
+          <div class="mode-head"><div class="mode-title">Examen</div><div class="mode-pill" style="background:#fff;color:#552B93">Chrono</div></div>
+          <div class="mode-desc">Toutes les questions d'un coup, note finale, comme le jour J.</div>
+        </a>
+        <a class="mode" href="historique.html" style="background:#FFC93C;border-bottom-color:#C99400;color:#3A2A00">
+          <div class="mode-head"><div class="mode-title">Historique</div><div class="mode-pill" style="background:#3A2A00;color:#FFE08A" id="sessions-pill">0</div></div>
+          <div class="mode-desc">Revois la correction de tes sessions passées.</div>
+        </a>
+      </section>
+    </main>
+
+    <aside class="side fade" style="animation-delay:.24s">
+      <h2>Tes chapitres</h2>
+      <div id="courses"><div class="side-empty">Chargement…</div></div>
+    </aside>
+  </div>
 </div>
+
 <script>
+const dayKey = d => { d = new Date(d); return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function getGoal() { const g = parseInt(localStorage.getItem('qcm_goal')); return g > 0 ? g : 15; }
+function editGoal() {
+  const v = prompt('Combien de questions par jour ?', getGoal());
+  const n = parseInt(v);
+  if (n > 0 && n <= 500) { try { localStorage.setItem('qcm_goal', n); } catch(e) {} render(window.__questions || []); }
+}
+function readHistory() { try { return JSON.parse(localStorage.getItem('qcm_history') || '[]'); } catch(e) { return []; } }
+
+function render(questions) {
+  const hist = readHistory();
+  // Série : jours consécutifs avec au moins une session (en partant d'aujourd'hui ou d'hier)
+  const days = new Set(hist.map(h => dayKey(h.date)));
+  let streak = 0, d = new Date();
+  if (!days.has(dayKey(d))) d.setDate(d.getDate() - 1);
+  while (days.has(dayKey(d))) { streak++; d.setDate(d.getDate() - 1); }
+  document.getElementById('streak').textContent = streak + (streak > 1 ? ' jours' : ' jour');
+
+  // Objectif du jour : questions travaillées aujourd'hui
+  const today = dayKey(new Date());
+  const done = hist.filter(h => dayKey(h.date) === today).reduce((n, h) => n + ((h.details && h.details.length) || h.total || 0), 0);
+  const goal = getGoal();
+  const frac = Math.min(1, done / goal);
+  document.getElementById('ring-arc').setAttribute('stroke-dasharray', (264 * frac).toFixed(1) + ' 264');
+  document.getElementById('ring-arc').style.opacity = done > 0 ? 1 : 0;
+  document.getElementById('ring-num').textContent = Math.min(done, 999) + '/' + goal;
+  document.getElementById('goal-sub').textContent = done >= goal
+    ? 'Objectif atteint, bien joué !'
+    : (done === 0 ? 'Lance une session pour démarrer ta journée.' : 'Encore ' + (goal - done) + ' question' + (goal - done > 1 ? 's' : '') + ' pour boucler ta journée.');
+  document.getElementById('hello-sub').textContent = streak >= 2
+    ? 'Série de ' + streak + ' jours, on garde le rythme.'
+    : (done > 0 ? 'Belle reprise, continue comme ça.' : 'Prêt pour une session ?');
+  document.getElementById('sessions-pill').textContent = hist.length;
+
+  // Chapitres : part des questions du chapitre déjà rencontrées dans tes sessions
+  const seen = {}, total = {};
+  questions.forEach(q => { const t = q.tag || 'Sans chapitre'; total[t] = (total[t] || 0) + 1; });
+  const last = {};
+  hist.forEach(h => (h.details || []).forEach(x => {
+    const t = x.tag || 'Sans chapitre';
+    (seen[t] = seen[t] || new Set()).add(x.question);
+    last[t] = Math.max(last[t] || 0, new Date(h.date).getTime());
+  }));
+  const tags = Object.keys(total).sort((a, b) => (last[b] || 0) - (last[a] || 0) || total[b] - total[a]).slice(0, 5);
+  const box = document.getElementById('courses');
+  if (!tags.length) { box.innerHTML = '<div class="side-empty">Aucune question pour le moment. Ajoute-en depuis « Ajouter ».</div>'; return; }
+  box.innerHTML = tags.map(t => {
+    const n = seen[t] ? Math.min(seen[t].size, total[t]) : 0;
+    const pct = Math.round(n / total[t] * 100);
+    return '<a class="course" href="quiz.html" style="margin-bottom:10px"><div class="course-title">' + esc(t) + '</div><div class="bar"><div style="width:' + pct + '%"></div></div><div class="course-meta"><span>' + n + ' / ' + total[t] + ' vues</span><span>' + pct + ' %</span></div></a>';
+  }).join('');
+}
+
 (async () => {
+  render([]);
   try {
     const SUPABASE_URL = 'https://rcrkksvkkoujrmpnpvov.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_cfjmRq5I4YvrEZB0hbSK-w_-GQ_WWzz';
@@ -100,12 +191,11 @@ body::before { content:''; position:fixed; inset:0; background-image:url("data:i
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
     });
     const json = await res.json();
-    const questions = (json[0]?.data) || [];
-    if (questions.length > 0) {
-      document.getElementById('q-count').textContent = questions.length;
-      
-    }
-  } catch(e) {}
+    const questions = (json[0] && json[0].data) || [];
+    window.__questions = questions;
+    document.getElementById('q-count').textContent = questions.length;
+    render(questions);
+  } catch(e) { document.getElementById('q-count').textContent = '–'; }
 })();
 </script>
 </body>
