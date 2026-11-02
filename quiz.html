@@ -121,6 +121,14 @@
       </div>
     </div>
 
+    <div style="margin-bottom:2rem;">
+      <div class="section-title">Questions</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="tag-chip active" id="scope-all" onclick="setScope(false)">Toutes</button>
+        <button class="tag-chip" id="scope-err" onclick="setScope(true)">Mes erreurs&nbsp;<span id="err-count" style="background:var(--red);color:#fff;border-radius:999px;padding:1px 9px;font-size:13px;font-weight:900;">0</span></button>
+      </div>
+    </div>
+
     <div class="count-block">
       <div class="section-title">Nombre de questions</div>
       <div class="count-row">
@@ -330,6 +338,63 @@ function show(id) {
 }
 function goHome() { show('home'); renderHome(); }
 
+// ─── MES ERREURS ───
+// Une question ratée (note < 1) entre dans « Mes erreurs ». Elle en sort après ERR_CLEAR réussites d'affilée.
+const ERR_KEY = 'qcm_errors', ERR_CLEAR = 2;
+let errorsOnly = false;
+function qKey(q) {
+  const s = (q.tag || '') + '|' + (q.type || 'qcm') + '|' + String(q.question || '').replace(/\s+/g, ' ').trim();
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return 'q' + (h >>> 0).toString(36);
+}
+function saveErrors() {
+  try { localStorage.setItem(ERR_KEY, JSON.stringify(errorsStore)); } catch (e) {}
+  try { localforage.setItem(ERR_KEY, errorsStore); } catch (e) {}
+}
+function loadErrors() {
+  let st = null;
+  try { st = JSON.parse(localStorage.getItem(ERR_KEY) || 'null'); } catch (e) {}
+  if (st) return st;
+  // Première fois : on reconstruit les erreurs à partir de l'historique existant (réponses données uniquement)
+  st = {};
+  (qcmHistory || []).forEach(h => (h.details || []).forEach(d => {
+    const answered = Array.isArray(d.userAns) ? d.userAns.length > 0 : String(d.userAns || '').trim() !== '';
+    if (!answered && d.type !== 'qzone') return;
+    const k = qKey(d);
+    if (d.pts < 1) st[k] = { streak: 0, t: Date.parse(h.date) || 0 };
+    else if (st[k]) { st[k].streak++; if (st[k].streak >= ERR_CLEAR) delete st[k]; }
+  }));
+  try { localStorage.setItem(ERR_KEY, JSON.stringify(st)); } catch (e) {}
+  return st;
+}
+let errorsStore = {};
+// Renvoie une phrase d'état à afficher dans la correction
+function recordResult(q, pts) {
+  if (pts === null || pts === undefined) return '';
+  const k = qKey(q), e = errorsStore[k];
+  let msg = '';
+  if (pts < 1) { errorsStore[k] = { streak: 0, t: Date.now() }; msg = 'Elle va dans Mes erreurs.'; }
+  else if (e) {
+    e.streak = (e.streak || 0) + 1;
+    if (e.streak >= ERR_CLEAR) { delete errorsStore[k]; msg = 'Validée : elle sort de Mes erreurs.'; }
+    else { e.t = Date.now(); msg = 'Encore ' + (ERR_CLEAR - e.streak) + ' réussite' + (ERR_CLEAR - e.streak > 1 ? 's' : '') + ' d\'affilée pour la valider.'; }
+  }
+  saveErrors();
+  return msg;
+}
+function errorCount() { return questions.filter(q => errorsStore[qKey(q)]).length; }
+function setScope(onlyErrors) {
+  errorsOnly = onlyErrors;
+  document.getElementById('scope-all').classList.toggle('active', !onlyErrors);
+  document.getElementById('scope-err').classList.toggle('active', onlyErrors);
+  updateSlider();
+}
+function updateErrCount() {
+  const el = document.getElementById('err-count');
+  if (el) el.textContent = errorCount();
+}
+
 
 
 function setTypeFilter(type) {
@@ -467,10 +532,12 @@ function getPool() {
   if (typeFilter === 'qcm') pool = pool.filter(q => !q.type || q.type === 'qcm');
   if (typeFilter === 'qroc') pool = pool.filter(q => q.type === 'qroc');
   if (typeFilter === 'qzone') pool = pool.filter(q => q.type === 'qzone');
+  if (errorsOnly) pool = pool.filter(q => errorsStore[qKey(q)]);
   return pool;
 }
 
 function updateSlider() {
+  updateErrCount();
   const pool = getPool();
   const max = Math.max(1, pool.length);
   const slider = document.getElementById('count-slider');
@@ -938,12 +1005,13 @@ function validateQ() {
     session.scoreTotal += pts;
     session.scorePoints[session.current] = pts;
     session.validatedArr[session.current] = true;
+    const errMsgZ = recordResult(q, pts);
     const corrDiv = document.getElementById('correction');
     const ptsStr = pts === 0 ? '0' : parseFloat(pts.toFixed(2)).toString().replace('.', ',');
     const ptsColor = pts === 1 ? 'var(--green-text)' : pts > 0 ? 'var(--amber-text)' : 'var(--red-text)';
     const parfait = pts === 1 ? ' — Parfait !' : '';
     const ptsLabel = '<span style="color:' + ptsColor + ';font-weight:800;">+' + ptsStr + ' pt' + parfait + '</span>';
-    corrDiv.innerHTML = ptsLabel + (q.explanation ? '<br>' + q.explanation : '');
+    corrDiv.innerHTML = ptsLabel + (errMsgZ ? '<br><em>' + errMsgZ + '</em>' : '') + (q.explanation ? '<br>' + q.explanation : '');
     corrDiv.classList.add('show');
     document.getElementById('btn-validate').style.display = 'none';
     document.getElementById('btn-skip').style.display = 'none';
@@ -973,7 +1041,8 @@ function validateQ() {
     // Masquer les options, elles sont remplacées par le tableau
     document.getElementById('q-qcm-block').style.display = 'none';
 
-    corrDiv.innerHTML = qcmCorrectionHTML(q, userAns, pts, ptsStr);
+    const errMsg = recordResult(q, pts);
+    corrDiv.innerHTML = qcmCorrectionHTML(q, userAns, pts, ptsStr, {note: errMsg});
     showNextBtn();
   }
   corrDiv.classList.add('show');
@@ -983,12 +1052,14 @@ function validateQ() {
 
 function markQroc(got) {
   const pts = got ? 1 : 0;
+  const errMsgR = recordResult(session.questions[session.current], pts);
   session.scoreTotal += pts;
   session.scorePoints[session.current] = pts;
   session.validatedArr[session.current] = true;
   const corrDiv = document.getElementById('correction');
   const btns = corrDiv.querySelector('div:last-child');
   if (btns) btns.remove();
+  if (errMsgR) corrDiv.insertAdjacentHTML('beforeend', '<div style="margin-top:10px;font-size:14px;font-weight:800;color:var(--text-2);">' + errMsgR + '</div>');
   showNextBtn();
   updateScoreLive();
 }
@@ -1185,6 +1256,7 @@ function examFinish(timeUp = false) {
       const pts = calcScore(q.correct, session.answers[i] || [], q.type);
       session.scoreTotal += pts;
       session.scorePoints[i] = pts;
+      recordResult(q, pts);
     }
     session.validatedArr[i] = true;
   });
@@ -1196,6 +1268,7 @@ function markExamQroc(i, got) {
   if (session.scorePoints[i] !== null) session.scoreTotal -= (session.scorePoints[i] || 0);
   session.scorePoints[i] = pts;
   session.scoreTotal += pts;
+  recordResult(session.questions[i], pts);
   const card = document.getElementById('exam-qroc-card-' + i);
   if (card) card.querySelector('.qroc-btns').innerHTML = '<span style="font-size:13px;color:' + (got ? 'var(--green-text)' : 'var(--red-text)') + ';font-weight:800;">' + (got ? '✓ +1 pt' : '✗ +0 pt') + '</span>';
 }
@@ -1393,6 +1466,7 @@ async function init() {
   } else {
     questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
   }
+  errorsStore = loadErrors();
   renderHome();
 }
 init();

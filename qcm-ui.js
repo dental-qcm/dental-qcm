@@ -39,7 +39,7 @@
       sub = parts.join(' ');
     }
     if (opts.banner !== false) h += '<div class="corr-banner ' + cls + '"><div><div class="t">' + title + '</div></div>' +
-         '<div class="s">' + sub + (ptsStr ? ' <strong>' + ptsStr + '</strong>' : '') + '</div></div>';
+         '<div class="s">' + sub + (ptsStr ? ' <strong>' + ptsStr + '</strong>' : '') + (opts.note ? '<br>' + opts.note : '') + '</div></div>';
     if (opts.explanation !== false && q.explanation) h += '<div class="corr-free" style="margin-top:12px;"><span class="k">À retenir</span>' + q.explanation + '</div>';
     return h;
   };
