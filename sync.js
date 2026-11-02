@@ -132,4 +132,7 @@
     user: function () { var a = getAuth(); return a ? (a.username || 'marco') : null; }
   };
   if (getAuth()) setTimeout(syncNow, 150);
+  // Porte d'entrée : sans compte connecté ni choix « continuer sans me connecter » (valable pour la visite en cours), on va à la connexion
+  var guest = false; try { guest = sessionStorage.getItem('qcm_guest') === '1'; } catch (e) {}
+  if (!getAuth() && !guest && !/login\.html$/.test(location.pathname)) location.replace('login.html');
 })();

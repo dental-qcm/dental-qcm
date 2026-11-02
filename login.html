@@ -29,11 +29,12 @@ label{display:block;font-size:13px;font-weight:900;letter-spacing:.08em;text-tra
     <div><label for="p">Mot de passe</label><div class="pw"><input class="in" id="p" type="password" autocomplete="current-password" required><button type="button" id="show">Afficher</button></div></div>
     <button class="btn-primary" id="go" type="submit" style="width:100%">Se connecter</button>
   </form>
-  <div class="skip"><a href="index.html" style="color:inherit">Continuer sans me connecter</a></div>
+  <div class="skip"><a href="index.html" id="skip" style="color:inherit">Continuer sans me connecter</a></div>
   <div class="note">Sans connexion, tout reste enregistré uniquement sur cet appareil.</div>
 </div></div>
 <script>
 if (qcmSync.user()) location.replace('index.html');
+document.getElementById('skip').onclick = function () { try { sessionStorage.setItem('qcm_guest', '1'); } catch (e) {} };
 document.getElementById('show').onclick = function () {
   var p = document.getElementById('p'), h = p.type === 'password';
   p.type = h ? 'text' : 'password'; this.textContent = h ? 'Masquer' : 'Afficher';
