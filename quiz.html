@@ -222,8 +222,8 @@
             <button class="btn-next" id="btn-next" onclick="nextQ()" style="display:none;">Suivante →</button>
           </div>
         </div>
-        <div style="text-align:center; padding:1rem 0 2rem;">
-          <button id="btn-finish" onclick="showResults()" style="display:none; background:none; border:none; color:var(--text-3); font-size:13px; cursor:pointer; font-family:var(--font-body); text-decoration:underline; text-underline-offset:3px;">Terminer la session</button>
+        <div style="text-align:center; padding:2rem 0 2.5rem;">
+          <button id="btn-finish" class="btn-finish" onclick="if(confirm('Terminer la session maintenant ? Les questions non validées ne seront pas comptées.')) showResults();" style="display:none;">⏹ Terminer la session</button>
         </div>
       </div>
     </div>
@@ -897,7 +897,7 @@ function renderQ() {
   document.getElementById('btn-next').style.display = session.validatedArr[session.current] ? 'inline-block' : 'none';
   document.getElementById('btn-skip').style.display = session.validatedArr[session.current] ? 'none' : 'inline-block';
   document.getElementById('btn-prev').style.display = session.current > 0 ? 'inline-block' : 'none';
-  document.getElementById('btn-finish').style.display = session.validatedArr.some(Boolean) ? 'block' : 'none';
+  document.getElementById('btn-finish').style.display = session.validatedArr.some(Boolean) ? 'inline-flex' : 'none';
   document.getElementById('side-panel').style.display = 'block';
   if (session.validatedArr[session.current]) {
     session.validated = true;

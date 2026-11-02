@@ -249,9 +249,9 @@ footer p { font-size: 14px; color: var(--text-3); }
 .back-link:hover { color: var(--text); }
 
 /* ─── PROGRESS (barre épaisse) ─── */
-.progress-bar-wrap { margin: 12px 1.25rem 0; height: 18px; background: var(--border); position: relative; overflow: hidden; border-radius: 999px; }
+.progress-bar-wrap { margin: 10px 1.25rem 0; height: 10px; background: var(--border); position: relative; overflow: hidden; border-radius: 999px; }
 .progress-bar-fill { height: 100%; background: var(--yellow); transition: width .45s cubic-bezier(.4,0,.2,1); position: relative; border-radius: 999px; }
-.progress-bar-fill::after { content:''; position:absolute; top:4px; left:10px; right:10px; height:4px; border-radius:999px; background: rgba(255,255,255,.35); }
+.progress-bar-fill::after { content:''; position:absolute; top:2px; left:6px; right:6px; height:2px; border-radius:999px; background: rgba(255,255,255,.35); }
 .progress-info { display:flex; justify-content:space-between; align-items:center; padding:8px 0 0; font-size:13px; font-weight:800; color:var(--text-3); }
 .progress-pct { color:var(--yellow-text); font-weight:900; font-size:14px; }
 
@@ -568,3 +568,16 @@ footer p { font-size: 14px; color: var(--text-3); }
 .exam-block { padding: 1.75rem 2rem; margin-bottom: 1.5rem; background: var(--bg-2); border: 2px solid var(--border); border-bottom-width: 6px; border-radius: 24px; }
 #exam-title { font-size: clamp(1.5rem, 5vw, 2rem) !important; }
 @media (max-width: 760px) { .exam-block { padding: 1.25rem 1rem; } }
+
+/* Bouton « Terminer la session » : rouge, séparé de Valider pour éviter le clic par erreur */
+.btn-finish {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 26px;
+  background: var(--red-bg); color: var(--red-text);
+  border: 2px solid var(--red-border); border-bottom-width: 5px;
+  border-radius: 16px; font-size: 15px; font-weight: 900;
+  letter-spacing: .02em; text-transform: uppercase; cursor: pointer;
+  transition: transform .08s, border-color .15s;
+}
+.btn-finish:hover { border-color: var(--red); }
+.btn-finish:active { transform: translateY(3px); border-bottom-width: 2px; }
