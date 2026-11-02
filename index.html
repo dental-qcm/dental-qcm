@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
   <script src="theme.js"></script>
+  <script src="qcm-ui.js"></script>
   <link rel="stylesheet" href="style.css">
 <style>
 .home { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; }
@@ -44,6 +45,17 @@
 .bar > div { height:14px; border-radius:999px; background:var(--yellow); }
 .course-meta { display:flex; justify-content:space-between; font-size:13px; font-weight:800; color:var(--text-3); }
 .side-empty { font-size:15px; font-weight:700; color:var(--text-3); line-height:1.5; }
+
+.errband { display:flex; align-items:center; gap:20px; flex-wrap:wrap; padding:22px 26px; border-radius:24px; background:var(--red-bg); border:2px solid var(--red-border); border-bottom-width:6px; }
+.errband.none { background:var(--green-bg); border-color:var(--green); }
+.errband-icon { width:52px; height:52px; flex:none; border-radius:16px; background:var(--red); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:24px; }
+.errband.none .errband-icon { background:var(--green); }
+.errband-body { flex:1; min-width:200px; }
+.errband-title { font-weight:900; font-size:23px; color:var(--red-text); }
+.errband.none .errband-title { color:var(--green-text); }
+.errband-sub { margin-top:2px; font-size:15px; font-weight:700; color:var(--text-2); }
+.btn-err { display:inline-flex; align-items:center; justify-content:center; min-height:52px; padding:0 28px; border-radius:18px; background:var(--red); color:#fff; font-weight:900; font-size:16px; letter-spacing:.02em; text-transform:uppercase; text-decoration:none; box-shadow:0 5px 0 var(--red-deep); transition:transform .08s, box-shadow .08s; }
+.btn-err:active { transform:translateY(4px); box-shadow:0 1px 0 var(--red-deep); }
 .fade { opacity:0; animation:fadeUp .5s ease forwards; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
 @media (max-width: 900px) {
@@ -117,6 +129,15 @@
           <div class="mode-desc">Revois la correction de tes sessions passées.</div>
         </a>
       </section>
+
+      <section class="errband fade" id="errband" style="animation-delay:.2s">
+        <div class="errband-icon" id="err-icon">0</div>
+        <div class="errband-body">
+          <div class="errband-title">Mes erreurs</div>
+          <div class="errband-sub" id="err-sub">Chargement…</div>
+        </div>
+        <a href="quiz.html?errors=1" class="btn-err" id="err-btn">Réviser</a>
+      </section>
     </main>
 
     <aside class="side fade" style="animation-delay:.24s">
@@ -161,6 +182,18 @@ function render(questions) {
     ? 'Série de ' + streak + ' jours, on garde le rythme.'
     : (done > 0 ? 'Belle reprise, continue comme ça.' : 'Prêt pour une session ?');
   document.getElementById('sessions-pill').textContent = hist.length;
+
+
+  // Mes erreurs (même règle que quiz.html : sortie après 3 réussites d'affilée)
+  let store = {}; try { store = JSON.parse(localStorage.getItem('qcm_errors') || '{}') || {}; } catch(e) {}
+  const nErr = questions.filter(q => store[qKey(q)]).length;
+  const band = document.getElementById('errband');
+  document.getElementById('err-icon').textContent = nErr;
+  band.classList.toggle('none', nErr === 0);
+  document.getElementById('err-sub').textContent = nErr === 0
+    ? 'Aucune erreur à revoir. Continue comme ça !'
+    : nErr + ' question' + (nErr > 1 ? 's' : '') + ' à revoir. Réussis-les 3 fois de suite pour les valider.';
+  document.getElementById('err-btn').style.display = nErr === 0 ? 'none' : 'inline-flex';
 
   // Chapitres : part des questions du chapitre déjà rencontrées dans tes sessions
   const seen = {}, total = {};

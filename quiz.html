@@ -340,14 +340,8 @@ function goHome() { show('home'); renderHome(); }
 
 // ─── MES ERREURS ───
 // Une question ratée (note < 1) entre dans « Mes erreurs ». Elle en sort après ERR_CLEAR réussites d'affilée.
-const ERR_KEY = 'qcm_errors', ERR_CLEAR = 2;
+const ERR_KEY = 'qcm_errors', ERR_CLEAR = 3;
 let errorsOnly = false;
-function qKey(q) {
-  const s = (q.tag || '') + '|' + (q.type || 'qcm') + '|' + String(q.question || '').replace(/\s+/g, ' ').trim();
-  let h = 5381;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
-  return 'q' + (h >>> 0).toString(36);
-}
 function saveErrors() {
   try { localStorage.setItem(ERR_KEY, JSON.stringify(errorsStore)); } catch (e) {}
   try { localforage.setItem(ERR_KEY, errorsStore); } catch (e) {}
@@ -1468,6 +1462,7 @@ async function init() {
   }
   errorsStore = loadErrors();
   renderHome();
+  if (new URLSearchParams(location.search).get('errors') === '1') setScope(true);
 }
 init();
 </script>

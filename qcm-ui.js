@@ -1,6 +1,12 @@
 /* Rendu de correction partagé (quiz.html + historique.html).
    Style « E1 miroir » : à gauche ce que tu as coché, à droite ce qui est vrai. */
 (function () {
+  window.qKey = function(q) {
+  const s = (q.tag || '') + '|' + (q.type || 'qcm') + '|' + String(q.question || '').replace(/\s+/g, ' ').trim();
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return 'q' + (h >>> 0).toString(36);
+};
   var L = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   function list(arr) {
     if (arr.length <= 1) return arr.join('');
