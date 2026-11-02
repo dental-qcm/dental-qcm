@@ -119,6 +119,7 @@
         <button class="tag-chip" id="filter-qcm" onclick="setTypeFilter('qcm')">QCM uniquement</button>
         <button class="tag-chip" id="filter-qroc" onclick="setTypeFilter('qroc')">QROC uniquement</button>
         <button class="tag-chip" id="filter-qzone" onclick="setTypeFilter('qzone')">Qzone uniquement</button>
+        <button class="tag-chip" id="filter-qassoc" onclick="setTypeFilter('qassoc')">Association uniquement</button>
       </div>
     </div>
 
@@ -218,6 +219,11 @@
               <div id="qzone-play-tags" style="display:flex; flex-direction:column; gap:8px;"></div>
             </div>
           </div>
+        </div>
+        <div id="q-qassoc-block" style="display:none;">
+          <div class="q-note" style="margin-bottom:1rem;">Clique sur une étiquette pour la prendre, puis sur la case où la poser. Clique sur une étiquette posée pour la reprendre.</div>
+          <div class="as-bank" id="as-bank"></div>
+          <div class="as-cases" id="as-cases"></div>
         </div>
         <div class="correction" id="correction"></div>
         </div><!-- /.quiz-card -->
@@ -357,7 +363,7 @@ function loadErrors() {
   st = {};
   (qcmHistory || []).forEach(h => (h.details || []).forEach(d => {
     const answered = Array.isArray(d.userAns) ? d.userAns.length > 0 : String(d.userAns || '').trim() !== '';
-    if (!answered && d.type !== 'qzone') return;
+    if (!answered && d.type !== 'qzone' && d.type !== 'qassoc') return;
     const k = qKey(d);
     if (d.pts < 1) st[k] = { streak: 0, t: Date.parse(h.date) || 0 };
     else if (st[k]) { st[k].streak++; if (st[k].streak >= ERR_CLEAR) delete st[k]; }
@@ -396,7 +402,7 @@ function updateErrCount() {
 
 function setTypeFilter(type) {
   typeFilter = type;
-  ['all','qcm','qroc','qzone'].forEach(t => document.getElementById('filter-' + t).classList.toggle('active', t === type));
+  ['all','qcm','qroc','qzone','qassoc'].forEach(t => document.getElementById('filter-' + t).classList.toggle('active', t === type));
   updateSlider();
 }
 
@@ -529,6 +535,7 @@ function getPool() {
   if (typeFilter === 'qcm') pool = pool.filter(q => !q.type || q.type === 'qcm');
   if (typeFilter === 'qroc') pool = pool.filter(q => q.type === 'qroc');
   if (typeFilter === 'qzone') pool = pool.filter(q => q.type === 'qzone');
+  if (typeFilter === 'qassoc') pool = pool.filter(q => q.type === 'qassoc');
   if (errorsOnly) pool = pool.filter(q => isErr(qKey(q)));
   return pool;
 }
@@ -553,7 +560,7 @@ document.getElementById('btn-start').onclick = function() { startSession('entrai
 function startSession(mode) {
   const count = parseInt(document.getElementById('count-slider').value);
   let pool = shuffle([...getPool()]);
-  if (mode === 'examen') pool = pool.filter(q => q.type !== 'qzone');
+  if (mode === 'examen') pool = pool.filter(q => q.type !== 'qzone' && q.type !== 'qassoc');
   pool = pool.slice(0, count);
   if (!pool.length) { alert('Aucune question disponible.'); return; }
   session = {
@@ -893,6 +900,44 @@ function scoreQzone(q) {
   return pts;
 }
 
+// ─── ASSOCIATION : prendre une étiquette, la poser dans une case ───
+let assocBank = [], assocPlaced = {}, assocSel = null, assocQ = null;
+function renderAssoc(q) {
+  assocQ = q; assocSel = null; assocPlaced = {};
+  assocBank = shuffle(qassocLabels(q).map((label, i) => ({ id: i, label })));
+  drawAssoc();
+}
+function drawAssoc() {
+  const q = assocQ, esc = x => String(x).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const bank = document.getElementById('as-bank');
+  bank.innerHTML = '<div class="lab">Étiquettes à placer · ' + assocBank.length + ' restante' + (assocBank.length > 1 ? 's' : '') + '</div>'
+    + (assocBank.length ? assocBank.map(t => '<span class="as-tag' + (assocSel === t.id ? ' sel' : '') + '" data-id="' + t.id + '">' + esc(t.label) + '</span>').join('') : '<span class="as-ph">Tout est placé : tu peux valider.</span>');
+  document.getElementById('as-cases').innerHTML = (q.cases || []).map((c, ci) => {
+    const placed = assocPlaced[ci] || [];
+    return '<div class="as-case' + (assocSel !== null ? ' target' : '') + '" data-ci="' + ci + '"><h3>' + esc(c.name) + '<small>' + placed.length + ' étiquette' + (placed.length > 1 ? 's' : '') + '</small></h3><div class="as-slot">'
+      + (placed.length ? placed.map(t => '<span class="as-tag" data-back="' + t.id + '" data-ci="' + ci + '">' + esc(t.label) + ' <span class="x">✕</span></span>').join('') : '<span class="as-ph">' + (assocSel !== null ? 'Dépose ici' : '') + '</span>')
+      + '</div></div>';
+  }).join('');
+}
+document.addEventListener('click', e => {
+  if (!assocQ || session.validated || document.getElementById('q-qassoc-block').style.display === 'none') return;
+  const back = e.target.closest('[data-back]');
+  if (back && assocSel === null) { // reprendre une étiquette posée
+    const ci = back.dataset.ci, id = +back.dataset.back, arr = assocPlaced[ci] || [];
+    const t = arr.find(x => x.id === id);
+    if (t) { assocPlaced[ci] = arr.filter(x => x.id !== id); assocBank.push(t); assocSel = null; drawAssoc(); }
+    return;
+  }
+  const tag = e.target.closest('#as-bank .as-tag[data-id]');
+  if (tag) { const id = +tag.dataset.id; assocSel = assocSel === id ? null : id; drawAssoc(); return; }
+  const cs = e.target.closest('.as-case[data-ci]');
+  if (cs && assocSel !== null) {
+    const ci = cs.dataset.ci, t = assocBank.find(x => x.id === assocSel);
+    if (t) { assocBank = assocBank.filter(x => x.id !== assocSel); (assocPlaced[ci] = assocPlaced[ci] || []).push(t); }
+    assocSel = null; drawAssoc();
+  }
+});
+
 // ─── MODE ENTRAÎNEMENT ───
 function renderQ() {
   const q = session.questions[session.current];
@@ -907,7 +952,7 @@ function renderQ() {
   document.getElementById('q-tag').textContent = q.tag || '';
   document.getElementById('q-text').textContent = q.question;
   const badge = document.getElementById('q-type-badge');
-  badge.textContent = q.type === 'qroc' ? 'QROC — Réponse courte' : '';
+  badge.textContent = q.type === 'qroc' ? 'QROC — Réponse courte' : (q.type === 'qassoc' ? 'Association' : '');
   const imgWrap = document.getElementById('q-image-wrap');
   if (q.image && q.type !== 'qzone') { document.getElementById('q-image').src = q.image; imgWrap.style.display = 'block'; }
   else imgWrap.style.display = 'none';
@@ -916,12 +961,22 @@ function renderQ() {
   const isQroc = q.type === 'qroc';
   const isQru = q.type === 'qru';
   const isQzone = q.type === 'qzone';
-  document.getElementById('q-qcm-block').style.display = (!isQroc && !isQzone) ? 'block' : 'none';
+  const isAssoc = q.type === 'qassoc';
+  document.getElementById('q-qassoc-block').style.display = isAssoc ? 'block' : 'none';
+  document.getElementById('q-qcm-block').style.display = (!isQroc && !isQzone && !isAssoc) ? 'block' : 'none';
   document.getElementById('q-qroc-block').style.display = isQroc ? 'block' : 'none';
   document.getElementById('q-qzone-block').style.display = isQzone ? 'block' : 'none';
   const noteEl = document.getElementById('q-note');
   if (noteEl) noteEl.textContent = isQru ? 'Une seule réponse exacte' : '';
   if (isQroc) { document.getElementById('qroc-input').value = ''; document.getElementById('qroc-input').disabled = false; }
+  else if (isAssoc) {
+    if (session.validatedArr[session.current]) {
+      document.getElementById('q-qassoc-block').style.display = 'none';
+      const corrA = document.getElementById('correction');
+      corrA.className = 'correction show';
+      corrA.innerHTML = qassocCorrectionHTML(q, session.answers[session.current]);
+    } else renderAssoc(q);
+  }
   else if (isQzone) { renderQzone(q); session.answers[session.current] = {}; }
   else {
     const optList = document.getElementById('q-options');
@@ -997,6 +1052,23 @@ function validateQ() {
   session.validated = true;
   const q = session.questions[session.current];
   const corrDiv = document.getElementById('correction');
+  if (q.type === 'qassoc') {
+    const placed = {};
+    Object.keys(assocPlaced).forEach(k => { placed[k] = assocPlaced[k].map(x => x.label); });
+    session.answers[session.current] = placed;
+    const sc = qassocScore(q, placed), pts = sc.pts;
+    session.scoreTotal += pts;
+    session.scorePoints[session.current] = pts;
+    session.validatedArr[session.current] = true;
+    const errMsgA = recordResult(q, pts);
+    document.getElementById('q-qassoc-block').style.display = 'none';
+    corrDiv.innerHTML = qassocCorrectionHTML(q, placed, { note: errMsgA });
+    corrDiv.classList.add('show');
+    document.getElementById('btn-validate').style.display = 'none';
+    document.getElementById('btn-skip').style.display = 'none';
+    showNextBtn(); updateSidePanel(); updateScoreLive();
+    return;
+  }
   if (q.type === 'qzone') {
     const pts = scoreQzone(q);
     session.scoreTotal += pts;
@@ -1321,6 +1393,7 @@ function showResults() {
     tag: q.tag || '',
     type: q.type || 'qcm',
     options: q.options || [],
+    cases: q.cases || [],
     correct: q.correct || [],
     optExps: q.optExps || [],
     explanation: q.explanation || '',
@@ -1410,6 +1483,8 @@ function renderTrainResults() {
       html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--bg-3); color:var(--text-2);">Ta réponse : <em>' + (userAns || '—') + '</em></div>';
       html += '<div style="font-size:13px; padding:8px 12px; border-radius:var(--radius); background:var(--green-bg); color:var(--green-text); border:2px solid var(--green);">✓ Attendu : ' + q.answer + '</div>';
       html += '</div>';
+    } else if (q.type === 'qassoc') {
+      html += '<div style="padding:0 1.25rem 1rem;">' + qassocCorrectionHTML(q, session.answers[i], { banner: false, explanation: false }) + '</div>';
     } else if (q.type !== 'qzone') {
       const userAns = session.answers[i] || [];
 

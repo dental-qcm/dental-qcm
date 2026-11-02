@@ -98,6 +98,7 @@
         <button class="type-btn" id="add-type-qru" onclick="setAddType('qru')">QRU</button>
         <button class="type-btn" id="add-type-qroc" onclick="setAddType('qroc')">QROC</button>
         <button class="type-btn" id="add-type-qzone" onclick="setAddType('qzone')">QZone</button>
+        <button class="type-btn" id="add-type-qassoc" onclick="setAddType('qassoc')">Association</button>
       </div>
     </div>
 
@@ -130,6 +131,13 @@
       <label>Réponse correcte</label>
       <input type="text" id="add-answer" placeholder="Réponse attendue…">
       <p style="font-size:12px; color:var(--text-3); margin-top:6px;">La réponse sera affichée après que l'étudiant ait tapé la sienne.</p>
+    </div>
+
+    <div class="form-group" id="add-qassoc-group" style="display:none;">
+      <label>Cases et leurs étiquettes</label>
+      <p style="font-size:13px; color:var(--text-3); font-weight:700; margin:0 0 10px;">Chaque case est un orifice, une zone… et contient les étiquettes qui doivent y aller. Si une structure passe par 2 cases, mets la même étiquette dans les 2.</p>
+      <div id="assoc-editor"></div>
+      <button class="btn-secondary" type="button" onclick="assocAddCase()" style="margin-top:10px; font-size:14px; padding:10px 16px;">+ Ajouter une case</button>
     </div>
 
     <div class="form-group" id="add-qzone-group" style="display:none;">
@@ -216,6 +224,7 @@
 const LETTERS = ['A','B','C','D','E'];
 let questions = JSON.parse(localStorage.getItem('qcm_annales') || '[]');
 let editIndex = null;
+let assocCases = [];
 let filterTag = null;
 let addImgData = null;
 let editImgData = null;
@@ -279,14 +288,16 @@ function switchTab(name) {
 // ─── TYPE SELECTOR ───
 function setAddType(type) {
   addType = type;
-  ['qcm','qru','qroc','qzone'].forEach(t => {
+  ['qcm','qru','qroc','qzone','qassoc'].forEach(t => {
     const btn = document.getElementById('add-type-' + t);
     if (btn) btn.classList.toggle('active', t === type);
   });
   document.getElementById('add-options-group').style.display = (type === 'qcm' || type === 'qru') ? 'block' : 'none';
   document.getElementById('add-answer-group').style.display = type === 'qroc' ? 'block' : 'none';
   document.getElementById('add-qzone-group').style.display = type === 'qzone' ? 'block' : 'none';
-  document.getElementById('add-image-group').style.display = type === 'qzone' ? 'none' : 'block';
+  document.getElementById('add-qassoc-group').style.display = type === 'qassoc' ? 'block' : 'none';
+  if (type === 'qassoc' && !assocCases.length) { assocCases = [{ name: '', labels: [] }, { name: '', labels: [] }]; assocDraw(); }
+  document.getElementById('add-image-group').style.display = (type === 'qzone' || type === 'qassoc') ? 'none' : 'block';
 }
 
 function setEditType(type) {
@@ -390,6 +401,21 @@ function saveQ() {
 
   if (!question) { alert("Remplis l'énoncé."); return; }
 
+  if (addType === 'qassoc') {
+    assocSync();
+    const cases = assocCases.map(c => ({ name: c.name.trim(), labels: c.labels.map(l => l.trim()).filter(Boolean) })).filter(c => c.name || c.labels.length);
+    if (cases.length < 2) { alert('Il faut au moins 2 cases.'); return; }
+    if (cases.some(c => !c.name)) { alert('Donne un nom à chaque case.'); return; }
+    if (cases.reduce((n, c) => n + c.labels.length, 0) < 2) { alert('Il faut au moins 2 étiquettes en tout.'); return; }
+    questions.push({ type: 'qassoc', tag, question, cases, explanation });
+    assocCases = []; save();
+    document.getElementById('add-tag').value = '';
+    document.getElementById('add-question').value = '';
+    document.getElementById('add-explanation').value = '';
+    assocCases = [{ name: '', labels: [] }, { name: '', labels: [] }]; assocDraw();
+    alert('Question enregistrée !');
+    return;
+  }
   if (addType === 'qzone') {
     if (!qzoneImgData) { alert('Ajoute une image.'); return; }
     if (qzoneGroups.length < 2) { alert('Place au moins 2 structures différentes.'); return; }
@@ -460,7 +486,7 @@ function renderList() {
     const realIndex = questions.indexOf(q);
     const div = document.createElement('div');
     div.className = 'question-list-item';
-    const badge = q.type === 'qroc' ? '<span style="font-size:10px; background:var(--bg-3); color:var(--text-3); padding:2px 6px; border-radius:10px; margin-left:6px;">QROC</span>' : '';
+    const badge = q.type === 'qassoc' ? '<span style="font-size:10px; background:var(--bg-3); color:var(--text-3); padding:2px 6px; border-radius:10px; margin-left:6px;">Association</span>' : q.type === 'qroc' ? '<span style="font-size:10px; background:var(--bg-3); color:var(--text-3); padding:2px 6px; border-radius:10px; margin-left:6px;">QROC</span>' : '';
     const imgBadge = q.image ? '<span style="font-size:10px; background:var(--bg-3); color:var(--text-3); padding:2px 6px; border-radius:10px; margin-left:4px;">📷</span>' : '';
     div.innerHTML = `
       <div class="q-list-content">
@@ -468,7 +494,7 @@ function renderList() {
         <div class="q-list-text">${q.question.substring(0,100)}${q.question.length>100?'…':''}</div>
       </div>
       <div class="q-list-actions">
-        <button class="btn-ghost" onclick="openEdit(${realIndex})">Modifier</button>
+        ${q.type === 'qassoc' || q.type === 'qzone' ? '' : `<button class="btn-ghost" onclick="openEdit(${realIndex})">Modifier</button>`}
         <button class="btn-ghost danger" onclick="deleteQ(${realIndex})">Supprimer</button>
       </div>
     `;
@@ -845,6 +871,36 @@ async function init() {
   renderList();
 }
 init();
+
+// ─── ASSOCIATION : éditeur de cases / étiquettes ───
+const assocEsc = x => String(x).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+function assocSync() { // relit les champs texte avant de redessiner
+  document.querySelectorAll('#assoc-editor [data-case-name]').forEach(inp => { assocCases[+inp.dataset.caseName].name = inp.value; });
+}
+function assocDraw() {
+  const box = document.getElementById('assoc-editor'); if (!box) return;
+  box.innerHTML = assocCases.map((c, ci) => `
+    <div style="border:2px solid var(--border); border-radius:18px; background:var(--bg-2); padding:12px; margin-bottom:10px; display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; gap:8px;">
+        <input type="text" data-case-name="${ci}" value="${assocEsc(c.name)}" placeholder="Nom de la case (ex : Foramen ovale)" style="flex:1; padding:8px 12px; border:2px solid var(--border); border-radius:var(--radius); font-size:15px; font-weight:800; font-family:var(--font-body); color:var(--text); background:var(--bg);">
+        <button class="btn-ghost danger" type="button" onclick="assocDelCase(${ci})" title="Supprimer la case">✕</button>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+        ${c.labels.map((l, li) => `<span style="display:inline-flex; gap:6px; align-items:center; padding:7px 12px; border-radius:12px; background:var(--bg); border:2px solid var(--border); font-weight:800; font-size:14px;">${assocEsc(l)} <a href="#" onclick="assocDelLabel(${ci},${li});return false;" style="color:var(--text-3); text-decoration:none; font-weight:900;">✕</a></span>`).join('')}
+        <input type="text" id="assoc-new-${ci}" placeholder="+ étiquette (Entrée)" onkeydown="if(event.key==='Enter'){event.preventDefault();assocAddLabel(${ci});}" style="min-width:170px; flex:1; padding:7px 12px; border:2px dashed var(--border-2); border-radius:12px; font-size:14px; font-family:var(--font-body); color:var(--text); background:transparent;">
+      </div>
+    </div>`).join('');
+}
+function assocAddCase() { assocSync(); assocCases.push({ name: '', labels: [] }); assocDraw(); }
+function assocDelCase(ci) { assocSync(); assocCases.splice(ci, 1); assocDraw(); }
+function assocAddLabel(ci) {
+  assocSync();
+  const inp = document.getElementById('assoc-new-' + ci), v = inp.value.trim();
+  if (!v) return;
+  assocCases[ci].labels.push(v); assocDraw();
+  const n = document.getElementById('assoc-new-' + ci); if (n) n.focus();
+}
+function assocDelLabel(ci, li) { assocSync(); assocCases[ci].labels.splice(li, 1); assocDraw(); }
 </script>
 </body>
 </html>

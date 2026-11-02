@@ -581,3 +581,22 @@ footer p { font-size: 14px; color: var(--text-3); }
 }
 .btn-finish:hover { border-color: var(--red); }
 .btn-finish:active { transform: translateY(3px); border-bottom-width: 2px; }
+
+
+/* ─── ASSOCIATION (étiquettes à ranger dans des cases) ─── */
+.as-bank { border-radius:22px; background:var(--bg-2); border:2px solid var(--border); border-bottom-width:5px; padding:16px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; }
+.as-bank .lab { width:100%; font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); }
+.as-tag { display:inline-flex; align-items:center; gap:6px; padding:9px 14px; border-radius:14px; background:var(--bg); border:2px solid var(--border); border-bottom-width:4px; font-weight:800; font-size:15px; color:var(--text); cursor:pointer; user-select:none; -webkit-user-select:none; transition:transform .08s; }
+.as-tag.sel { border-color:var(--yellow); background:var(--yellow-dim); box-shadow:0 0 0 3px var(--yellow-dim); transform:translateY(-3px); }
+.as-tag.ok { background:var(--green-bg); border-color:var(--green); color:var(--green-text); cursor:default; }
+.as-tag.ko { background:var(--red-bg); border-color:var(--red-border); color:var(--red-text); cursor:default; }
+.as-tag.miss { background:transparent; border-style:dashed; border-color:var(--amber-text); color:var(--amber-text); cursor:default; }
+.as-tag .x { font-weight:900; opacity:.55; }
+.as-cases { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.as-case { border-radius:22px; background:var(--bg-2); border:2px solid var(--border); border-bottom-width:5px; padding:14px 16px; display:flex; flex-direction:column; gap:10px; min-height:120px; }
+.as-case.target { border-color:var(--yellow); border-style:dashed; cursor:pointer; }
+.as-case h3 { margin:0; font-weight:900; font-size:17px; color:var(--text); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.as-case h3 small { font-size:12px; color:var(--text-3); font-weight:800; }
+.as-slot { flex:1; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; min-height:48px; border-radius:14px; background:var(--bg); padding:8px; border:2px dashed var(--border); }
+.as-ph { font-size:13px; font-weight:700; color:var(--text-3); align-self:center; margin:auto; }
+@media (max-width: 700px) { .as-cases { grid-template-columns:1fr; } }

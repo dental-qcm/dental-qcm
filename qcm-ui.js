@@ -58,7 +58,7 @@ window.qcmStats = function (questions, hist) {
   hist.slice().sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).forEach(function (h) {
     (h.details || []).forEach(function (d) {
       var answered = Array.isArray(d.userAns) ? d.userAns.length > 0 : String(d.userAns || '').trim() !== '';
-      if (!answered && d.type !== 'qzone') return;
+      if (!answered && d.type !== 'qzone' && d.type !== 'qassoc') return;
       if (typeof d.pts !== 'number') return;
       (attempts[qKey(d)] = attempts[qKey(d)] || []).push(d.pts);
     });
@@ -89,3 +89,51 @@ window.qcmStatSort = function (list, mode) {
   });
 };
 window.qcmStatColor = function (r) { return r === null ? 'var(--border-2)' : r >= 75 ? 'var(--green)' : r >= 50 ? 'var(--amber-text)' : 'var(--red)'; };
+
+
+/* ─── Questions d'association : on range des étiquettes dans des cases ─── */
+(function () {
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function counts(arr) { var m = {}; (arr || []).forEach(function (x) { m[x] = (m[x] || 0) + 1; }); return m; }
+  // Étiquettes à placer (avec doublons si une structure passe par plusieurs cases)
+  window.qassocLabels = function (q) {
+    var out = [];
+    (q.cases || []).forEach(function (c) { (c.labels || []).forEach(function (l) { out.push(l); }); });
+    return out;
+  };
+  // placed : { indexDeCase: [étiquettes] } → note = bien placées / étiquettes attendues
+  window.qassocScore = function (q, placed) {
+    placed = placed && !Array.isArray(placed) ? placed : {};
+    var total = 0, ok = 0, res = [];
+    (q.cases || []).forEach(function (c, ci) {
+      var exp = counts(c.labels), got = counts(placed[ci] || []), r = { good: [], bad: [], miss: [] };
+      Object.keys(got).forEach(function (l) {
+        var g = Math.min(got[l], exp[l] || 0);
+        for (var i = 0; i < g; i++) r.good.push(l);
+        for (var j = g; j < got[l]; j++) r.bad.push(l);
+      });
+      Object.keys(exp).forEach(function (l) { for (var k = Math.min(got[l] || 0, exp[l]); k < exp[l]; k++) r.miss.push(l); });
+      total += (c.labels || []).length; ok += r.good.length; res.push(r);
+    });
+    return { pts: total ? ok / total : 0, ok: ok, total: total, cases: res };
+  };
+  window.qassocCorrectionHTML = function (q, placed, opts) {
+    opts = opts || {};
+    var sc = qassocScore(q, placed), h = '<div class="corr-legend"><span><strong>Vert</strong> : bien placée</span><span><strong>Rouge</strong> : mauvaise case</span><span><strong>Pointillés</strong> : manquante, elle devait être ici</span></div><div class="as-cases">';
+    (q.cases || []).forEach(function (c, ci) {
+      var r = sc.cases[ci], n = (c.labels || []).length;
+      h += '<div class="as-case"><h3>' + esc(c.name) + '<small>' + r.good.length + ' / ' + n + '</small></h3><div class="as-slot">';
+      r.good.forEach(function (l) { h += '<span class="as-tag ok">' + esc(l) + '</span>'; });
+      r.bad.forEach(function (l) { h += '<span class="as-tag ko">' + esc(l) + '</span>'; });
+      r.miss.forEach(function (l) { h += '<span class="as-tag miss">' + esc(l) + '</span>'; });
+      if (!r.good.length && !r.bad.length && !r.miss.length) h += '<span class="as-ph">Rien ici</span>';
+      h += '</div></div>';
+    });
+    h += '</div>';
+    var perfect = sc.ok === sc.total;
+    var cls = perfect ? '' : (sc.ok > 0 ? 'partial' : 'err'), title = perfect ? 'Bravo !' : (sc.ok > 0 ? 'Presque !' : 'Raté');
+    if (opts.banner !== false) h += '<div class="corr-banner ' + cls + '"><div><div class="t">' + title + '</div></div><div class="s">' + sc.ok + ' / ' + sc.total + ' bien placée' + (sc.ok > 1 ? 's' : '') + '.' + (opts.note ? '<br>' + opts.note : '') + '</div></div>';
+    if (opts.explanation !== false && q.explanation) h += '<div class="corr-free" style="margin-top:12px;"><span class="k">À retenir</span>' + q.explanation + '</div>';
+    return h;
+  };
+})();
