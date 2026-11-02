@@ -6,38 +6,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accès restreint — Annales QCM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script src="theme.js"></script>
   <link rel="stylesheet" href="style.css">
-  <script>
-    (function() {
-      const s = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
-      if (!s.accentColor && !s.theme) return;
-      const r = document.documentElement;
-      const c = s.accentColor || '#00c853';
-      const t = s.theme || 'dark';
-      r.style.setProperty('--yellow', c);
-      r.style.setProperty('--accent-color', c);
-      if (t === 'light') {
-        r.style.setProperty('--bg','#f8f8f5'); r.style.setProperty('--bg-2','#ffffff');
-        r.style.setProperty('--border','#e0e0db'); r.style.setProperty('--text','#1a1a18');
-        r.style.setProperty('--text-2','#5a5a52');
-      } else {
-        r.style.setProperty('--bg','#0d0d0d'); r.style.setProperty('--bg-2','#161616');
-        r.style.setProperty('--border','#2a2a2a'); r.style.setProperty('--text','#f0f0ee');
-        r.style.setProperty('--text-2','#a0a09a');
-      }
-    })();
-  </script>
+  
 </head>
 <body style="display:flex; align-items:center; justify-content:center; min-height:100vh;">
-  <div style="background:var(--bg-2); border:1px solid var(--border); border-radius:14px; padding:2.5rem; max-width:400px; width:100%; text-align:center;">
+  <div style="background:var(--bg-2); border:2px solid var(--border); border-radius:14px; padding:2.5rem; max-width:400px; width:100%; text-align:center;">
     <div style="font-size:3rem; margin-bottom:1rem;">🔒</div>
     <h2 style="font-size:1.5rem; margin-bottom:0.5rem; color:var(--text);">Accès restreint</h2>
     <p style="font-size:14px; color:var(--text-2); margin-bottom:1.5rem;">Saisis le code PIN pour gérer les questions.</p>
-    <input type="password" id="pin-input" placeholder="Code PIN..." style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; font-size:1.2rem; text-align:center; background:var(--bg); color:var(--text); margin-bottom:1.5rem; letter-spacing:0.2em; box-sizing:border-box;">
-    <button onclick="verifierPin()" style="width:100%; padding:12px; background:var(--yellow); color:#000; border:none; border-radius:6px; font-size:15px; font-weight:600; cursor:pointer; font-family:var(--font-body);">Déverrouiller →</button>
+    <input type="password" id="pin-input" placeholder="Code PIN..." style="width:100%; padding:12px; border:2px solid var(--border); border-radius:12px; font-size:1.2rem; text-align:center; background:var(--bg); color:var(--text); margin-bottom:1.5rem; letter-spacing:0.2em; box-sizing:border-box;">
+    <button onclick="verifierPin()" style="width:100%; padding:12px; background:var(--yellow); color:var(--on-accent); box-shadow:0 4px 0 var(--accent-deep); min-height:48px; border:none; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:var(--font-body);">Déverrouiller →</button>
     <div style="margin-top:1.5rem;">
-      <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Accueil</a>
+      <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg-3);border:2px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Accueil</a>
     </div>
   </div>
   <script>

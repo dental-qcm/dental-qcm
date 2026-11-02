@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Réglages — Annales QCM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script src="theme.js"></script>
   <link rel="stylesheet" href="style.css">
 <style>
 .settings-section {
@@ -18,7 +19,7 @@
 }
 .settings-section h2 {
   font-size: 13px;
-  font-weight: 500;
+  font-weight:800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-3);
@@ -61,7 +62,7 @@
   transition: all 0.2s;
 }
 .toggle input:checked + .toggle-slider { background: var(--accent-color, var(--yellow)); border-color: var(--accent-color, var(--yellow)); }
-.toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: #0d0d0d; }
+.toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--on-accent); }
 
 /* COLOR SWATCHES */
 .color-grid {
@@ -88,7 +89,7 @@
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  color: #0d0d0d;
+  color: var(--on-accent);
   font-weight: 700;
 }
 
@@ -130,9 +131,9 @@
   justify-content: center;
   font-size: 20px;
 }
-.theme-preview.dark { background: #0d0d0d; border: 1px solid #2a2a2a; }
-.theme-preview.light { background: #f8f8f5; border: 1px solid #e0e0db; }
-.theme-name { font-size: 13px; color: var(--text); font-weight: 500; }
+.theme-preview.dark { background: #0F1623; border: 2px solid #2A3750; }
+.theme-preview.light { background: #F1F5FB; border: 2px solid #DCE4F0; }
+.theme-name { font-size: 13px; color: var(--text); font-weight:800; }
 
 /* PREVIEW BAR */
 .preview-bar {
@@ -150,7 +151,7 @@
   border-radius: var(--radius);
   border: none;
   font-size: 14px;
-  font-weight: 500;
+  font-weight:800;
   cursor: pointer;
   font-family: var(--font-body);
   transition: opacity 0.15s;
@@ -160,7 +161,7 @@
   padding: 5px 14px;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight:800;
 }
 .preview-bar-fill {
   height: 4px;
@@ -174,7 +175,7 @@
   border-radius: var(--radius);
   border: none;
   font-size: 15px;
-  font-weight: 500;
+  font-weight:800;
   cursor: pointer;
   font-family: var(--font-body);
   transition: opacity 0.15s;
@@ -205,7 +206,7 @@
 
 <header class="quiz-header">
   <div class="container">
-    <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Accueil</a>
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:var(--bg-3);border:2px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);text-decoration:none;transition:border-color 0.15s;" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Accueil</a>
     <div class="logo">QCM<span>Annales</span></div>
     <div></div>
   </div>
@@ -237,7 +238,7 @@
     <h2>Couleur des boutons</h2>
     <div class="color-grid" id="color-grid"></div>
     <div class="custom-color-row">
-      <input type="color" id="custom-color" value="#e8ff00" oninput="setCustomColor(this.value)">
+      <input type="color" id="custom-color" value="#237A31" oninput="setCustomColor(this.value)">
       <span style="font-size:13px; color:var(--text-2);">Couleur personnalisée</span>
     </div>
 
@@ -256,20 +257,20 @@
 
 <script>
 const PRESET_COLORS = [
-  { name: 'Jaune fluo', value: '#e8ff00' },
-  { name: 'Vert émeraude', value: '#00c853' },
-  { name: 'Vert lime', value: '#a8ff3e' },
-  { name: 'Cyan', value: '#00e5ff' },
-  { name: 'Orange', value: '#ff7b00' },
-  { name: 'Rose', value: '#ff4d9e' },
-  { name: 'Violet', value: '#b06aff' },
-  { name: 'Blanc', value: '#f0f0ee' },
-  { name: 'Rouge', value: '#ff4444' },
+  { name: 'Vert (défaut)', value: '#237A31' },
+  { name: 'Bleu', value: '#1C6FD1' },
+  { name: 'Violet', value: '#7A3FD1' },
+  { name: 'Turquoise', value: '#0B7285' },
+  { name: 'Orange', value: '#C2570C' },
+  { name: 'Rose', value: '#C2255C' },
+  { name: 'Rouge', value: '#B3261E' },
+  { name: 'Marine', value: '#1B2A41' },
+  { name: 'Vert fluo (sombre)', value: '#4ADE80' },
 ];
 
 let settings = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
-let currentTheme = settings.theme || 'dark';
-let currentColor = settings.accentColor || '#00c853';
+let currentTheme = settings.theme || 'light';
+let currentColor = (settings.accentColor && !['#00c853','#e8ff00'].includes(settings.accentColor.toLowerCase())) ? settings.accentColor : '#237A31';
 
 function init() {
   // Build color swatches
@@ -311,31 +312,28 @@ function setCustomColor(color) {
 }
 
 function updatePreview() {
-  const isDark = currentTheme === 'dark';
-  const bar = document.getElementById('preview-bar');
-  bar.style.background = isDark ? '#161616' : '#f4f4f1';
-  bar.style.borderColor = isDark ? '#2a2a2a' : '#e8e8e3';
+    window.applyQcmTheme(currentTheme, currentColor); // aperçu en direct (non enregistré tant que tu ne cliques pas)
 
   const btn = document.getElementById('preview-btn');
   btn.style.background = currentColor;
-  btn.style.color = isLight(currentColor) ? '#0d0d0d' : '#f0f0ee';
+  btn.style.color = isLight(currentColor) ? '#10200F' : '#ffffff';
 
   const tag = document.getElementById('preview-tag');
   tag.style.background = currentColor;
-  tag.style.color = isLight(currentColor) ? '#0d0d0d' : '#f0f0ee';
+  tag.style.color = isLight(currentColor) ? '#10200F' : '#ffffff';
 
   document.getElementById('preview-bar-fill').style.background = currentColor;
 
   const saveBtn = document.getElementById('save-btn');
   saveBtn.style.background = currentColor;
-  saveBtn.style.color = isLight(currentColor) ? '#0d0d0d' : '#f0f0ee';
+  saveBtn.style.color = isLight(currentColor) ? '#10200F' : '#ffffff';
 }
 
 function isLight(hex) {
   const r = parseInt(hex.slice(1,3),16);
   const g = parseInt(hex.slice(3,5),16);
   const b = parseInt(hex.slice(5,7),16);
-  return (r*299 + g*587 + b*114) / 1000 > 128;
+  return (r*299 + g*587 + b*114) / 1000 > 150;
 }
 
 function saveSettings() {
@@ -351,53 +349,7 @@ function saveSettings() {
   applySettings();
 }
 
-function applySettings() {
-  const root = document.documentElement;
-  root.style.setProperty('--accent-color', currentColor);
-
-  // Compute dark version of color for backgrounds
-  const darkBg = hexToRgba(currentColor, 0.08);
-  root.style.setProperty('--yellow', currentColor);
-  root.style.setProperty('--yellow-dim', darkBg);
-  root.style.setProperty('--yellow-text', currentColor);
-
-  if (currentTheme === 'light') {
-    root.style.setProperty('--bg', '#f8f8f5');
-    root.style.setProperty('--bg-2', '#ffffff');
-    root.style.setProperty('--bg-3', '#f0f0eb');
-    root.style.setProperty('--border', '#e0e0db');
-    root.style.setProperty('--border-2', '#c8c8c0');
-    root.style.setProperty('--text', '#1a1a18');
-    root.style.setProperty('--text-2', '#5a5a52');
-    root.style.setProperty('--text-3', '#9a9a90');
-  } else {
-    root.style.setProperty('--bg', '#0d0d0d');
-    root.style.setProperty('--bg-2', '#161616');
-    root.style.setProperty('--bg-3', '#1e1e1e');
-    root.style.setProperty('--border', '#2a2a2a');
-    root.style.setProperty('--border-2', '#3a3a3a');
-    root.style.setProperty('--text', '#f0f0ee');
-    root.style.setProperty('--text-2', '#a0a09a');
-    root.style.setProperty('--text-3', '#606060');
-  }
-}
-
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
-// Apply on load
-(function() {
-  const saved = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
-  if (saved.accentColor || saved.theme) {
-    currentTheme = saved.theme || 'dark';
-    currentColor = saved.accentColor || '#00c853';
-    applySettings();
-  }
-})();
+function applySettings() { window.applyQcmTheme(currentTheme, currentColor); }
 
 init();
 </script>

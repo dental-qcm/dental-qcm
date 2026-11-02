@@ -6,41 +6,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Annales QCM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <script src="theme.js"></script>
   <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
-<script>
-(function() {
-  const s = JSON.parse(localStorage.getItem('qcm_settings') || '{}');
-  if (!s.accentColor && !s.theme) return;
-  const r = document.documentElement;
-  const c = s.accentColor || '#00c853';
-  const t = s.theme || 'dark';
-  function hexToRgba(hex, a) { const rv=parseInt(hex.slice(1,3),16),gv=parseInt(hex.slice(3,5),16),bv=parseInt(hex.slice(5,7),16); return 'rgba('+rv+','+gv+','+bv+','+a+')'; }
-  r.style.setProperty('--yellow', c); r.style.setProperty('--yellow-dim', hexToRgba(c,0.08));
-  r.style.setProperty('--yellow-text', c); r.style.setProperty('--accent-color', c);
-  if (t === 'light') {
-    r.style.setProperty('--bg','#f8f8f5'); r.style.setProperty('--bg-2','#ffffff');
-    r.style.setProperty('--bg-3','#f0f0eb'); r.style.setProperty('--border','#e0e0db');
-    r.style.setProperty('--text','#1a1a18'); r.style.setProperty('--text-2','#5a5a52'); r.style.setProperty('--text-3','#9a9a90');
-  } else {
-    r.style.setProperty('--bg','#0d0d0d'); r.style.setProperty('--bg-2','#161616');
-    r.style.setProperty('--bg-3','#1e1e1e'); r.style.setProperty('--border','#2a2a2a');
-    r.style.setProperty('--text','#f0f0ee'); r.style.setProperty('--text-2','#a0a09a'); r.style.setProperty('--text-3','#606060');
-  }
-})();
-</script>
+
 <style>
 body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity:0.03; pointer-events:none; z-index:0; }
 .home-header { padding:1.5rem 0; position:sticky; top:0; background:var(--bg); z-index:100; }
 .home-inner { max-width:1200px; margin:0 auto; padding:0 3rem; display:flex; justify-content:space-between; align-items:center; }
-.home-logo { font-family:var(--font-body); font-weight:500; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); }
+.home-logo { font-family:var(--font-body); font-weight:800; font-size:13px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); }
 .home-nav { display:flex; gap:12px; align-items:center; }
 .home-nav a { font-size:13px; color:var(--text-3); text-decoration:none; padding:7px 14px; border-radius:var(--radius); transition:color 0.15s; }
 .home-nav a:hover { color:var(--text); }
-.home-nav .pill { background:var(--bg-2); border:1px solid var(--border); border-radius:999px; color:var(--text-2) !important; transition:all 0.15s !important; }
+.home-nav .pill { background:var(--bg-2); border:2px solid var(--border); border-radius:999px; color:var(--text-2) !important; transition:all 0.15s !important; }
 .home-nav .pill:hover { color:var(--text) !important; border-color:var(--border-2); }
-.home-nav .cta { background:var(--yellow); color:#0d0d0d !important; font-weight:500; border-radius:var(--radius); }
+.home-nav .cta { background:var(--yellow); color:var(--on-accent) !important; font-weight:800; border-radius:var(--radius); }
 .home-nav .cta:hover { opacity:0.85; }
 .page-wrap { max-width:1200px; margin:0 auto; padding:0 3rem; }
 .hero { padding:5rem 0 4rem; position:relative; overflow:hidden; }
@@ -49,19 +30,19 @@ body::before { content:''; position:fixed; inset:0; background-image:url("data:i
 .hero-label::before { content:''; display:block; width:20px; height:1px; background:var(--yellow); }
 .hero-title { font-family:var(--font-display); font-size:clamp(2rem, 4vw, 3.2rem); line-height:1.1; color:var(--text); margin-bottom:2.5rem; opacity:0; animation:fadeUp 0.6s ease 0.1s forwards; }
 .hero-actions { display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; opacity:0; animation:fadeUp 0.6s ease 0.2s forwards; }
-.btn-hero-primary { display:inline-flex; align-items:center; gap:10px; background:var(--yellow); color:#0d0d0d; font-family:var(--font-body); font-size:14px; font-weight:500; padding:13px 28px; border-radius:var(--radius); text-decoration:none; transition:opacity 0.15s, transform 0.15s; }
+.btn-hero-primary { display:inline-flex; align-items:center; gap:10px; background:var(--yellow); color:var(--on-accent); font-family:var(--font-body); font-size:14px; font-weight:800; padding:13px 28px; border-radius:var(--radius); text-decoration:none; transition:opacity 0.15s, transform 0.15s; }
 .btn-hero-primary:hover { opacity:.88; transform:translateY(-1px); }
 .btn-hero-secondary { font-size:14px; color:var(--text-2); text-decoration:none; transition:color 0.15s; padding:13px 0; }
 .btn-hero-secondary:hover { color:var(--text); }
-.q-badge { display:inline-flex; align-items:center; gap:6px; background:var(--bg-2); border:1px solid var(--border); padding:5px 12px; border-radius:999px; font-size:12px; color:var(--text-3); }
-.q-badge strong { color:var(--yellow); font-weight:500; }
+.q-badge { display:inline-flex; align-items:center; gap:6px; background:var(--bg-2); border:2px solid var(--border); padding:5px 12px; border-radius:999px; font-size:12px; color:var(--text-3); }
+.q-badge strong { color:var(--yellow); font-weight:800; }
 .divider { height:1px; background:var(--border); opacity:0; animation:fadeIn 0.6s ease 0.4s forwards; }
 .features { display:grid; grid-template-columns:repeat(3,1fr); opacity:0; animation:fadeUp 0.6s ease 0.5s forwards; }
 .feature { padding:2rem 0; padding-right:2rem; border-right:2px solid var(--yellow); }
 .feature:last-child { border-right:none; padding-right:0; padding-left:2rem; }
 .feature:nth-child(2) { padding-left:2rem; }
 .feature-icon { font-size:20px; margin-bottom:1rem; display:block; }
-.feature-title { font-size:14px; font-weight:500; color:var(--text); margin-bottom:.4rem; }
+.feature-title { font-size:14px; font-weight:800; color:var(--text); margin-bottom:.4rem; }
 .feature-desc { font-size:13px; color:var(--text-3); line-height:1.6; }
 .bottom-bar { border-top:1px solid var(--border); padding:1.5rem 0; display:flex; justify-content:space-between; align-items:center; opacity:0; animation:fadeIn 0.6s ease 0.7s forwards; }
 .bottom-bar-left { font-size:12px; color:var(--text-3); }
@@ -77,11 +58,11 @@ body::before { content:''; position:fixed; inset:0; background-image:url("data:i
   <!-- SIDEBAR -->
   <aside style="width:260px; flex-shrink:0; background:var(--bg-2); border-right:2px solid var(--yellow); padding:1.5rem 1rem; display:flex; flex-direction:column; gap:12px; position:sticky; top:0; height:100vh; overflow-y:auto;">
     <div style="font-size:11px; color:var(--text-3); letter-spacing:.15em; text-transform:uppercase; padding:.75rem .75rem 1.25rem; border-bottom:1px solid var(--border); margin-bottom:.75rem;"><span style="display:inline-flex;align-items:center;gap:6px;"><svg width="28" height="28" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#0d0d0d"/><text x="32" y="38" text-anchor="middle" font-family="system-ui,sans-serif" font-size="36">🦷</text><text x="32" y="56" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#00c853" letter-spacing="0.05em">QCM</text></svg><span style="color:var(--yellow)">QCM</span> <span style="color:var(--text-3)">Annales</span></span></div>
-    <a href="index.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Accueil</a>
-    <a href="quiz.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg> Quiz</a>
-    <a href="historique.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Historique</a>
-    <a href="pin.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:var(--border); color:var(--text-3); margin-left:auto;">admin</span></a>
-    <a href="reglages.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:1px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Réglages</a>
+    <a href="index.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg> Accueil</a>
+    <a href="quiz.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg> Quiz</a>
+    <a href="historique.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Historique</a>
+    <a href="pin.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ajouter <span style="font-size:10px; padding:2px 7px; border-radius:10px; background:var(--border); color:var(--text-3); margin-left:auto;">admin</span></a>
+    <a href="reglages.html" style="font-size:14px; padding:13px 14px; border-radius:var(--radius); background:var(--bg-3); color:var(--text); text-decoration:none; display:flex; align-items:center; gap:10px; border:2px solid var(--border);" onmouseover="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--yellow')" onmouseout="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--border')"><svg style="width:18px;height:18px;flex-shrink:0;opacity:.7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Réglages</a>
     <div style="margin-top:auto; padding-top:1.5rem;">
       <a href="quiz.html" class="btn-hero-primary" style="display:flex; justify-content:center; text-align:center;">Commencer →</a>
     </div>
@@ -96,7 +77,7 @@ body::before { content:''; position:fixed; inset:0; background-image:url("data:i
         <h1 class="hero-title"><span style="color:var(--yellow)">QCMs d'annales de 2ème</span><br>année de dentaire</h1>
         <div class="hero-actions">
           <a href="quiz.html" class="btn-hero-primary">Lancer une session <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
-          <a href="pin.html" style="display:inline-flex; align-items:center; gap:12px; font-size:14px; padding:9px 14px; border-radius:var(--radius); background:var(--bg-3); border:1px solid var(--border); color:var(--text); text-decoration:none;">+ Ajouter des questions <span style="font-size:10px; padding:2px 7px; border-radius:4px; background:var(--bg-3); border:1px solid var(--border); color:var(--text-3);">admin</span></a>
+          <a href="pin.html" style="display:inline-flex; align-items:center; gap:12px; font-size:14px; padding:9px 14px; border-radius:var(--radius); background:var(--bg-3); border:2px solid var(--border); color:var(--text); text-decoration:none;">+ Ajouter des questions <span style="font-size:10px; padding:2px 7px; border-radius:10px; background:var(--bg-3); border:2px solid var(--border); color:var(--text-3);">admin</span></a>
           <span class="q-badge" id="q-badge"><strong id="q-count">…</strong> questions</span>
         </div>
       </section>
