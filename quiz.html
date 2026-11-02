@@ -911,14 +911,48 @@ function drawAssoc() {
   const q = assocQ, esc = x => String(x).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const bank = document.getElementById('as-bank');
   bank.innerHTML = '<div class="lab">Étiquettes à placer · ' + assocBank.length + ' restante' + (assocBank.length > 1 ? 's' : '') + '</div>'
-    + (assocBank.length ? assocBank.map(t => '<span class="as-tag' + (assocSel === t.id ? ' sel' : '') + '" data-id="' + t.id + '">' + esc(t.label) + '</span>').join('') : '<span class="as-ph">Tout est placé : tu peux valider.</span>');
+    + (assocBank.length ? assocBank.map(t => '<span class="as-tag' + (assocSel === t.id ? ' sel' : '') + '" draggable="true" data-id="' + t.id + '">' + esc(t.label) + '</span>').join('') : '<span class="as-ph">Tout est placé : tu peux valider.</span>');
   document.getElementById('as-cases').innerHTML = (q.cases || []).map((c, ci) => {
     const placed = assocPlaced[ci] || [];
     return '<div class="as-case' + (assocSel !== null ? ' target' : '') + '" data-ci="' + ci + '"><h3>' + esc(c.name) + '<small>' + placed.length + ' étiquette' + (placed.length > 1 ? 's' : '') + '</small></h3><div class="as-slot">'
-      + (placed.length ? placed.map(t => '<span class="as-tag" data-back="' + t.id + '" data-ci="' + ci + '">' + esc(t.label) + ' <span class="x">✕</span></span>').join('') : '<span class="as-ph">' + (assocSel !== null ? 'Dépose ici' : '') + '</span>')
+      + (placed.length ? placed.map(t => '<span class="as-tag" draggable="true" data-back="' + t.id + '" data-ci="' + ci + '">' + esc(t.label) + ' <span class="x">✕</span></span>').join('') : '<span class="as-ph">' + (assocSel !== null ? 'Dépose ici' : '') + '</span>')
       + '</div></div>';
   }).join('');
 }
+// Glisser-déposer (souris, et doigt/Apple Pencil sur iPad grâce au polyfill) en plus du clic
+const assocActive = () => assocQ && !session.validated && document.getElementById('q-qassoc-block').style.display !== 'none';
+function assocMove(id, from, to) { // from : 'bank' ou index de case ; to : 'bank' ou index de case
+  let t;
+  if (from === 'bank') { t = assocBank.find(x => x.id === id); if (!t) return; assocBank = assocBank.filter(x => x.id !== id); }
+  else { const arr = assocPlaced[from] || []; t = arr.find(x => x.id === id); if (!t) return; assocPlaced[from] = arr.filter(x => x.id !== id); }
+  if (to === 'bank') assocBank.push(t); else (assocPlaced[to] = assocPlaced[to] || []).push(t);
+  assocSel = null; drawAssoc();
+}
+document.addEventListener('dragstart', e => {
+  if (!assocActive()) return;
+  const tag = e.target.closest && e.target.closest('.as-tag[draggable]'); if (!tag) return;
+  const from = tag.dataset.back !== undefined ? tag.dataset.ci : 'bank', id = +(tag.dataset.back !== undefined ? tag.dataset.back : tag.dataset.id);
+  try { e.dataTransfer.setData('text', JSON.stringify({ id, from })); e.dataTransfer.effectAllowed = 'move'; } catch (x) {}
+  tag.style.opacity = '0.5';
+});
+document.addEventListener('dragover', e => {
+  if (!assocActive()) return;
+  const z = e.target.closest && e.target.closest('.as-case, #as-bank'); if (!z) return;
+  e.preventDefault();
+  document.querySelectorAll('.as-over').forEach(x => { if (x !== z) x.classList.remove('as-over'); });
+  z.classList.add('as-over');
+});
+document.addEventListener('drop', e => {
+  if (!assocActive()) return;
+  const z = e.target.closest && e.target.closest('.as-case, #as-bank'); if (!z) return;
+  e.preventDefault();
+  let d; try { d = JSON.parse(e.dataTransfer.getData('text')); } catch (x) { return; }
+  const to = z.id === 'as-bank' ? 'bank' : z.dataset.ci;
+  if (String(d.from) !== String(to)) assocMove(d.id, d.from, to);
+  else drawAssoc();
+});
+document.addEventListener('dragend', () => { document.querySelectorAll('.as-over').forEach(x => x.classList.remove('as-over')); if (assocActive()) drawAssoc(); });
+
 document.addEventListener('click', e => {
   if (!assocQ || session.validated || document.getElementById('q-qassoc-block').style.display === 'none') return;
   const back = e.target.closest('[data-back]');

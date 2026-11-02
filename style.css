@@ -600,3 +600,7 @@ footer p { font-size: 14px; color: var(--text-3); }
 .as-slot { flex:1; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; min-height:48px; border-radius:14px; background:var(--bg); padding:8px; border:2px dashed var(--border); }
 .as-ph { font-size:13px; font-weight:700; color:var(--text-3); align-self:center; margin:auto; }
 @media (max-width: 700px) { .as-cases { grid-template-columns:1fr; } }
+
+.as-tag[draggable=true] { cursor:grab; }
+.as-tag[draggable=true]:active { cursor:grabbing; }
+.as-over { border-color:var(--yellow) !important; box-shadow:0 0 0 4px var(--yellow-dim); }
