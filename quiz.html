@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
   <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
   <script src="qcm-ui.js"></script>
+  <script src="sync.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
   <script>
     window.addEventListener('touchmove', function() {}, {passive: false});
@@ -330,7 +331,7 @@ async function sbLoad() {
   } catch(e) { return null; }
 }
 
-function saveHistory() { localStorage.setItem('qcm_history', JSON.stringify(qcmHistory)); localforage.setItem('qcm_history', qcmHistory); }
+function saveHistory() { localStorage.setItem('qcm_history', JSON.stringify(qcmHistory)); localforage.setItem('qcm_history', qcmHistory); if (window.qcmSync) qcmSync.schedule(); }
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + id).classList.add('active');
@@ -345,7 +346,9 @@ let errorsOnly = false;
 function saveErrors() {
   try { localStorage.setItem(ERR_KEY, JSON.stringify(errorsStore)); } catch (e) {}
   try { localforage.setItem(ERR_KEY, errorsStore); } catch (e) {}
+  if (window.qcmSync) qcmSync.schedule();
 }
+const isErr = k => !!(errorsStore[k] && !errorsStore[k].cleared);
 function loadErrors() {
   let st = null;
   try { st = JSON.parse(localStorage.getItem(ERR_KEY) || 'null'); } catch (e) {}
@@ -368,16 +371,16 @@ function recordResult(q, pts) {
   if (pts === null || pts === undefined) return '';
   const k = qKey(q), e = errorsStore[k];
   let msg = '';
-  if (pts < 1) { errorsStore[k] = { streak: 0, t: Date.now() }; msg = 'Elle va dans Mes erreurs.'; }
-  else if (e) {
+  if (pts < 1) { errorsStore[k] = { streak: 0, cleared: false, t: Date.now() }; msg = 'Elle va dans Mes erreurs.'; }
+  else if (e && !e.cleared) {
     e.streak = (e.streak || 0) + 1;
-    if (e.streak >= ERR_CLEAR) { delete errorsStore[k]; msg = 'Validée : elle sort de Mes erreurs.'; }
+    if (e.streak >= ERR_CLEAR) { errorsStore[k] = { streak: 0, cleared: true, t: Date.now() }; msg = 'Validée : elle sort de Mes erreurs.'; }
     else { e.t = Date.now(); msg = 'Encore ' + (ERR_CLEAR - e.streak) + ' réussite' + (ERR_CLEAR - e.streak > 1 ? 's' : '') + ' d\'affilée pour la valider.'; }
   }
   saveErrors();
   return msg;
 }
-function errorCount() { return questions.filter(q => errorsStore[qKey(q)]).length; }
+function errorCount() { return questions.filter(q => isErr(qKey(q))).length; }
 function setScope(onlyErrors) {
   errorsOnly = onlyErrors;
   document.getElementById('scope-all').classList.toggle('active', !onlyErrors);
@@ -526,7 +529,7 @@ function getPool() {
   if (typeFilter === 'qcm') pool = pool.filter(q => !q.type || q.type === 'qcm');
   if (typeFilter === 'qroc') pool = pool.filter(q => q.type === 'qroc');
   if (typeFilter === 'qzone') pool = pool.filter(q => q.type === 'qzone');
-  if (errorsOnly) pool = pool.filter(q => errorsStore[qKey(q)]);
+  if (errorsOnly) pool = pool.filter(q => isErr(qKey(q)));
   return pool;
 }
 
@@ -1462,6 +1465,12 @@ async function init() {
   }
   errorsStore = loadErrors();
   renderHome();
+  window.addEventListener('qcm-synced', ev => {
+    if (!ev.detail.changed) return;
+    try { qcmHistory = JSON.parse(localStorage.getItem('qcm_history') || '[]'); } catch (e) {}
+    errorsStore = loadErrors();
+    try { updateSlider(); } catch (e) {}
+  });
   if (new URLSearchParams(location.search).get('errors') === '1') setScope(true);
 }
 init();

@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
   <script src="theme.js"></script>
   <script src="qcm-ui.js"></script>
+  <script src="sync.js"></script>
   <link rel="stylesheet" href="style.css">
   
   <style>
@@ -346,13 +347,16 @@ function fermerRevue(e, force) {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') fermerRevue(null, true); });
 
-function effacerHistorique() {
+async function effacerHistorique() {
   if (!confirm("Effacer tout l'historique ? Cette action est irréversible.")) return;
+  if (window.qcmSync && qcmSync.user()) await qcmSync.clearRemoteHistory();
   localStorage.removeItem('qcm_history');
+  try { if (window.localforage) localforage.removeItem('qcm_history'); } catch (e) {}
   window.location.reload();
 }
 
 render();
+window.addEventListener('qcm-synced', ev => { if (ev.detail.changed) location.reload(); });
 </script>
 </body>
 </html>

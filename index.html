@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
   <script src="theme.js"></script>
   <script src="qcm-ui.js"></script>
+  <script src="sync.js"></script>
   <link rel="stylesheet" href="style.css">
 <style>
 .home { max-width: 1180px; margin: 0 auto; padding: 20px 24px 48px; }
@@ -89,6 +90,7 @@
       <a class="nav-pill" href="historique.html">Historique</a>
       <a class="nav-pill" href="reglages.html">Réglages</a>
       <a class="nav-pill" href="pin.html">Ajouter</a>
+      <a class="nav-pill" id="auth-pill" href="login.html">Connexion</a>
     </div>
   </header>
 
@@ -186,7 +188,7 @@ function render(questions) {
 
   // Mes erreurs (même règle que quiz.html : sortie après 3 réussites d'affilée)
   let store = {}; try { store = JSON.parse(localStorage.getItem('qcm_errors') || '{}') || {}; } catch(e) {}
-  const nErr = questions.filter(q => store[qKey(q)]).length;
+  const nErr = questions.filter(q => store[qKey(q)] && !store[qKey(q)].cleared).length;
   const band = document.getElementById('errband');
   document.getElementById('err-icon').textContent = nErr;
   band.classList.toggle('none', nErr === 0);
@@ -213,6 +215,16 @@ function render(questions) {
     return '<a class="course" href="quiz.html" style="margin-bottom:10px"><div class="course-title">' + esc(t) + '</div><div class="bar"><div style="width:' + pct + '%"></div></div><div class="course-meta"><span>' + n + ' / ' + total[t] + ' vues</span><span>' + pct + ' %</span></div></a>';
   }).join('');
 }
+
+(function authPill() {
+  const p = document.getElementById('auth-pill'); if (!p) return;
+  const u = window.qcmSync && qcmSync.user();
+  if (u) {
+    p.textContent = 'Déconnexion (' + u + ')'; p.href = '#';
+    p.onclick = e => { e.preventDefault(); if (confirm('Te déconnecter ? Tes données restent enregistrées sur cet appareil et dans ton compte.')) { qcmSync.logout(); location.reload(); } };
+  }
+})();
+window.addEventListener('qcm-synced', ev => { if (ev.detail.changed) render(window.__questions || []); });
 
 (async () => {
   render([]);
