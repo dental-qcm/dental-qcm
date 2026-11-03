@@ -6,14 +6,14 @@
   <title>QCM — Annales</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
-  <script src="theme.js?v=20261103e"></script>
-  <link rel="stylesheet" href="style.css?v=20261103e">
+  <script src="theme.js?v=20261103f"></script>
+  <link rel="stylesheet" href="style.css?v=20261103f">
   
   <!-- POLYFILL MOBILE POUR LE GLISSER-DÉPOSER TACTILE -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
   <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
-  <script src="qcm-ui.js?v=20261103e"></script>
-  <script src="sync.js?v=20261103e"></script>
+  <script src="qcm-ui.js?v=20261103f"></script>
+  <script src="sync.js?v=20261103f"></script>
   <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
   <script>
     window.addEventListener('touchmove', function() {}, {passive: false});
@@ -73,101 +73,46 @@
 
 <!-- SCREEN: SÉLECTION -->
 <div class="screen active" id="screen-home">
-  <div class="container" style="padding-top:2.5rem; padding-bottom:3rem; max-width:900px;">
-    <div style="margin-bottom:2.5rem;">
-      <h1 style="font-size:2rem; margin-bottom:0.5rem;">Session de révision</h1>
-      <p style="color:var(--text-2); font-size:14px;">Configure ta session et lance le quiz.</p>
+  <div class="container" style="padding-top:2rem; padding-bottom:3rem; max-width:1240px;">
+    <div class="sel-head">
+      <div>
+        <h1 style="font-size:2rem; margin-bottom:0.25rem;">Session de révision</h1>
+        <p style="color:var(--text-2); font-size:14px; font-weight:700;" id="sel-sub">Descends dans tes cours : filière, UE, EC, puis les cours.</p>
+      </div>
+      <input type="search" id="sel-search" class="sel-search" placeholder="🔍 Rechercher un cours…" oninput="selRender()" autocomplete="off">
     </div>
-
-    <div style="margin-bottom:2rem;">
-      <div class="section-title">Chapitres</div>
-
-      <!-- DROPDOWN TRIGGER -->
-      <div id="chapters-trigger" onclick="toggleChapterDropdown()" style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-2); border:2px solid var(--border); border-radius:var(--radius); padding:10px 14px; cursor:pointer; transition:border-color 0.15s; user-select:none;" onmouseover="this.style.borderColor='var(--border-2)'" onmouseout="if(!document.getElementById('chapters-panel').classList.contains('open'))this.style.borderColor='var(--border)'">
-        <span id="chapters-trigger-label" style="font-size:14px; color:var(--text);">Tous les chapitres</span>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span id="chapters-badge" style="display:none; background:var(--yellow); color:var(--on-accent); border-radius:10px; font-size:11px; font-weight:800; padding:2px 7px;"></span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="chapters-chevron" style="color:var(--text-3); transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+    <div class="sel-layout">
+      <div class="sel-cols" id="sel-cols"></div>
+      <div class="sel-panel">
+        <div class="lab">Ta session</div>
+        <div class="sel-big"><span id="sum-n">0</span> <small>questions</small></div>
+        <div class="sel-subtxt" id="sum-sub">Tous les cours</div>
+        <div class="lab" style="margin-top:6px;">Type</div>
+        <div class="sel-chips">
+          <button class="tag-chip active" id="filter-all" onclick="setTypeFilter('all')">Tout</button>
+          <button class="tag-chip" id="filter-qcm" onclick="setTypeFilter('qcm')">QCM</button>
+          <button class="tag-chip" id="filter-qroc" onclick="setTypeFilter('qroc')">QROC</button>
+          <button class="tag-chip" id="filter-qzone" onclick="setTypeFilter('qzone')">QZone</button>
+          <button class="tag-chip" id="filter-qassoc" onclick="setTypeFilter('qassoc')">Assoc.</button>
         </div>
-      </div>
-
-      <!-- DROPDOWN PANEL -->
-      <div id="chapters-panel" style="display:none; background:var(--bg-2); border:2px solid var(--border); border-radius:var(--radius); margin-top:4px; overflow:hidden; position:relative; z-index:50;">
-        <!-- Search inside dropdown -->
-        <div style="display:flex; align-items:center; gap:8px; padding:9px 14px; border-bottom:1px solid var(--border);">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-3); flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="chapters-search" placeholder="Rechercher un chapitre…" oninput="filterChapterList()" style="background:none; border:none; outline:none; font-family:var(--font-body); font-size:13px; color:var(--text); width:100%; placeholder-color:var(--text-3);">
-          <button id="chapters-clear-search" onclick="clearChapterSearch(event)" style="display:none; background:none; border:none; color:var(--text-3); cursor:pointer; font-size:16px; line-height:1; padding:0 2px; font-family:var(--font-body);">×</button>
+        <div class="lab" style="margin-top:6px;">Questions</div>
+        <div class="sel-chips">
+          <button class="tag-chip active" id="scope-all" onclick="setScope(false)">Toutes</button>
+          <button class="tag-chip" id="scope-err" onclick="setScope(true)">Mes erreurs&nbsp;<span id="err-count" style="background:var(--red);color:#fff;border-radius:999px;padding:1px 9px;font-size:13px;font-weight:900;">0</span></button>
         </div>
-        <!-- Tout sélectionner / Désélectionner -->
-        <div id="chapters-select-all-row" style="display:flex; align-items:center; justify-content:space-between; padding:7px 14px; border-bottom:1px solid var(--border); background:var(--bg-3);">
-          <span style="font-size:12px; color:var(--text-3);">Sélection rapide</span>
-          <div style="display:flex; gap:10px;">
-            <button onclick="selectAllChapters(event)" style="font-size:12px; color:var(--yellow); background:none; border:none; cursor:pointer; font-family:var(--font-body); padding:0;">Tout sélectionner</button>
-            <button onclick="deselectAllChapters(event)" style="font-size:12px; color:var(--text-3); background:none; border:none; cursor:pointer; font-family:var(--font-body); padding:0;">Tout désélectionner</button>
-          </div>
+        <div class="count-block" style="margin:6px 0 0;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline;"><div class="lab">Nombre</div><div class="count-num"><span id="count-val">10</span> questions</div></div>
+          <div class="count-row"><input type="range" id="count-slider" min="1" max="20" value="10" step="1"></div>
         </div>
-        <!-- List of chapters -->
-        <div id="chapters-list" style="max-height:260px; overflow-y:auto;"></div>
-      </div>
-    </div>
-
-    <div style="margin-bottom:2rem;">
-      <div class="section-title">Type de questions</div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="tag-chip active" id="filter-all" onclick="setTypeFilter('all')">Tout</button>
-        <button class="tag-chip" id="filter-qcm" onclick="setTypeFilter('qcm')">QCM uniquement</button>
-        <button class="tag-chip" id="filter-qroc" onclick="setTypeFilter('qroc')">QROC uniquement</button>
-        <button class="tag-chip" id="filter-qzone" onclick="setTypeFilter('qzone')">Qzone uniquement</button>
-        <button class="tag-chip" id="filter-qassoc" onclick="setTypeFilter('qassoc')">Association uniquement</button>
-      </div>
-    </div>
-
-    <div style="margin-bottom:2rem;">
-      <div class="section-title">Questions</div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="tag-chip active" id="scope-all" onclick="setScope(false)">Toutes</button>
-        <button class="tag-chip" id="scope-err" onclick="setScope(true)">Mes erreurs&nbsp;<span id="err-count" style="background:var(--red);color:#fff;border-radius:999px;padding:1px 9px;font-size:13px;font-weight:900;">0</span></button>
-      </div>
-    </div>
-
-    <div class="count-block">
-      <div class="section-title">Nombre de questions</div>
-      <div class="count-row">
-        <input type="range" id="count-slider" min="1" max="20" value="10" step="1">
-        <div class="count-num"><span id="count-val">10</span> questions</div>
-      </div>
-    </div>
-
-    <div style="margin-top:1.5rem;">
-      <div class="section-title" style="margin-bottom:1rem;">Mode</div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
-        <div onclick="startSession('entrainement')" style="background:var(--bg-2); border:2px solid var(--border); border-bottom-width:6px; border-radius:24px; padding:1.5rem; cursor:pointer; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--yellow)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="font-size:1.75rem; margin-bottom:0.5rem;">📖</div>
-          <div style="font-size:17px; font-weight:800; color:var(--text); margin-bottom:4px;">Entraînement</div>
-          <div style="font-size:13px; color:var(--text-3); line-height:1.5; margin-bottom:1rem;">Correction après chaque question</div>
-          <div style="background:var(--yellow-dim); color:var(--yellow-text); font-size:13px; font-weight:800; padding:6px 14px; border-radius:12px; display:inline-block;">Lancer →</div>
+        <button class="btn-validate" style="width:100%;" onclick="startSession('entrainement')">Entraînement →</button>
+        <div class="sel-exam">
+          <button class="btn-validate sel-red" style="flex:1;" onclick="startSession('examen')">Examen →</button>
+          <select id="exam-duration" title="Durée de l'examen">
+            <option value="15">15 min</option><option value="20">20 min</option><option value="30" selected>30 min</option><option value="45">45 min</option><option value="60">1h</option><option value="90">1h30</option><option value="120">2h</option>
+          </select>
         </div>
-        <div style="background:var(--bg-2); border:2px solid var(--border); border-bottom-width:6px; border-radius:24px; padding:1.5rem; cursor:default; transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="font-size:1.75rem; margin-bottom:0.5rem;">⏱</div>
-          <div style="font-size:17px; font-weight:800; color:var(--text); margin-bottom:4px;">Examen</div>
-          <div style="font-size:13px; color:var(--text-3); line-height:1.5; margin-bottom:0.75rem;">Toutes les questions, correction à la fin</div>
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:1rem;">
-            <label style="font-size:12px; color:var(--text-3);">Durée :</label>
-            <select id="exam-duration" style="background:var(--bg-3); border:2px solid var(--border); color:var(--text); font-size:12px; padding:4px 8px; border-radius:12px; font-family:var(--font-body);">
-              <option value="15">15 min</option>
-              <option value="20">20 min</option>
-              <option value="30" selected>30 min</option>
-              <option value="45">45 min</option>
-              <option value="60">1h</option>
-              <option value="90">1h30</option>
-              <option value="120">2h</option>
-            </select>
-          </div>
-          <div onclick="startSession('examen')" style="background:var(--red-bg); color:var(--red-text); font-size:13px; font-weight:800; padding:6px 14px; border-radius:12px; display:inline-block; cursor:pointer;">Lancer →</div>
-        </div>
+        <button id="btn-start" style="display:none;"></button>
       </div>
-      <button id="btn-start" style="display:none;"></button>
     </div>
   </div>
 </div>
@@ -404,129 +349,117 @@ function setTypeFilter(type) {
   updateSlider();
 }
 
-let allTags = [];
+let allTags = [], selTree = [], selNav = { f: 0, u: 0, e: 0 }, selStats = {}, selErr = {}, selCnt = {};
+const selNat = (a, b) => String(a).localeCompare(String(b), 'fr', { numeric: true });
+const selCap = t => t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+const selEsc = x => String(x).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// « dentaire-UE1-EC1-nom du cours » → filière / UE / EC / cours ; le reste va dans « Autres »
+function selParse(tag) {
+  const m = String(tag).match(/^\s*([^-]+?)\s*-\s*(UE\s*\d+[^-]*?)\s*-\s*(EC\s*\d+[^-]*?)\s*(?:-\s*(.+))?$/i);
+  if (m) return { f: m[1], ue: m[2].replace(/\s+/g, '').toUpperCase(), ec: m[3].replace(/\s+/g, '').toUpperCase(), name: (m[4] || '').trim() || 'Général' };
+  return { f: 'Autres', ue: '', ec: '', name: String(tag) };
+}
+function selBuild() {
+  const fm = new Map();
+  allTags.forEach(tag => {
+    const p = selParse(tag), fk = p.f.toLowerCase();
+    if (!fm.has(fk)) fm.set(fk, { label: selCap(p.f), ues: new Map(), tags: [], flat: [] });
+    const F = fm.get(fk); F.tags.push(tag);
+    if (!p.ue) { F.flat.push({ tag, name: p.name }); return; }
+    if (!F.ues.has(p.ue)) F.ues.set(p.ue, { label: p.ue, ecs: new Map(), tags: [] });
+    const U = F.ues.get(p.ue); U.tags.push(tag);
+    if (!U.ecs.has(p.ec)) U.ecs.set(p.ec, { label: p.ec, items: [] });
+    U.ecs.get(p.ec).items.push({ tag, name: p.name });
+  });
+  selTree = [...fm.values()].sort((a, b) => a.label === 'Autres' ? 1 : b.label === 'Autres' ? -1 : selNat(a.label, b.label)).map(F => ({
+    label: F.label, tags: F.tags, flat: F.flat.sort((a, b) => selNat(a.name, b.name)),
+    ues: [...F.ues.values()].sort((a, b) => selNat(a.label, b.label)).map(U => ({
+      label: U.label, tags: U.tags,
+      ecs: [...U.ecs.values()].sort((a, b) => selNat(a.label, b.label)).map(E => ({ label: E.label, items: E.items.sort((a, b) => selNat(a.name, b.name)), tags: E.items.map(i => i.tag) }))
+    }))
+  }));
+  selCnt = {}; selErr = {};
+  questions.forEach(q => { if (!q.tag) return; selCnt[q.tag] = (selCnt[q.tag] || 0) + 1; if (isErr(qKey(q))) selErr[q.tag] = (selErr[q.tag] || 0) + 1; });
+  selStats = {};
+  try { qcmStats(questions, qcmHistory || []).forEach(x => selStats[x.t] = x); } catch (e) {}
+}
+const selN = tags => tags.reduce((n, t) => n + (selCnt[t] || 0), 0);
+function selState(tags) { const k = tags.filter(t => selectedTags.includes(t)).length; return k === 0 ? 'none' : (k === tags.length ? 'all' : 'some'); }
+function selTagsOf(lvl, path) {
+  const [i, j, k] = String(path).split('.').map(Number);
+  if (lvl === 'f') return selTree[i].tags;
+  if (lvl === 'u') return selTree[i].ues[j].tags;
+  if (lvl === 'e') return selTree[i].ues[j].ecs[k].tags;
+  return [decodeURIComponent(path)];
+}
+const selCb = st => '<span class="sel-cb ' + (st === 'none' ? '' : 'on') + '">' + (st === 'all' ? '✓' : st === 'some' ? '−' : '') + '</span>';
+function selRow(lvl, path, label, n, tags, focus, sub, arrow) {
+  const st = selState(tags);
+  return '<div class="sel-item' + (focus ? ' focus' : '') + (st !== 'none' ? ' picked' : '') + '" data-lvl="' + lvl + '" data-path="' + path + '"><span class="sel-cbw" data-toggle="1">' + selCb(st) + '</span><div class="sel-lab">' + selEsc(label) + (sub ? '<small>' + selEsc(sub) + '</small>' : '') + '</div><span class="sel-n">' + n + ' q.</span>' + (arrow ? '<span class="sel-arr">›</span>' : '') + '</div>';
+}
+const selPctColor = p => p === null || p === undefined ? 'var(--text-3)' : p >= 75 ? 'var(--green)' : p >= 50 ? 'var(--amber-text)' : 'var(--red)';
+function selCourse(tag, name, sub) {
+  const st = selState([tag]), s = selStats[tag], pct = s ? s.reu : null, err = selErr[tag] || 0, nw = s ? Math.max(0, s.total - s.seen) : (selCnt[tag] || 0);
+  return '<div class="sel-item course' + (st !== 'none' ? ' picked' : '') + '" data-lvl="c" data-path="' + encodeURIComponent(tag) + '"><span class="sel-cbw" data-toggle="1">' + selCb(st) + '</span><div class="sel-lab">' + selEsc(name) + (sub ? '<small>' + selEsc(sub) + '</small>' : '')
+    + '<div class="sel-bar"><div style="width:' + (pct || 0) + '%;background:' + selPctColor(pct) + '"></div></div>'
+    + '<div class="sel-meta">' + (selCnt[tag] || 0) + ' questions' + (err ? ' <span class="sel-badge red">' + err + ' à revoir</span>' : '') + (nw && s ? ' <span class="sel-badge blue">' + nw + ' non vues</span>' : '') + '</div></div>'
+    + '<span class="sel-pct" style="color:' + selPctColor(pct) + '">' + (pct === null || pct === undefined ? '–' : pct + ' %') + '</span></div>';
+}
+function selRender() {
+  const box = document.getElementById('sel-cols'); if (!box) return;
+  const term = (document.getElementById('sel-search').value || '').toLowerCase().trim();
+  if (!allTags.length) { box.innerHTML = '<div class="sel-empty">Aucune question pour le moment. Ajoute-en depuis « Ajouter ».</div>'; return; }
+  if (term) { // recherche : liste à plat de tous les cours qui correspondent
+    const hits = allTags.filter(t => t.toLowerCase().includes(term)).sort(selNat);
+    box.className = 'sel-cols search';
+    box.innerHTML = hits.length ? '<div class="sel-col" style="grid-column:1/-1"><div class="lab">' + hits.length + ' cours trouvé' + (hits.length > 1 ? 's' : '') + '</div>' + hits.map(t => { const p = selParse(t); return selCourse(t, p.name, p.f === 'Autres' ? '' : selCap(p.f) + ' › ' + p.ue + ' › ' + p.ec); }).join('') + '</div>'
+      : '<div class="sel-empty">Aucun cours ne correspond à « ' + selEsc(term) + ' ».</div>';
+    selSummary(); return;
+  }
+  selNav.f = Math.min(selNav.f, selTree.length - 1);
+  const F = selTree[selNav.f], hasUE = F.ues.length > 0;
+  if (hasUE) { selNav.u = Math.min(selNav.u, F.ues.length - 1); selNav.e = Math.min(selNav.e, F.ues[selNav.u].ecs.length - 1); }
+  box.className = 'sel-cols ' + (hasUE ? 'four' : 'two');
+  let h = '<div class="sel-col"><div class="lab">1 · Filière</div>' + selTree.map((f, i) => selRow('f', String(i), f.label, selN(f.tags), f.tags, i === selNav.f, f.label === 'Autres' ? 'tags sans UE / EC' : '', true)).join('') + '</div>';
+  if (hasUE) {
+    h += '<div class="sel-col"><div class="lab">2 · UE</div>' + F.ues.map((u, j) => selRow('u', selNav.f + '.' + j, u.label, selN(u.tags), u.tags, j === selNav.u, '', true)).join('') + '</div>';
+    const U = F.ues[selNav.u];
+    h += '<div class="sel-col"><div class="lab">3 · EC</div>' + U.ecs.map((e, k) => selRow('e', selNav.f + '.' + selNav.u + '.' + k, e.label, selN(e.tags), e.tags, k === selNav.e, '', true)).join('') + '</div>';
+    const E = U.ecs[selNav.e];
+    h += '<div class="sel-col wide"><div class="lab">4 · Cours</div>' + E.items.map(i => selCourse(i.tag, i.name, '')).join('') + '</div>';
+  } else {
+    h += '<div class="sel-col wide"><div class="lab">Cours</div>' + F.flat.map(i => selCourse(i.tag, i.name, '')).join('') + '</div>';
+  }
+  box.innerHTML = h;
+  selSummary();
+}
+function selSummary() {
+  const n = getPool().length, sub = document.getElementById('sum-sub'), tot = document.getElementById('sum-n');
+  if (!tot) return;
+  tot.textContent = n;
+  sub.textContent = !selectedTags.length ? 'Tous les cours' : selectedTags.length + ' cours sélectionné' + (selectedTags.length > 1 ? 's' : '');
+}
+document.addEventListener('click', e => {
+  const row = e.target.closest && e.target.closest('#sel-cols .sel-item'); if (!row) return;
+  const lvl = row.dataset.lvl, path = row.dataset.path;
+  if (e.target.closest('[data-toggle]') || lvl === 'c') { // case à cocher (ou clic sur un cours) : tout ce qui est dessous
+    const tags = selTagsOf(lvl, path), all = tags.every(t => selectedTags.includes(t));
+    selectedTags = all ? selectedTags.filter(t => !tags.includes(t)) : [...new Set([...selectedTags, ...tags])];
+  } else { // clic ailleurs : on descend dans ce dossier
+    const [i, j, k] = path.split('.').map(Number);
+    if (lvl === 'f') selNav = { f: i, u: 0, e: 0 };
+    if (lvl === 'u') selNav = { f: i, u: j, e: 0 };
+    if (lvl === 'e') selNav = { f: i, u: j, e: k };
+  }
+  selRender(); updateSlider();
+});
 
 function renderHome() {
   allTags = [...new Set(questions.map(q => q.tag).filter(Boolean))];
-  if (!allTags.length) {
-    document.getElementById('chapters-trigger-label').textContent = 'Aucune question disponible';
-    document.getElementById('btn-start').disabled = true;
-    return;
-  }
-  renderChapterList();
-  updateChapterTrigger();
-  updateSlider();
+  selectedTags = selectedTags.filter(t => allTags.includes(t));
+  if (!allTags.length) { document.getElementById('btn-start').disabled = true; }
+  selBuild(); selRender(); updateSlider();
 }
-
-function renderChapterList(filter) {
-  const list = document.getElementById('chapters-list');
-  list.innerHTML = '';
-  const searchVal = (filter !== undefined ? filter : (document.getElementById('chapters-search').value || '')).toLowerCase().trim();
-  const filtered = searchVal ? allTags.filter(t => t.toLowerCase().includes(searchVal)) : allTags;
-
-  if (!filtered.length) {
-    list.innerHTML = '<div style="padding:14px; font-size:13px; color:var(--text-3); text-align:center;">Aucun chapitre trouvé</div>';
-    return;
-  }
-
-  filtered.forEach(tag => {
-    const count = questions.filter(q => q.tag === tag).length;
-    const isSelected = selectedTags.includes(tag);
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex; align-items:center; gap:10px; padding:9px 14px; border-bottom:0.5px solid var(--border); cursor:pointer; transition:background 0.1s;';
-    row.onmouseover = () => row.style.background = 'var(--bg-3)';
-    row.onmouseout = () => row.style.background = '';
-    row.innerHTML = `
-      <div style="width:16px; height:16px; border-radius:3px; border:1px solid ${isSelected ? 'var(--yellow)' : 'var(--border-2)'}; background:${isSelected ? 'var(--yellow)' : 'transparent'}; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.1s;">
-        ${isSelected ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0d0d0d" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
-      </div>
-      <span style="font-size:13px; color:var(--text); flex:1;">${tag}</span>
-      <span style="font-size:11px; color:var(--text-3);">${count} q</span>`;
-    row.onclick = (e) => {
-      e.stopPropagation();
-      selectedTags = isSelected ? selectedTags.filter(t => t !== tag) : [...selectedTags, tag];
-      if (selectedTags.length === allTags.length) selectedTags = [];
-      renderChapterList();
-      updateChapterTrigger();
-      updateSlider();
-    };
-    list.appendChild(row);
-  });
-}
-
-function updateChapterTrigger() {
-  const label = document.getElementById('chapters-trigger-label');
-  const badge = document.getElementById('chapters-badge');
-  if (!selectedTags.length) {
-    label.textContent = 'Tous les chapitres';
-    badge.style.display = 'none';
-  } else {
-    label.textContent = selectedTags.length === 1 ? selectedTags[0] : selectedTags.length + ' chapitres sélectionnés';
-    badge.textContent = selectedTags.length;
-    badge.style.display = 'inline-block';
-  }
-}
-
-function toggleChapterDropdown() {
-  const panel = document.getElementById('chapters-panel');
-  const chevron = document.getElementById('chapters-chevron');
-  const trigger = document.getElementById('chapters-trigger');
-  const isOpen = panel.classList.contains('open');
-  if (isOpen) {
-    panel.style.display = 'none';
-    panel.classList.remove('open');
-    chevron.style.transform = '';
-    trigger.style.borderColor = 'var(--border)';
-  } else {
-    panel.style.display = 'block';
-    panel.classList.add('open');
-    chevron.style.transform = 'rotate(180deg)';
-    trigger.style.borderColor = 'var(--yellow)';
-    document.getElementById('chapters-search').focus();
-  }
-}
-
-function filterChapterList() {
-  const val = document.getElementById('chapters-search').value;
-  document.getElementById('chapters-clear-search').style.display = val ? 'block' : 'none';
-  renderChapterList(val);
-}
-
-function clearChapterSearch(e) {
-  e.stopPropagation();
-  document.getElementById('chapters-search').value = '';
-  document.getElementById('chapters-clear-search').style.display = 'none';
-  renderChapterList('');
-  document.getElementById('chapters-search').focus();
-}
-
-function selectAllChapters(e) {
-  e.stopPropagation();
-  selectedTags = [];
-  renderChapterList();
-  updateChapterTrigger();
-  updateSlider();
-}
-
-function deselectAllChapters(e) {
-  e.stopPropagation();
-  selectedTags = [];
-  renderChapterList();
-  updateChapterTrigger();
-  updateSlider();
-}
-
-// Fermer le dropdown en cliquant ailleurs
-document.addEventListener('click', function(e) {
-  const panel = document.getElementById('chapters-panel');
-  const trigger = document.getElementById('chapters-trigger');
-  if (panel && panel.classList.contains('open') && !panel.contains(e.target) && !trigger.contains(e.target)) {
-    panel.style.display = 'none';
-    panel.classList.remove('open');
-    document.getElementById('chapters-chevron').style.transform = '';
-    trigger.style.borderColor = 'var(--border)';
-  }
-});
 
 function getPool() {
   let pool = !selectedTags.length ? questions : questions.filter(q => selectedTags.includes(q.tag));
@@ -547,6 +480,7 @@ function updateSlider() {
   if (parseInt(slider.value) > max) slider.value = max;
   document.getElementById('count-val').textContent = slider.value;
   document.getElementById('btn-start').disabled = pool.length === 0;
+  if (typeof selSummary === 'function') selSummary();
 }
 
 document.getElementById('count-slider').oninput = function() {

@@ -684,3 +684,49 @@ footer p { font-size: 14px; color: var(--text-3); }
 
 /* le message d'aide passe sous l'image pour ne rien cacher */
 .qz-hint { position:static !important; transform:none !important; display:block; margin:12px auto 0; width:fit-content; max-width:100%; line-height:1.35; }
+
+
+/* ─── Écran de choix : filière › UE › EC › cours ─── */
+.sel-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:1.25rem; }
+.sel-search { width:300px; max-width:100%; height:48px; border-radius:16px; border:2px solid var(--border); background:var(--bg-2); padding:0 16px; font-size:15px; font-weight:800; color:var(--text); font-family:inherit; }
+.sel-search:focus { outline:none; border-color:var(--yellow); }
+.sel-layout { display:flex; gap:20px; align-items:flex-start; }
+.sel-cols { flex:1; min-width:0; display:grid; gap:12px; align-items:start; }
+.sel-cols.four { grid-template-columns: minmax(0,1fr) minmax(0,.8fr) minmax(0,.8fr) minmax(0,1.6fr); }
+.sel-cols.two { grid-template-columns: minmax(0,1fr) minmax(0,2fr); }
+.sel-cols.search { grid-template-columns: 1fr; }
+.sel-col { display:flex; flex-direction:column; gap:8px; min-width:0; }
+.sel-col .lab { font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); margin-bottom:2px; }
+.sel-item { display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:14px; background:var(--bg-2); border:2px solid var(--border); border-bottom-width:4px; font-weight:800; font-size:15px; color:var(--text); cursor:pointer; }
+.sel-item:hover { border-color:var(--border-2); }
+.sel-item.focus { border-color:var(--blue); background:var(--blue-bg); color:var(--blue); }
+.sel-item.picked { border-color:var(--yellow); background:var(--yellow-dim); color:var(--text); }
+.sel-item.focus.picked { border-color:var(--blue); }
+.sel-cbw { display:flex; padding:6px; margin:-6px; }
+.sel-cb { width:22px; height:22px; border-radius:7px; border:2.5px solid var(--border-2); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; color:var(--on-accent); flex:none; background:var(--bg-2); }
+.sel-cb.on { background:var(--yellow); border-color:var(--accent-deep); }
+.sel-lab { flex:1; min-width:0; line-height:1.25; word-break:break-word; }
+.sel-lab small { display:block; font-size:12px; color:var(--text-3); font-weight:700; }
+.sel-n { margin-left:auto; font-size:12px; font-weight:800; color:var(--text-3); white-space:nowrap; }
+.sel-arr { font-weight:900; color:var(--text-3); }
+.sel-item.course { align-items:flex-start; }
+.sel-bar { height:7px; border-radius:999px; background:var(--border); overflow:hidden; margin-top:7px; }
+.sel-bar > div { height:100%; border-radius:999px; }
+.sel-meta { font-size:12px; font-weight:800; color:var(--text-3); margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.sel-badge { padding:2px 8px; border-radius:999px; font-weight:900; font-size:11px; }
+.sel-badge.red { background:var(--red-bg); color:var(--red-text); } .sel-badge.blue { background:var(--blue-bg); color:var(--blue); }
+.sel-pct { font-weight:900; font-size:14px; white-space:nowrap; }
+.sel-empty { padding:24px; font-weight:700; color:var(--text-3); }
+.sel-panel { width:300px; flex:none; position:sticky; top:70px; background:var(--bg-2); border:2px solid var(--border); border-bottom-width:6px; border-radius:24px; padding:18px; display:flex; flex-direction:column; gap:12px; }
+.sel-panel .lab { font-size:12px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; color:var(--text-3); }
+.sel-big { font-weight:900; font-size:34px; line-height:1.1; } .sel-big small { font-size:16px; color:var(--text-3); font-weight:800; }
+.sel-subtxt { font-size:14px; font-weight:700; color:var(--text-3); margin-top:-6px; }
+.sel-chips { display:flex; gap:6px; flex-wrap:wrap; }
+.sel-exam { display:flex; gap:8px; align-items:center; }
+.sel-exam select { height:52px; border-radius:16px; border:2px solid var(--border); background:var(--bg); color:var(--text); font-weight:800; font-size:14px; padding:0 8px; font-family:inherit; }
+.btn-validate.sel-red { background:var(--red); box-shadow:0 5px 0 #8a1c1c; color:#fff; padding:0 12px; }
+@media (max-width: 900px) {
+  .sel-layout { flex-direction:column; } .sel-panel { width:100%; position:static; box-sizing:border-box; }
+  .sel-cols.four, .sel-cols.two { grid-template-columns:1fr 1fr; } .sel-col.wide { grid-column:1 / -1; }
+}
+@media (max-width: 520px) { .sel-cols.four, .sel-cols.two { grid-template-columns:1fr; } }
