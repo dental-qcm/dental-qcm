@@ -156,16 +156,18 @@ window.qcmStatColor = function (r) { return r === null ? 'var(--border-2)' : r >
     return { ok: ok, n: n, total: groups.length, pts: groups.length ? parseFloat((n / groups.length).toFixed(3)) : 0 };
   };
   // Calque de correction : zones attendues (pointillés si raté) + repères verts / rouges
-  window.qzoneLayersHTML = function (groups, pins, ok, W) {
+  window.qzoneLayersHTML = function (groups, pins, ok, W, opts) {
+    var noLab = opts && opts.noLabels;
     var h = '';
     groups.forEach(function (g, gi) {
       (g.points || []).forEach(function (pt) {
+        if (ok && ok[gi]) return; // zone discrète : on n'affiche la zone attendue que pour les erreurs
         var wPct = 2 * (Math.max(18, pt.r || 20) / (W || 500)) * 1.8 * 100;
         h += '<div class="qz-zone ' + (ok && ok[gi] ? 'ok' : 'miss') + '" style="left:' + pt.x * 100 + '%;top:' + pt.y * 100 + '%;width:' + wPct + '%"></div>';
       });
-      if (!(ok && ok[gi]) && g.points && g.points[0]) h += '<div class="qz-zlab" style="left:' + g.points[0].x * 100 + '%;top:' + g.points[0].y * 100 + '%">' + esc(g.name) + '</div>';
+      if (!noLab && !(ok && ok[gi]) && g.points && g.points[0]) h += '<div class="qz-zlab" style="left:' + g.points[0].x * 100 + '%;top:' + g.points[0].y * 100 + '%">' + esc(g.name) + '</div>';
       var p = pins && pins[gi];
-      if (p) h += '<div class="qz-pin ' + (ok && ok[gi] ? 'ok' : 'ko') + (p.x > 0.62 ? ' flip' : '') + '" style="left:' + p.x * 100 + '%;top:' + p.y * 100 + '%"><div class="ring"></div><div class="lab">' + esc(g.name) + '</div></div>';
+      if (p) h += '<div class="qz-pin ' + (ok && ok[gi] ? 'ok' : 'ko') + (p.x > 0.62 ? ' flip' : '') + '" style="left:' + p.x * 100 + '%;top:' + p.y * 100 + '%"><div class="ring"></div>' + (noLab ? '' : '<div class="lab">' + esc(g.name) + '</div>') + '</div>';
     });
     return h;
   };

@@ -6,14 +6,14 @@
   <title>QCM — Annales</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
-  <script src="theme.js?v=20261103b"></script>
-  <link rel="stylesheet" href="style.css?v=20261103b">
+  <script src="theme.js?v=20261103e"></script>
+  <link rel="stylesheet" href="style.css?v=20261103e">
   
   <!-- POLYFILL MOBILE POUR LE GLISSER-DÉPOSER TACTILE -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
   <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
-  <script src="qcm-ui.js?v=20261103b"></script>
-  <script src="sync.js?v=20261103b"></script>
+  <script src="qcm-ui.js?v=20261103e"></script>
+  <script src="sync.js?v=20261103e"></script>
   <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
   <script>
     window.addEventListener('touchmove', function() {}, {passive: false});
@@ -650,9 +650,9 @@ function renderQzone(q, saved) {
   qzPins = {}; qzSel = null; qzDone = false; qzDrag = null; qzV = { s: 1, tx: 0, ty: 0 };
   qzEl('qz-note').textContent = '';
   const wrap = qzEl('qzone-img-container');
-  wrap.innerHTML = '<div class="qz-view" id="qz-view"><div class="qz-stage" id="qz-stage"><img id="qz-img" alt=""><div id="qz-layer"></div></div>'
+  wrap.innerHTML = '<div class="qz-wrap" id="qz-wrap"><div class="qz-gut" id="qz-gl"></div><div class="qz-view" id="qz-view"><div class="qz-stage" id="qz-stage"><img id="qz-img" alt=""><div id="qz-layer"></div></div>'
     + '<div class="qz-tools"><button class="qz-tb" type="button" id="qz-zin" title="Zoom avant">＋</button><button class="qz-tb" type="button" id="qz-zout" title="Zoom arrière">－</button><button class="qz-tb" type="button" id="qz-zreset" title="Recentrer" style="font-size:16px;">⟲</button></div>'
-    + '<div class="qz-hint" id="qz-hint"></div></div>';
+    + '</div><div class="qz-gut" id="qz-gr"></div><svg class="qz-lines" id="qz-lines"></svg></div><div class="qz-hint" id="qz-hint"></div>';
   const view = qzEl('qz-view');
   qzEl('qz-zin').onclick = () => qzZoom(1.5);
   qzEl('qz-zout').onclick = () => qzZoom(1 / 1.5);
@@ -661,7 +661,8 @@ function renderQzone(q, saved) {
   view.addEventListener('pointerdown', qzViewDown);
   view.addEventListener('pointermove', qzViewMove);
   view.addEventListener('pointerup', qzViewUp);
-  view.addEventListener('pointercancel', () => { qzDrag = null; qzTap = null; qzDrawPins(); });
+  view.addEventListener('pointercancel', () => { if (qzDrag) { qzPins[qzDrag.gi] = qzDrag.orig; } qzDrag = null; qzTap = null; qzDrawPins(); });
+  if (!window.__qzResize) { window.__qzResize = true; window.addEventListener('resize', () => { if (qzEl('qz-wrap')) { qzApply(); if (qzDone) qzShowLayers(); else qzDrawPins(); qzDrawLabels(); } }); }
   view.addEventListener('pointerleave', () => { const c = qzEl('qz-cross'); if (c) c.remove(); });
   const img = qzEl('qz-img');
   if (saved && saved.pins) {
@@ -681,6 +682,7 @@ function qzApply() {
   st.style.transform = 'translate(' + qzV.tx + 'px,' + qzV.ty + 'px) scale(' + qzV.s + ')';
   st.style.setProperty('--inv', String(1 / qzV.s));
   v.style.touchAction = qzV.s > 1 ? 'none' : 'pan-y';
+  qzLayout();
 }
 function qzZoom(f, cx, cy) {
   const v = qzEl('qz-view'); if (!v) return;
@@ -707,6 +709,54 @@ function qzHint() {
     : (qzNarrow() ? 'Choisis une étiquette, puis touche l\'image.' : 'Choisis une étiquette à droite, puis touche l\'image. Glisse un repère pour l\'ajuster ou jusqu\'aux étiquettes pour le reprendre.');
 }
 
+const qzGut = () => !qzNarrow() && window.innerWidth >= 1000;
+let qzAns = null;
+function qzItems() { // ce qui doit recevoir un nom à côté de l'image
+  const items = [];
+  if (qzDone && qzAns) {
+    qzGroups.forEach((g, gi) => {
+      const ok = qzAns.ok[gi], p = qzPins[gi];
+      if (p) items.push({ x: p.x, y: p.y, text: g.name, cls: ok ? 'ok' : 'ko' });
+      if (!ok && g.points && g.points[0]) items.push({ x: g.points[0].x, y: g.points[0].y, text: g.name, cls: 'miss' });
+    });
+  } else {
+    Object.keys(qzPins).forEach(gi => items.push({ x: qzPins[gi].x, y: qzPins[gi].y, text: (qzOrder.indexOf(+gi) + 1) + ' · ' + qzGroups[gi].name, cls: qzSel === +gi ? 'sel' : '' }));
+  }
+  return items;
+}
+function qzLayout() {
+  const wrap = qzEl('qz-wrap'), view = qzEl('qz-view'), st = qzEl('qz-stage'), gl = qzEl('qz-gl'), gr = qzEl('qz-gr'), svg = qzEl('qz-lines');
+  if (!wrap || !view || !st) return;
+  const on = qzGut(); wrap.classList.toggle('gut', on);
+  gl.innerHTML = ''; gr.innerHTML = ''; svg.innerHTML = '';
+  if (!on) return;
+  const wr = wrap.getBoundingClientRect(), vr = view.getBoundingClientRect(), sr = st.getBoundingClientRect();
+  const items = qzItems().map(it => Object.assign(it, { cx: sr.left + it.x * sr.width, cy: sr.top + it.y * sr.height }))
+    .filter(it => it.cx >= vr.left - 1 && it.cx <= vr.right + 1 && it.cy >= vr.top - 1 && it.cy <= vr.bottom + 1);
+  const sides = { l: [], r: [] };
+  items.forEach(it => sides[(it.cx - vr.left) < vr.width / 2 ? 'l' : 'r'].push(it));
+  let lines = '';
+  ['l', 'r'].forEach(sd => {
+    const gut = sd === 'l' ? gl : gr, arr = sides[sd].sort((a, b) => a.cy - b.cy);
+    arr.forEach(it => { const d = document.createElement('div'); d.className = 'qz-gl ' + it.cls; d.textContent = it.text; gut.appendChild(d); it.el = d; it.h = d.offsetHeight; });
+    const gh = gut.clientHeight; let prev = -1e9;
+    arr.forEach(it => { it.top = Math.max(it.cy - vr.top - it.h / 2, prev + 4); prev = it.top + it.h; });
+    if (arr.length && prev > gh) {
+      let lim = gh;
+      for (let i = arr.length - 1; i >= 0; i--) { arr[i].top = Math.min(arr[i].top, lim - arr[i].h); lim = arr[i].top - 4; }
+      if (arr[0].top < 0) { let p2 = -1e9; arr.forEach(it => { it.top = Math.max(it.top < 0 ? 0 : it.top, p2 + 4); p2 = it.top + it.h; }); }
+    }
+    const gR = gut.getBoundingClientRect();
+    arr.forEach(it => {
+      it.el.style.top = it.top + 'px';
+      const x1 = it.cx - wr.left, y1 = it.cy - wr.top, x2 = (sd === 'r' ? gR.left + 6 : gR.right - 6) - wr.left, y2 = vr.top - wr.top + it.top + it.h / 2;
+      const col = it.cls === 'ok' ? 'var(--green)' : it.cls === 'ko' ? 'var(--red)' : it.cls === 'miss' ? 'var(--amber-text)' : it.cls === 'sel' ? 'var(--yellow)' : 'var(--text)';
+      lines += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" style="stroke:#fff;stroke-width:4.5;stroke-linecap:round;opacity:.9"/><line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" style="stroke:' + col + ';stroke-width:2;stroke-linecap:round' + (it.cls === 'miss' ? ';stroke-dasharray:5 4' : '') + '"/>';
+    });
+  });
+  svg.innerHTML = lines;
+}
+
 function qzDrawLabels() {
   qzClearSlots();
   if (qzDone) return;
@@ -720,7 +770,8 @@ function qzDrawLabels() {
 }
 function qzDrawPins() {
   const layer = qzEl('qz-layer'); if (!layer || qzDone) return;
-  layer.innerHTML = Object.keys(qzPins).map(gi => '<div class="qz-pin' + (qzSel === +gi ? ' sel' : '') + (qzPins[gi].x > 0.62 ? ' flip' : '') + '" data-gi="' + gi + '" style="left:' + qzPins[gi].x * 100 + '%;top:' + qzPins[gi].y * 100 + '%"><div class="hit"></div><div class="ring"></div><div class="lab">' + (qzOrder.indexOf(+gi) + 1) + ' · ' + qzEsc(qzGroups[gi].name) + '</div></div>').join('');
+  setTimeout(qzLayout, 0);
+  layer.innerHTML = Object.keys(qzPins).map(gi => '<div class="qz-pin' + (qzSel === +gi ? ' sel' : '') + (qzPins[gi].x > 0.62 ? ' flip' : '') + '" data-gi="' + gi + '" style="left:' + qzPins[gi].x * 100 + '%;top:' + qzPins[gi].y * 100 + '%"><div class="hit"></div><div class="ring"></div>' + (qzGut() ? '' : '<div class="lab">' + (qzOrder.indexOf(+gi) + 1) + ' · ' + qzEsc(qzGroups[gi].name) + '</div>') + '</div>').join('');
 }
 
 // Étiquette de la liste : clic = la prendre ; glisser = la poser directement sur l'image
@@ -773,6 +824,7 @@ function qzViewMove(e) {
       const p = qzPoint({ clientX: e.clientX + qzDrag.offX, clientY: e.clientY + qzDrag.offY });
       qzDrag.el.style.left = Math.min(1, Math.max(0, p.x)) * 100 + '%'; qzDrag.el.style.top = Math.min(1, Math.max(0, p.y)) * 100 + '%';
       qzDrag.el.classList.toggle('flip', p.x > 0.62);
+      qzPins[qzDrag.gi] = { x: Math.min(1, Math.max(0, p.x)), y: Math.min(1, Math.max(0, p.y)) }; qzLayout();
       const pn = qzEl('qz-labels'), over = qzOverPanel(e); if (pn) pn.classList.toggle('drop', over);
       if (pn && over && !pn.querySelector('.qz-drop')) pn.insertAdjacentHTML('afterbegin', '<div class="qz-drop">↓ Lâche ici pour reprendre le repère</div>');
       if (pn && !over) { const d = pn.querySelector('.qz-drop'); if (d) d.remove(); }
@@ -806,11 +858,17 @@ function qzBanner(q, ans, note) {
   const cls = n === total ? '' : (n > 0 ? 'partial' : 'err'), title = n === total ? 'Bravo !' : (n > 0 ? 'Presque !' : 'Raté');
   return '<div class="corr-banner ' + cls + '" style="margin:0 0 12px;"><div><div class="t">' + title + '</div></div><div class="s">' + n + ' / ' + total + ' bien placé' + (n > 1 ? 's' : '') + '.' + (note ? '<br>' + note : '') + '</div></div>';
 }
+function qzShowLayers() {
+  const layer = qzEl('qz-layer'); if (!layer || !qzAns) return;
+  layer.innerHTML = qzoneLayersHTML(qzGroups, qzPins, qzAns.ok, qzAns.W, { noLabels: qzGut() });
+  qzLayout();
+}
 function qzShowCorrection(q, ans, note) {
   qzDone = true; qzSel = null;
   const layer = qzEl('qz-layer'); if (!layer) return;
   const ok = ans.ok || qzoneScore(qzGroups, ans.pins, ans.W).ok;
-  layer.innerHTML = qzoneLayersHTML(qzGroups, ans.pins, ok, ans.W);
+  qzPins = ans.pins; qzAns = { ok, W: ans.W };
+  qzShowLayers();
   qzHint(); qzClearSlots();
   const slot = qzSlot(); if (slot) slot.innerHTML = qzBanner(q, { ok }, note);
   qzEl('qz-note').textContent = 'Vert : bien placé · Rouge : mal placé · Pointillés : la zone attendue.';
