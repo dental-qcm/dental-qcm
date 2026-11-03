@@ -310,12 +310,12 @@ function setEditType(type) {
 }
 
 // ─── IMAGE HANDLING ───
-function compressImage(file, callback) {
+function compressImage(file, callback, maxSide, quality) {
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
     img.onload = () => {
-      const MAX = 800;
+      const MAX = maxSide || 800;
       let w = img.width, h = img.height;
       if (w > MAX || h > MAX) {
         const ratio = MAX / Math.max(w, h);
@@ -325,7 +325,7 @@ function compressImage(file, callback) {
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      callback(canvas.toDataURL('image/jpeg', 0.75));
+      callback(canvas.toDataURL('image/jpeg', quality || 0.75));
     };
     img.src = e.target.result;
   };
@@ -684,7 +684,7 @@ function loadQzoneImg(event) {
       }, 100);
     };
     img.src = data;
-  });
+  }, 1400, 0.8);
 }
 
 function setupCanvasEvents(canvas) {

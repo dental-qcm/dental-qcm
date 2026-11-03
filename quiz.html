@@ -211,14 +211,9 @@
           <textarea id="qroc-input" rows="3" placeholder="Ta réponse…" style="width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:12px; font-family:var(--font-body); font-size:14px; color:var(--text); background:var(--bg-2); resize:vertical; margin-bottom:1rem;"></textarea>
         </div>
         <div id="q-qzone-block" style="display:none;">
-          <div class="q-note" style="margin-bottom:1rem;">Glisse chaque étiquette sur la bonne zone</div>
-          <div style="display:flex; gap:1.5rem; align-items:flex-start; flex-wrap:wrap; margin-bottom:1.5rem;">
-            <div id="qzone-img-container" style="flex:1 1 100%; min-width:280px;"></div>
-            <div style="flex:1 1 100%;">
-              <div style="font-size:11px; color:var(--text-3); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.75rem;">Étiquettes</div>
-              <div id="qzone-play-tags" style="display:flex; flex-direction:column; gap:8px;"></div>
-            </div>
-          </div>
+          <div class="q-note" id="qz-note" style="margin-bottom:1rem;"></div>
+          <div id="qz-slot-main"></div>
+          <div id="qzone-img-container"></div>
         </div>
         <div id="q-qassoc-block" style="display:none;">
           <div class="q-note" style="margin-bottom:1rem;">Clique sur une étiquette pour la prendre, puis sur la case où la poser. Clique sur une étiquette posée pour la reprendre.</div>
@@ -243,9 +238,12 @@
       </div>
     </div>
     <!-- PANNEAU LATÉRAL DROITE -->
-    <div id="side-panel" style="width:220px; flex-shrink:0; border-left:1px solid var(--border); background:var(--bg-2); padding:1.5rem; overflow-y:auto; max-height:calc(100vh - 50px); position:sticky; top:50px; display:block;">
-      <div style="font-size:11px; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1.25rem;">Navigation</div>
-      <div id="side-list"></div>
+    <div id="side-panel" style="width:220px; flex-shrink:0; border-left:1px solid var(--border); background:var(--bg-2); padding:1.5rem; overflow:hidden; max-height:calc(100vh - 50px); position:sticky; top:50px;">
+      <div id="qz-slot-side"></div>
+      <div class="nav-box" id="nav-box">
+        <div style="font-size:11px; font-weight:800; color:var(--text-3); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1.25rem;">Navigation</div>
+        <div id="side-list"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -636,268 +634,179 @@ function getGroups(q) {
   return [];
 }
 
-function renderQzone(q) {
+// ─── QZONE : on prend une étiquette, on la pose sur l'image (repère), on peut le glisser / le ramener à droite ───
+let qzGroups = [], qzOrder = [], qzPins = {}, qzSel = null, qzV = { s: 1, tx: 0, ty: 0 }, qzDone = false, qzDrag = null, qzTap = null;
+const qzEsc = x => String(x).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const qzNarrow = () => window.matchMedia('(max-width: 760px)').matches;
+const qzEl = id => document.getElementById(id);
+
+function qzSlot() { return qzEl(qzNarrow() ? 'qz-slot-main' : 'qz-slot-side'); }
+function qzClearSlots() { ['qz-slot-main', 'qz-slot-side'].forEach(id => { const e = qzEl(id); if (e) e.innerHTML = ''; }); const sp = qzEl('side-panel'); if (sp && !qzNarrow()) sp.style.width = '220px'; }
+
+function renderQzone(q, saved) {
   qzoneCurrentQ = q;
-  qzonePlacedAnswers = {};
-  const groups = getGroups(q);
-
-  // Build image container
-  const wrap = document.getElementById('qzone-img-container');
-  wrap.innerHTML = '';
-  wrap.style.cssText = 'position:relative; display:inline-block; max-width:100%;';
-
-  const img = document.createElement('img');
-  img.style.cssText = 'display:block; width:100%; max-height:600px; object-fit:contain; border-radius:12px; border:2px solid var(--border); user-select:none;';
-  wrap.appendChild(img);
-
-  const canvas = document.createElement('canvas');
-  canvas.id = 'qzone-overlay';
-  canvas.style.cssText = 'position:absolute; top:0; left:0; pointer-events:none;';
-  wrap.appendChild(canvas);
-
-  const dropOverlay = document.createElement('div');
-  dropOverlay.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; touch-action:none;';
-  dropOverlay.ondragover = e => e.preventDefault();
-  // Store exact drop positions for canvas drawing
-  window.qzoneDropPos = {};
-
-  dropOverlay.ondrop = e => {
-    e.preventDefault();
-    const name = e.dataTransfer.getData('text');
-    if (!name) return;
-    const rect = dropOverlay.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) / rect.width;
-    const my = (e.clientY - rect.top) / rect.height;
-    // Find which group this name belongs to
-    let nameGi = null;
-    groups.forEach((g, gi) => { if (g.name === name) nameGi = gi; });
-    if (nameGi === null) return;
-    // Remove old placement of this name
-    Object.keys(qzonePlacedAnswers).forEach(k => { if (qzonePlacedAnswers[k] === name) { delete qzonePlacedAnswers[k]; delete window.qzoneDropPos[k]; } });
-    qzonePlacedAnswers[nameGi] = name;
-    window.qzoneDropPos[nameGi] = { x: mx, y: my };
-    updateTagsPlaced(groups);
-    drawQzoneLive(groups, canvas);
-  };
-  wrap.appendChild(dropOverlay);
-
-  // LA MAGIE RESPONSIVE EST ICI : ResizeObserver
-  img.onload = function() {
-    const ro = new ResizeObserver(() => {
-      canvas.width = img.offsetWidth;
-      canvas.height = img.offsetHeight;
-      canvas.style.width = img.offsetWidth + 'px';
-      canvas.style.height = img.offsetHeight + 'px';
-      // Redessine au bon endroit au pixel près à chaque redimensionnement
-      if (session.validated) {
-        drawQzoneOverlay(groups, true);
-      } else {
-        drawQzoneLive(groups, canvas);
-      }
-    });
-    ro.observe(img);
-  };
+  qzGroups = getGroups(q);
+  qzOrder = shuffle(qzGroups.map((g, i) => i));
+  qzPins = {}; qzSel = null; qzDone = false; qzDrag = null; qzV = { s: 1, tx: 0, ty: 0 };
+  qzEl('qz-note').textContent = '';
+  const wrap = qzEl('qzone-img-container');
+  wrap.innerHTML = '<div class="qz-view" id="qz-view"><div class="qz-stage" id="qz-stage"><img id="qz-img" alt=""><div id="qz-layer"></div></div>'
+    + '<div class="qz-tools"><button class="qz-tb" type="button" id="qz-zin" title="Zoom avant">＋</button><button class="qz-tb" type="button" id="qz-zout" title="Zoom arrière">－</button><button class="qz-tb" type="button" id="qz-zreset" title="Recentrer" style="font-size:16px;">⟲</button></div>'
+    + '<div class="qz-hint" id="qz-hint"></div></div>';
+  const view = qzEl('qz-view');
+  qzEl('qz-zin').onclick = () => qzZoom(1.5);
+  qzEl('qz-zout').onclick = () => qzZoom(1 / 1.5);
+  qzEl('qz-zreset').onclick = () => { qzV = { s: 1, tx: 0, ty: 0 }; qzApply(); };
+  view.addEventListener('wheel', e => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); const r = view.getBoundingClientRect(); qzZoom(Math.exp(-e.deltaY * 0.01), e.clientX - r.left, e.clientY - r.top); } }, { passive: false });
+  view.addEventListener('pointerdown', qzViewDown);
+  view.addEventListener('pointermove', qzViewMove);
+  view.addEventListener('pointerup', qzViewUp);
+  view.addEventListener('pointercancel', () => { qzDrag = null; qzTap = null; qzDrawPins(); });
+  const img = qzEl('qz-img');
+  if (saved && saved.pins) {
+    img.onload = () => qzShowCorrection(q, saved);
+  } else {
+    img.onload = () => { qzDrawLabels(); qzDrawPins(); qzHint(); };
+  }
   img.src = q.image;
-
-  // Build tags - shuffled, always visible
-  const tagsEl = document.getElementById('qzone-play-tags');
-  tagsEl.innerHTML = '';
-  const shuffled = [...groups].sort(() => Math.random() - 0.5);
-  shuffled.forEach(g => {
-    const origIdx = groups.indexOf(g);
-    const c = QZONE_COLORS[origIdx % QZONE_COLORS.length];
-    const tag = document.createElement('div');
-    tag.className = 'qzone-tag';
-    tag.style.borderColor = c.stroke;
-    tag.style.borderLeftWidth = '4px';
-    tag.style.borderLeftColor = c.stroke;
-    tag.style.touchAction = 'none'; // Empêche le défilement sur mobile pendant le glissement
-    tag.id = 'qtag-' + origIdx;
-    tag.innerHTML = '<svg width="13" height="17" viewBox="0 0 13 17" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><polygon points="1,1 1,14 4,10 6.5,16 8.5,15.2 6,9.5 10,9.5" fill="#e8ff00" stroke="#000" stroke-width="1" stroke-linejoin="round"/></svg><span style="flex:1;">' + g.name + '</span>';
-    tag.draggable = true;
-    tag.dataset.name = g.name;
-    tag.ondragstart = e => {
-      // Clear old placement from both dictionaries
-      Object.keys(qzonePlacedAnswers).forEach(k => {
-        if (qzonePlacedAnswers[k] === g.name) {
-          delete qzonePlacedAnswers[k];
-          if (window.qzoneDropPos) delete window.qzoneDropPos[k];
-        }
-      });
-      tag.style.borderStyle = 'solid';
-      tag.style.borderColor = c.stroke;
-      e.dataTransfer.setData('text', g.name);
-      // Redraw to remove old label from canvas
-      const cv = document.getElementById('qzone-overlay');
-      if (cv) drawQzoneLive(groups, cv);
-    };
-    tagsEl.appendChild(tag);
-  });
+  if (saved && saved.pins) { qzPins = saved.pins; qzClearSlots(); } else { qzDrawLabels(); qzHint(); }
 }
 
+function qzApply() {
+  const st = qzEl('qz-stage'), v = qzEl('qz-view'); if (!st || !v) return;
+  const w = v.clientWidth, h = v.clientHeight;
+  qzV.tx = Math.min(0, Math.max(w - w * qzV.s, qzV.tx));
+  qzV.ty = Math.min(0, Math.max(h - h * qzV.s, qzV.ty));
+  st.style.transform = 'translate(' + qzV.tx + 'px,' + qzV.ty + 'px) scale(' + qzV.s + ')';
+  st.style.setProperty('--inv', String(1 / qzV.s));
+  v.style.touchAction = qzV.s > 1 ? 'none' : 'pan-y';
+}
+function qzZoom(f, cx, cy) {
+  const v = qzEl('qz-view'); if (!v) return;
+  const s2 = Math.min(4, Math.max(1, qzV.s * f)); if (s2 === qzV.s) return;
+  const px = cx !== undefined ? cx : v.clientWidth / 2, py = cy !== undefined ? cy : v.clientHeight / 2;
+  qzV.tx = px - (px - qzV.tx) * (s2 / qzV.s);
+  qzV.ty = py - (py - qzV.ty) * (s2 / qzV.s);
+  qzV.s = s2; qzApply();
+}
+function qzPoint(e) { // position du pointeur en fractions de l'image
+  const r = qzEl('qz-stage').getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, inside: e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom };
+}
+function qzOverPanel(e) { const p = qzEl('qz-labels'); if (!p) return false; const r = p.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; }
+function qzPlace(gi, x, y) { qzPins[gi] = { x: Math.min(1, Math.max(0, x)), y: Math.min(1, Math.max(0, y)) }; qzSel = null; qzDrawPins(); qzDrawLabels(); qzHint(); }
 
-function drawQzoneLive(groups, canvas) {
-  if (!canvas || !canvas.width) return;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const W = canvas.width, H = canvas.height;
-  Object.keys(window.qzoneDropPos || {}).forEach(gi => {
-    const pos = window.qzoneDropPos[gi];
-    const name = qzonePlacedAnswers[gi];
-    const c = QZONE_COLORS[parseInt(gi) % QZONE_COLORS.length];
-    if (!pos || !name) return;
-    const cx = pos.x * W, cy = pos.y * H;
-    // Draw pin dot
-    ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI*2);
-    ctx.fillStyle = c.stroke; ctx.fill();
-    ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
-    // Draw label bubble
-    ctx.font = 'bold 12px sans-serif';
-    const tw = ctx.measureText(name).width;
-    const bx = cx + 10, by = cy - 8;
-    const bw = tw + 12, bh = 22;
-    // Background
-    ctx.fillStyle = c.stroke;
-    ctx.beginPath();
-    if (ctx.roundRect) ctx.roundRect(bx, by - bh/2, bw, bh, 4);
-    else ctx.rect(bx, by - bh/2, bw, bh);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1; ctx.stroke();
-    // Text
-    ctx.fillStyle = '#000';
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillText(name, bx + 6, by);
-  });
+function qzHint() {
+  const h = qzEl('qz-hint'); if (!h) return;
+  if (qzDone) { h.style.display = 'none'; return; }
+  const left = qzGroups.length - Object.keys(qzPins).length;
+  h.style.display = 'block';
+  h.textContent = qzSel !== null ? 'Touche l\'image pour poser « ' + qzGroups[qzSel].name + ' »'
+    : left === 0 ? 'Tout est placé : glisse un repère pour l\'ajuster, puis valide.'
+    : (qzNarrow() ? 'Choisis une étiquette, puis touche l\'image.' : 'Choisis une étiquette à droite, puis touche l\'image. Glisse un repère pour l\'ajuster ou jusqu\'aux étiquettes pour le reprendre.');
 }
 
-function updateTagsPlaced(groups) {
-  groups.forEach((g, gi) => {
-    const tagEl = document.getElementById('qtag-' + gi);
-    if (!tagEl) return;
-    if (qzonePlacedAnswers[gi] !== undefined) {
-      tagEl.style.borderStyle = 'dashed';
-    } else {
-      tagEl.style.borderStyle = 'solid';
+function qzDrawLabels() {
+  qzClearSlots();
+  if (qzDone) return;
+  const slot = qzSlot(); if (!slot) return;
+  const left = qzGroups.length - Object.keys(qzPins).length;
+  if (!qzNarrow()) qzEl('side-panel').style.width = '260px';
+  slot.innerHTML = '<div class="qz-labels" id="qz-labels"><h4>Étiquettes · ' + left + ' restante' + (left > 1 ? 's' : '') + '</h4>'
+    + qzOrder.map((gi, n) => '<div class="qz-et' + (qzSel === gi ? ' sel' : '') + (qzPins[gi] ? ' done' : '') + '" data-gi="' + gi + '"><span class="num">' + (n + 1) + '</span><span>' + qzEsc(qzGroups[gi].name) + '</span>' + (qzPins[gi] ? '<span class="ck">✓</span>' : '') + '</div>').join('')
+    + '<div style="font-size:12px;font-weight:700;color:var(--text-3);line-height:1.4;">Touche une étiquette pour la prendre. Un repère posé se reprend en le glissant ici.</div></div>';
+  slot.querySelectorAll('.qz-et').forEach(el => el.addEventListener('pointerdown', qzLabelDown));
+}
+function qzDrawPins() {
+  const layer = qzEl('qz-layer'); if (!layer || qzDone) return;
+  layer.innerHTML = Object.keys(qzPins).map(gi => '<div class="qz-pin' + (qzSel === +gi ? ' sel' : '') + '" data-gi="' + gi + '" style="left:' + qzPins[gi].x * 100 + '%;top:' + qzPins[gi].y * 100 + '%"><div class="lab">' + (qzOrder.indexOf(+gi) + 1) + ' · ' + qzEsc(qzGroups[gi].name) + '</div><div class="dot"></div></div>').join('');
+}
+
+// Étiquette de la liste : clic = la prendre ; glisser = la poser directement sur l'image
+function qzLabelDown(e) {
+  if (qzDone) return;
+  const el = e.currentTarget, gi = +el.dataset.gi;
+  el.setPointerCapture(e.pointerId);
+  const st = { x: e.clientX, y: e.clientY, moved: false, ghost: null };
+  const move = ev => {
+    if (!st.moved && Math.hypot(ev.clientX - st.x, ev.clientY - st.y) > 6) { st.moved = true; st.ghost = document.createElement('div'); st.ghost.className = 'qz-ghost'; st.ghost.textContent = qzGroups[gi].name; document.body.appendChild(st.ghost); }
+    if (st.ghost) { st.ghost.style.left = ev.clientX + 'px'; st.ghost.style.top = ev.clientY + 'px'; }
+  };
+  const up = ev => {
+    el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', cancel);
+    if (st.ghost) st.ghost.remove();
+    if (!st.moved) { qzSel = qzSel === gi ? null : gi; qzDrawLabels(); qzDrawPins(); qzHint(); return; }
+    const p = qzPoint(ev);
+    if (p.inside) qzPlace(gi, p.x, p.y);
+  };
+  const cancel = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', cancel); if (st.ghost) st.ghost.remove(); };
+  el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', cancel);
+}
+
+// Image : touche = poser le repère de l'étiquette choisie ; glisser = déplacer la vue (si zoomée) ; glisser un repère = l'ajuster / le reprendre
+function qzViewDown(e) {
+  if (qzDone || e.target.closest('.qz-tools')) return;
+  const pin = e.target.closest('.qz-pin');
+  qzEl('qz-view').setPointerCapture(e.pointerId);
+  if (pin) { qzDrag = { gi: +pin.dataset.gi, x: e.clientX, y: e.clientY, moved: false, el: pin, orig: Object.assign({}, qzPins[+pin.dataset.gi]) }; e.preventDefault(); return; }
+  qzTap = { x: e.clientX, y: e.clientY, tx: qzV.tx, ty: qzV.ty, moved: false };
+}
+function qzViewMove(e) {
+  if (qzDrag) {
+    if (!qzDrag.moved && Math.hypot(e.clientX - qzDrag.x, e.clientY - qzDrag.y) > 4) { qzDrag.moved = true; qzDrag.el.classList.add('dragging'); }
+    if (qzDrag.moved) {
+      const p = qzPoint(e);
+      qzDrag.el.style.left = Math.min(1, Math.max(0, p.x)) * 100 + '%'; qzDrag.el.style.top = Math.min(1, Math.max(0, p.y)) * 100 + '%';
+      const pn = qzEl('qz-labels'); if (pn) pn.classList.toggle('drop', qzOverPanel(e));
+      if (pn && qzOverPanel(e) && !pn.querySelector('.qz-drop')) pn.insertAdjacentHTML('afterbegin', '<div class="qz-drop">↓ Lâche ici pour reprendre le repère</div>');
+      if (pn && !qzOverPanel(e)) { const d = pn.querySelector('.qz-drop'); if (d) d.remove(); }
     }
-  });
+    return;
+  }
+  if (qzTap) {
+    const dx = e.clientX - qzTap.x, dy = e.clientY - qzTap.y;
+    if (!qzTap.moved && Math.hypot(dx, dy) > 6) qzTap.moved = true;
+    if (qzTap.moved && qzV.s > 1) { qzV.tx = qzTap.tx + dx; qzV.ty = qzTap.ty + dy; qzApply(); }
+  }
+}
+function qzViewUp(e) {
+  if (qzDrag) {
+    const d = qzDrag; qzDrag = null;
+    if (d.moved) {
+      if (qzOverPanel(e)) delete qzPins[d.gi];
+      else { const p = qzPoint(e); if (p.inside) qzPins[d.gi] = { x: Math.min(1, Math.max(0, p.x)), y: Math.min(1, Math.max(0, p.y)) }; }
+      qzSel = null;
+    } else { qzSel = qzSel === d.gi ? null : d.gi; }
+    qzDrawPins(); qzDrawLabels(); qzHint(); return;
+  }
+  if (qzTap) {
+    const t = qzTap; qzTap = null;
+    if (!t.moved && qzSel !== null) { const p = qzPoint(e); if (p.inside) qzPlace(qzSel, p.x, p.y); }
+  }
 }
 
-function drawQzoneOverlay(groups, showCorrection) {
-  const canvas = document.getElementById('qzone-overlay');
-  if (!canvas || !canvas.width) return;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (!showCorrection) return; // Image stays clean before validation // Nothing shown before validation
-  const W = canvas.width, H = canvas.height;
-  groups.forEach((g, gi) => {
-    const c = QZONE_COLORS[gi % QZONE_COLORS.length];
-    const placed = qzonePlacedAnswers[gi];
-    const isCorrect = placed === g.name;
-    const iconColor = isCorrect ? '#6fcf97' : '#ff6464';
-    g.points.forEach(p => {
-      const cx = p.x * W, cy = p.y * H, r = Math.max(18, p.r || 20);
-      // Couleur originale de la structure
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-      ctx.fillStyle = c.fill; ctx.fill();
-      ctx.strokeStyle = c.stroke; ctx.lineWidth = 2.5; ctx.stroke();
-      // Petit cercle central vert ou rouge
-      ctx.beginPath(); ctx.arc(cx, cy, 11, 0, Math.PI*2);
-      ctx.fillStyle = iconColor; ctx.fill();
-      ctx.fillStyle = '#000'; ctx.font = 'bold 11px sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(isCorrect ? '✓' : '✗', cx, cy);
-      // Nom de la structure en dessous
-      ctx.fillStyle = c.stroke; ctx.font = 'bold 10px sans-serif';
-      const label = g.name.length > 14 ? g.name.substring(0,14)+'…' : g.name;
-      ctx.fillText(label, cx, cy + r + 11);
-    });
-  });
+function qzBanner(q, ans, note) {
+  const n = qzGroups.filter((g, i) => ans.ok[i]).length, total = qzGroups.length;
+  const cls = n === total ? '' : (n > 0 ? 'partial' : 'err'), title = n === total ? 'Bravo !' : (n > 0 ? 'Presque !' : 'Raté');
+  return '<div class="corr-banner ' + cls + '" style="margin:0 0 12px;"><div><div class="t">' + title + '</div></div><div class="s">' + n + ' / ' + total + ' bien placé' + (n > 1 ? 's' : '') + '.' + (note ? '<br>' + note : '') + '</div></div>';
 }
-
-
-function scoreQzone(q) {
-  const groups = getGroups(q);
-  let correct = 0;
-  document.querySelectorAll('#qzone-play-tags .qzone-tag').forEach(t => { t.draggable=false; t.style.cursor='default'; t.style.opacity='1'; });
-
-  const canvas = document.getElementById('qzone-overlay');
-  const W = canvas ? canvas.width : 500;
-  const H = canvas ? canvas.height : 500;
-
-  groups.forEach((g, gi) => {
-    const given = qzonePlacedAnswers[gi] || '';
-    const dropPos = window.qzoneDropPos ? window.qzoneDropPos[gi] : null;
-    if (!given || !dropPos) return;
-    // Tag must match correct group AND drop position must be within marker radius
-    if (given !== g.name) return;
-    let withinRadius = false;
-    g.points.forEach(p => {
-      const r = Math.max(18, p.r || 20);
-      const rNorm = r / W;
-      const dx = p.x - dropPos.x;
-      const dy = p.y - dropPos.y;
-      if (Math.sqrt(dx*dx + dy*dy) <= rNorm * 1.8) withinRadius = true;
-    });
-    if (withinRadius) correct++;
-  });
-
-  drawQzoneOverlay(groups, true);
-
-  // Capture canvas + image as base64 for history correction
-  // drawQzoneOverlay already drew zones+labels on canvas, capture immediately after
-  try {
-    const cv = document.getElementById('qzone-overlay');
-    const img = document.querySelector('#qzone-img-container img');
-    if (cv && img) {
-      const offscreen = document.createElement('canvas');
-      // Render at 2x resolution for sharpness
-      const scale = 2;
-      offscreen.width = cv.width * scale;
-      offscreen.height = cv.height * scale;
-      const octx = offscreen.getContext('2d');
-      octx.scale(scale, scale);
-      octx.drawImage(img, 0, 0, cv.width, cv.height);
-      octx.drawImage(cv, 0, 0);
-      if (!session.qzoneCorrectedImages) session.qzoneCorrectedImages = {};
-      session.qzoneCorrectedImages[session.current] = offscreen.toDataURL('image/jpeg', 0.92);
-    }
-  } catch(e) { console.error('qzone capture error', e); }
-
-  groups.forEach((g, gi) => {
-    const tagEl = document.getElementById('qtag-' + gi);
-    if (!tagEl) return;
-    const c = QZONE_COLORS[gi % QZONE_COLORS.length];
-    const given = qzonePlacedAnswers[gi] || '';
-    const dropPos = window.qzoneDropPos ? window.qzoneDropPos[gi] : null;
-    let isCorrect = false;
-    if (given === g.name && dropPos) {
-      g.points.forEach(p => {
-        const r = Math.max(18, p.r || 20);
-        const rNorm = r / W;
-        const dx = p.x - dropPos.x, dy = p.y - dropPos.y;
-        if (Math.sqrt(dx*dx + dy*dy) <= rNorm * 1.8) isCorrect = true;
-      });
-    }
-    // Bordure couleur de la structure + fond semi-transparent + icône résultat
-    tagEl.style.borderColor = c.stroke;
-    tagEl.style.borderWidth = '2px';
-    tagEl.style.borderStyle = 'solid';
-    tagEl.style.background = isCorrect ? c.fill : 'rgba(255,100,100,0.15)';
-    tagEl.style.opacity = '1';
-    // Ajouter ✓ ou ✗ à la fin
-    const existing = tagEl.querySelector('.result-icon');
-    if (existing) existing.remove();
-    const icon = document.createElement('span');
-    icon.className = 'result-icon';
-    icon.style.cssText = 'font-weight:700; font-size:13px; color:' + (isCorrect ? '#6fcf97' : '#ff6464') + '; flex-shrink:0;';
-    icon.textContent = isCorrect ? '✓' : '✗';
-    tagEl.appendChild(icon);
-  });
-
-  // Barème QZone : chaque étiquette vaut 1/total points
-  const total = groups.length;
-  const pts = parseFloat((correct / total).toFixed(3));
-  return pts;
+function qzShowCorrection(q, ans, note) {
+  qzDone = true; qzSel = null;
+  const layer = qzEl('qz-layer'); if (!layer) return;
+  const ok = ans.ok || qzoneScore(qzGroups, ans.pins, ans.W).ok;
+  layer.innerHTML = qzoneLayersHTML(qzGroups, ans.pins, ok, ans.W);
+  qzHint(); qzClearSlots();
+  const slot = qzSlot(); if (slot) slot.innerHTML = qzBanner(q, { ok }, note);
+  qzEl('qz-note').textContent = 'Vert : bien placé · Rouge : mal placé · Pointillés : la zone attendue.';
+  qzApply();
+}
+function scoreQzone(q, note) {
+  const img = qzEl('qz-img'), W = img ? img.offsetWidth : 500;
+  const res = qzoneScore(qzGroups, qzPins, W);
+  const ans = { pins: JSON.parse(JSON.stringify(qzPins)), ok: res.ok, W };
+  session.answers[session.current] = ans;
+  qzShowCorrection(q, ans, note);
+  return res.pts;
 }
 
 // ─── ASSOCIATION : prendre une étiquette, la poser dans une case ───
@@ -1011,7 +920,10 @@ function renderQ() {
       corrA.innerHTML = qassocCorrectionHTML(q, session.answers[session.current]);
     } else renderAssoc(q);
   }
-  else if (isQzone) { renderQzone(q); session.answers[session.current] = {}; }
+  else if (isQzone) {
+    if (session.validatedArr[session.current]) renderQzone(q, session.answers[session.current]);
+    else { renderQzone(q); session.answers[session.current] = {}; }
+  }
   else {
     const optList = document.getElementById('q-options');
     optList.innerHTML = '';
@@ -1051,7 +963,7 @@ function renderQ() {
   document.getElementById('btn-skip').style.display = session.validatedArr[session.current] ? 'none' : 'inline-block';
   document.getElementById('btn-prev').style.display = session.current > 0 ? 'inline-block' : 'none';
   document.getElementById('btn-finish').style.display = session.validatedArr.some(Boolean) ? 'inline-flex' : 'none';
-  document.getElementById('side-panel').style.display = 'block';
+  if (!isQzone) qzClearSlots();
   if (session.validatedArr[session.current]) {
     session.validated = true;
     document.getElementById('btn-validate').style.display = 'none';
@@ -1104,18 +1016,14 @@ function validateQ() {
     return;
   }
   if (q.type === 'qzone') {
-    const pts = scoreQzone(q);
+    const ptsPre = qzoneScore(qzGroups, qzPins, (qzEl('qz-img') || {}).offsetWidth || 500).pts;
+    const errMsgZ = recordResult(q, ptsPre);
+    const pts = scoreQzone(q, errMsgZ);
     session.scoreTotal += pts;
     session.scorePoints[session.current] = pts;
     session.validatedArr[session.current] = true;
-    const errMsgZ = recordResult(q, pts);
-    const corrDiv = document.getElementById('correction');
-    const ptsStr = pts === 0 ? '0' : parseFloat(pts.toFixed(2)).toString().replace('.', ',');
-    const ptsColor = pts === 1 ? 'var(--green-text)' : pts > 0 ? 'var(--amber-text)' : 'var(--red-text)';
-    const parfait = pts === 1 ? ' — Parfait !' : '';
-    const ptsLabel = '<span style="color:' + ptsColor + ';font-weight:800;">+' + ptsStr + ' pt' + parfait + '</span>';
-    corrDiv.innerHTML = ptsLabel + (errMsgZ ? '<br><em>' + errMsgZ + '</em>' : '') + (q.explanation ? '<br>' + q.explanation : '');
-    corrDiv.classList.add('show');
+    corrDiv.innerHTML = q.explanation ? '<div class="corr-free"><span class="k">À retenir</span>' + q.explanation + '</div>' : '';
+    if (q.explanation) corrDiv.classList.add('show');
     document.getElementById('btn-validate').style.display = 'none';
     document.getElementById('btn-skip').style.display = 'none';
     showNextBtn(); updateSidePanel(); updateScoreLive();
@@ -1226,6 +1134,8 @@ function updateSidePanel() {
     btn.onclick = (function(idx){ return function(){ session.current = idx; renderQ(); }; })(i);
     list.appendChild(btn);
   });
+  const nb = document.getElementById('nav-box'), cur = list.children[session.current];
+  if (nb && cur && !qzNarrow()) nb.scrollTop = Math.max(0, (cur.offsetTop - nb.offsetTop) - nb.clientHeight / 2 + cur.offsetHeight / 2);
 }
 
 function examToggle(qi, oi, el) {
@@ -1428,6 +1338,7 @@ function showResults() {
     type: q.type || 'qcm',
     options: q.options || [],
     cases: q.cases || [],
+    groups: q.type === 'qzone' ? getGroups(q) : [],
     correct: q.correct || [],
     optExps: q.optExps || [],
     explanation: q.explanation || '',
@@ -1519,6 +1430,8 @@ function renderTrainResults() {
       html += '</div>';
     } else if (q.type === 'qassoc') {
       html += '<div style="padding:0 1.25rem 1rem;">' + qassocCorrectionHTML(q, session.answers[i], { banner: false, explanation: false }) + '</div>';
+    } else if (q.type === 'qzone') {
+      html += '<div style="padding:0 1.25rem 1rem;">' + qzoneStaticHTML({ image: q.image, groups: getGroups(q) }, session.answers[i]) + '</div>';
     } else if (q.type !== 'qzone') {
       const userAns = session.answers[i] || [];
 

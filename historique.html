@@ -304,13 +304,7 @@ function ouvrirRevue(index) {
     // Question text
     bhtml += '<div style="padding:1.25rem;font-size:15px;color:var(--text);font-weight:700;line-height:1.65;">' + d.question + '</div>';
     if (d.type === 'qzone') {
-      const ptsQzone = d.pts !== undefined ? Math.round(d.pts * 100) / 100 : 0;
-      const ptsStr = ptsQzone.toString().replace('.', ',');
-      bhtml += '<div style="margin:0 1.25rem 1rem;padding:1.25rem;background:var(--bg-3);border:2px solid var(--border);border-radius:12px;display:flex;align-items:center;gap:14px;">';
-      bhtml += '<span style="font-size:2rem;">🗺️</span>';
-      bhtml += '<div><div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px;">Qzone — correction visuelle non disponible dans l\'historique</div>';
-      bhtml += '<div style="font-size:13px;color:var(--text-2);">Score obtenu : <strong style="color:var(--yellow);">' + ptsStr + ' pt</strong></div></div>';
-      bhtml += '</div>';
+      bhtml += '<div style="padding:0 1.25rem 1rem;">' + qzoneStaticHTML(d, d.userAns) + '</div>';
     } else if (d.image) {
       bhtml += '<div style="padding:0 1.25rem 1rem;"><img src="' + d.image + '" style="max-width:100%;max-height:260px;border-radius:12px;border:2px solid var(--border);display:block;"></div>';
     }

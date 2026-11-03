@@ -137,3 +137,45 @@ window.qcmStatColor = function (r) { return r === null ? 'var(--border-2)' : r >
     return h;
   };
 })();
+
+
+/* ─── QZone : repères posés sur une image ─── */
+(function () {
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // pins : { indexStructure: {x,y} } en fractions de l'image ; W : largeur d'affichage de l'image au moment du jeu
+  window.qzoneScore = function (groups, pins, W) {
+    var ok = {}, n = 0;
+    groups.forEach(function (g, gi) {
+      var p = pins && pins[gi]; ok[gi] = false;
+      if (p) (g.points || []).forEach(function (pt) {
+        var rN = Math.max(18, pt.r || 20) / (W || 500), dx = pt.x - p.x, dy = pt.y - p.y;
+        if (Math.sqrt(dx * dx + dy * dy) <= rN * 1.8) ok[gi] = true;
+      });
+      if (ok[gi]) n++;
+    });
+    return { ok: ok, n: n, total: groups.length, pts: groups.length ? parseFloat((n / groups.length).toFixed(3)) : 0 };
+  };
+  // Calque de correction : zones attendues (pointillés si raté) + repères verts / rouges
+  window.qzoneLayersHTML = function (groups, pins, ok, W) {
+    var h = '';
+    groups.forEach(function (g, gi) {
+      (g.points || []).forEach(function (pt) {
+        var wPct = 2 * (Math.max(18, pt.r || 20) / (W || 500)) * 1.8 * 100;
+        h += '<div class="qz-zone ' + (ok && ok[gi] ? 'ok' : 'miss') + '" style="left:' + pt.x * 100 + '%;top:' + pt.y * 100 + '%;width:' + wPct + '%"></div>';
+      });
+      if (!(ok && ok[gi]) && g.points && g.points[0]) h += '<div class="qz-zlab" style="left:' + g.points[0].x * 100 + '%;top:' + g.points[0].y * 100 + '%">' + esc(g.name) + '</div>';
+      var p = pins && pins[gi];
+      if (p) h += '<div class="qz-pin ' + (ok && ok[gi] ? 'ok' : 'ko') + '" style="left:' + p.x * 100 + '%;top:' + p.y * 100 + '%"><div class="lab">' + esc(g.name) + '</div><div class="dot"></div></div>';
+    });
+    return h;
+  };
+  // Vue statique (historique, résultats) : image + calque de correction
+  window.qzoneStaticHTML = function (d, ans) {
+    var groups = d.groups || [];
+    if (!d.image || !groups.length || !ans || !ans.pins) return '<div style="padding:12px 16px;border-radius:12px;background:var(--bg-3);border:2px solid var(--border);font-size:14px;font-weight:700;color:var(--text-2);">Correction visuelle non disponible pour cette question (image ou repères absents sur cet appareil).</div>';
+    var sc = ans.ok ? { n: groups.filter(function (g, i) { return ans.ok[i]; }).length, total: groups.length } : qzoneScore(groups, ans.pins, ans.W);
+    var ok = ans.ok || qzoneScore(groups, ans.pins, ans.W).ok;
+    return '<div class="qz-legend"><span><strong>Vert</strong> : bien placé</span><span><strong>Rouge</strong> : mal placé</span><span><strong>Pointillés</strong> : la zone attendue</span><span><strong>' + sc.n + ' / ' + sc.total + '</strong> bien placés</span></div>' +
+      '<div class="qz-view static"><div class="qz-stage"><img src="' + d.image + '" alt="">' + qzoneLayersHTML(groups, ans.pins, ok, ans.W) + '</div></div>';
+  };
+})();
