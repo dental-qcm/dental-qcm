@@ -165,7 +165,7 @@ window.qcmStatColor = function (r) { return r === null ? 'var(--border-2)' : r >
       });
       if (!(ok && ok[gi]) && g.points && g.points[0]) h += '<div class="qz-zlab" style="left:' + g.points[0].x * 100 + '%;top:' + g.points[0].y * 100 + '%">' + esc(g.name) + '</div>';
       var p = pins && pins[gi];
-      if (p) h += '<div class="qz-pin ' + (ok && ok[gi] ? 'ok' : 'ko') + '" style="left:' + p.x * 100 + '%;top:' + p.y * 100 + '%"><div class="lab">' + esc(g.name) + '</div><div class="dot"></div></div>';
+      if (p) h += '<div class="qz-pin ' + (ok && ok[gi] ? 'ok' : 'ko') + (p.x > 0.62 ? ' flip' : '') + '" style="left:' + p.x * 100 + '%;top:' + p.y * 100 + '%"><div class="ring"></div><div class="lab">' + esc(g.name) + '</div></div>';
     });
     return h;
   };

@@ -649,3 +649,21 @@ footer p { font-size: 14px; color: var(--text-3); }
 #side-panel .corr-banner .t { font-size:20px; }
 .qz-hint { border-radius:16px; }
 @media (max-width: 760px) { .qz-hint { font-size:12.5px; padding:6px 12px; width:88%; } }
+
+
+/* Repère QZone v2 : viseur au point exact + étiquette à côté, grande zone de saisie */
+.qz-pin { width:0; height:0; transform:scale(var(--inv)); transform-origin:0 0; display:block; align-items:initial; flex-direction:initial; z-index:3; cursor:grab; touch-action:none; }
+.qz-pin .hit { position:absolute; left:-26px; top:-26px; width:52px; height:52px; border-radius:50%; }
+.qz-pin .ring { position:absolute; left:-13px; top:-13px; width:26px; height:26px; box-sizing:border-box; border-radius:50%; border:3px solid var(--text); background:rgba(255,255,255,.45); box-shadow:0 0 0 2.5px #fff, 0 2px 8px rgba(0,0,0,.45); }
+.qz-pin .ring::after { content:''; position:absolute; left:50%; top:50%; width:4px; height:4px; margin:-2px 0 0 -2px; border-radius:50%; background:var(--text); }
+.qz-pin .lab { position:absolute; left:20px; top:-40px; margin:0; white-space:nowrap; }
+.qz-pin.flip .lab { left:auto; right:20px; }
+.qz-pin .dot { display:none; }
+.qz-pin.sel .ring { border-color:var(--yellow); box-shadow:0 0 0 2.5px #fff, 0 0 0 7px var(--yellow-dim), 0 2px 8px rgba(0,0,0,.45); }
+.qz-pin.ok .ring { border-color:var(--green); } .qz-pin.ok .ring::after { background:var(--green); }
+.qz-pin.ko .ring { border-color:var(--red); } .qz-pin.ko .ring::after { background:var(--red); }
+.qz-pin.dragging .ring { transform:scale(1.15); }
+.qz-cross { position:absolute; width:0; height:0; z-index:4; pointer-events:none; transform:scale(var(--inv)); transform-origin:0 0; }
+.qz-cross::before { content:''; position:absolute; left:-17px; top:-17px; width:34px; height:34px; box-sizing:border-box; border-radius:50%; border:3px solid var(--yellow); background:var(--yellow-dim); box-shadow:0 0 0 2.5px #fff; }
+.qz-cross::after { content:''; position:absolute; left:-2px; top:-2px; width:4px; height:4px; border-radius:50%; background:#000; }
+.qz-view.armed { cursor:crosshair; }

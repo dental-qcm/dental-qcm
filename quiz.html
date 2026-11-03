@@ -6,14 +6,14 @@
   <title>QCM — Annales</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
-  <script src="theme.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <script src="theme.js?v=20261103b"></script>
+  <link rel="stylesheet" href="style.css?v=20261103b">
   
   <!-- POLYFILL MOBILE POUR LE GLISSER-DÉPOSER TACTILE -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
   <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
-  <script src="qcm-ui.js"></script>
-  <script src="sync.js"></script>
+  <script src="qcm-ui.js?v=20261103b"></script>
+  <script src="sync.js?v=20261103b"></script>
   <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
   <script>
     window.addEventListener('touchmove', function() {}, {passive: false});
@@ -662,6 +662,7 @@ function renderQzone(q, saved) {
   view.addEventListener('pointermove', qzViewMove);
   view.addEventListener('pointerup', qzViewUp);
   view.addEventListener('pointercancel', () => { qzDrag = null; qzTap = null; qzDrawPins(); });
+  view.addEventListener('pointerleave', () => { const c = qzEl('qz-cross'); if (c) c.remove(); });
   const img = qzEl('qz-img');
   if (saved && saved.pins) {
     img.onload = () => qzShowCorrection(q, saved);
@@ -693,8 +694,8 @@ function qzPoint(e) { // position du pointeur en fractions de l'image
   const r = qzEl('qz-stage').getBoundingClientRect();
   return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, inside: e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom };
 }
-function qzOverPanel(e) { const p = qzEl('qz-labels'); if (!p) return false; const r = p.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; }
-function qzPlace(gi, x, y) { qzPins[gi] = { x: Math.min(1, Math.max(0, x)), y: Math.min(1, Math.max(0, y)) }; qzSel = null; qzDrawPins(); qzDrawLabels(); qzHint(); }
+function qzOverPanel(e) { const p = qzNarrow() ? qzEl('qz-labels') : qzEl('side-panel'); if (!p) return false; const r = p.getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; }
+function qzPlace(gi, x, y) { const cx = qzEl('qz-cross'); if (cx) cx.remove(); const vv = qzEl('qz-view'); if (vv) vv.classList.remove('armed'); qzPins[gi] = { x: Math.min(1, Math.max(0, x)), y: Math.min(1, Math.max(0, y)) }; qzSel = null; qzDrawPins(); qzDrawLabels(); qzHint(); }
 
 function qzHint() {
   const h = qzEl('qz-hint'); if (!h) return;
@@ -719,7 +720,7 @@ function qzDrawLabels() {
 }
 function qzDrawPins() {
   const layer = qzEl('qz-layer'); if (!layer || qzDone) return;
-  layer.innerHTML = Object.keys(qzPins).map(gi => '<div class="qz-pin' + (qzSel === +gi ? ' sel' : '') + '" data-gi="' + gi + '" style="left:' + qzPins[gi].x * 100 + '%;top:' + qzPins[gi].y * 100 + '%"><div class="lab">' + (qzOrder.indexOf(+gi) + 1) + ' · ' + qzEsc(qzGroups[gi].name) + '</div><div class="dot"></div></div>').join('');
+  layer.innerHTML = Object.keys(qzPins).map(gi => '<div class="qz-pin' + (qzSel === +gi ? ' sel' : '') + (qzPins[gi].x > 0.62 ? ' flip' : '') + '" data-gi="' + gi + '" style="left:' + qzPins[gi].x * 100 + '%;top:' + qzPins[gi].y * 100 + '%"><div class="hit"></div><div class="ring"></div><div class="lab">' + (qzOrder.indexOf(+gi) + 1) + ' · ' + qzEsc(qzGroups[gi].name) + '</div></div>').join('');
 }
 
 // Étiquette de la liste : clic = la prendre ; glisser = la poser directement sur l'image
@@ -748,18 +749,33 @@ function qzViewDown(e) {
   if (qzDone || e.target.closest('.qz-tools')) return;
   const pin = e.target.closest('.qz-pin');
   qzEl('qz-view').setPointerCapture(e.pointerId);
-  if (pin) { qzDrag = { gi: +pin.dataset.gi, x: e.clientX, y: e.clientY, moved: false, el: pin, orig: Object.assign({}, qzPins[+pin.dataset.gi]) }; e.preventDefault(); return; }
+  if (pin) {
+    const gi = +pin.dataset.gi, r = qzEl('qz-stage').getBoundingClientRect(), pt = qzPins[gi];
+    // décalage entre le doigt/curseur et le point exact du repère : le repère ne « saute » pas ; au doigt on le remonte pour voir le point
+    const offX = r.left + pt.x * r.width - e.clientX, offY = r.top + pt.y * r.height - e.clientY - (e.pointerType === 'touch' ? 56 : 0);
+    qzDrag = { gi, x: e.clientX, y: e.clientY, moved: false, el: pin, orig: Object.assign({}, pt), offX, offY }; e.preventDefault(); return;
+  }
   qzTap = { x: e.clientX, y: e.clientY, tx: qzV.tx, ty: qzV.ty, moved: false };
 }
+function qzCross(e) {
+  const st = qzEl('qz-stage'), v = qzEl('qz-view'); if (!st || !v) return;
+  let c = qzEl('qz-cross');
+  if (qzDone || qzSel === null || qzDrag || e.pointerType !== 'mouse') { if (c) c.remove(); v.classList.remove('armed'); return; }
+  v.classList.add('armed');
+  if (!c) { c = document.createElement('div'); c.id = 'qz-cross'; c.className = 'qz-cross'; st.appendChild(c); }
+  const p = qzPoint(e); c.style.left = p.x * 100 + '%'; c.style.top = p.y * 100 + '%';
+}
 function qzViewMove(e) {
+  if (!qzDrag && !qzTap) { qzCross(e); return; }
   if (qzDrag) {
     if (!qzDrag.moved && Math.hypot(e.clientX - qzDrag.x, e.clientY - qzDrag.y) > 4) { qzDrag.moved = true; qzDrag.el.classList.add('dragging'); }
     if (qzDrag.moved) {
-      const p = qzPoint(e);
+      const p = qzPoint({ clientX: e.clientX + qzDrag.offX, clientY: e.clientY + qzDrag.offY });
       qzDrag.el.style.left = Math.min(1, Math.max(0, p.x)) * 100 + '%'; qzDrag.el.style.top = Math.min(1, Math.max(0, p.y)) * 100 + '%';
-      const pn = qzEl('qz-labels'); if (pn) pn.classList.toggle('drop', qzOverPanel(e));
-      if (pn && qzOverPanel(e) && !pn.querySelector('.qz-drop')) pn.insertAdjacentHTML('afterbegin', '<div class="qz-drop">↓ Lâche ici pour reprendre le repère</div>');
-      if (pn && !qzOverPanel(e)) { const d = pn.querySelector('.qz-drop'); if (d) d.remove(); }
+      qzDrag.el.classList.toggle('flip', p.x > 0.62);
+      const pn = qzEl('qz-labels'), over = qzOverPanel(e); if (pn) pn.classList.toggle('drop', over);
+      if (pn && over && !pn.querySelector('.qz-drop')) pn.insertAdjacentHTML('afterbegin', '<div class="qz-drop">↓ Lâche ici pour reprendre le repère</div>');
+      if (pn && !over) { const d = pn.querySelector('.qz-drop'); if (d) d.remove(); }
     }
     return;
   }
@@ -774,7 +790,7 @@ function qzViewUp(e) {
     const d = qzDrag; qzDrag = null;
     if (d.moved) {
       if (qzOverPanel(e)) delete qzPins[d.gi];
-      else { const p = qzPoint(e); if (p.inside) qzPins[d.gi] = { x: Math.min(1, Math.max(0, p.x)), y: Math.min(1, Math.max(0, p.y)) }; }
+      else { const p = qzPoint({ clientX: e.clientX + d.offX, clientY: e.clientY + d.offY }); qzPins[d.gi] = { x: Math.min(1, Math.max(0, p.x)), y: Math.min(1, Math.max(0, p.y)) }; }
       qzSel = null;
     } else { qzSel = qzSel === d.gi ? null : d.gi; }
     qzDrawPins(); qzDrawLabels(); qzHint(); return;
